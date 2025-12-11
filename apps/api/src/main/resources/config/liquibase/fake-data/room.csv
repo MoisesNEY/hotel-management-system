@@ -1,0 +1,11 @@
+id;room_number;status;is_deleted;room_type_id
+1;burgeon madly;MAINTENANCE;true;1
+2;likewise;DIRTY;false;2
+3;smart even while;OCCUPIED;true;3
+4;jazz but outside;MAINTENANCE;true;4
+5;mid even considering;MAINTENANCE;false;5
+6;any tarry thoroughly;OCCUPIED;true;6
+7;aha behind right;UNAVAILABLE;false;7
+8;ferociously;OCCUPIED;false;8
+9;yummy;DIRTY;false;9
+10;opposite;UNAVAILABLE;true;10

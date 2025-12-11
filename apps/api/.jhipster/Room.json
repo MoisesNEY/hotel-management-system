@@ -1,0 +1,42 @@
+{
+  "annotations": {
+    "changelogDate": "20251211184753"
+  },
+  "applications": ["hotelBackend"],
+  "clientRootFolder": "hotelBackend",
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "roomNumber",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique"]
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "RoomStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "AVAILABLE,OCCUPIED,DIRTY,MAINTENANCE,UNAVAILABLE"
+    },
+    {
+      "fieldName": "isDeleted",
+      "fieldType": "Boolean"
+    }
+  ],
+  "microserviceName": "hotelBackend",
+  "name": "Room",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityField": "name",
+      "otherEntityName": "roomType",
+      "otherEntityRelationshipName": "rooms",
+      "relationshipName": "roomType",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}
