@@ -33,7 +33,8 @@ enum RoomStatus {
   AVAILABLE,   // Lista
   OCCUPIED,    // Ocupada
   DIRTY,       // A limpiar
-  MAINTENANCE  // Reparaciones
+  MAINTENANCE,  // Reparaciones
+  UNAVAILABLE //No disponible
 }
 
 enum RequestStatus {
@@ -69,6 +70,7 @@ entity CustomerDetails {
 entity RoomType {
   name String required minlength(3),
   description TextBlob,
+  basePrice BigDecimal required min(0),
   maxCapacity Integer required min(1),
   imageUrl String
 }
@@ -84,6 +86,7 @@ entity Booking {
   checkOutDate LocalDate required,
   guestCount Integer required min(1),
   status BookingStatus required,
+  totalPrice BigDecimal required min(0),
   notes String
 }
 
