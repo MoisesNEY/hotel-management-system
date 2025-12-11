@@ -111,7 +111,7 @@ entity ServiceRequest {
 
 relationship OneToOne {
   // Vincula los datos extra con el usuario de Keycloak
-  CustomerDetails{user(login) required} to User
+  CustomerDetails{user(login) required} to User with builtInEntity
 }
 
 relationship OneToMany {
