@@ -1,0 +1,131 @@
+// ==========================================
+// CONFIGURACIÓN DE LA APLICACIÓN
+// ==========================================
+application {
+  config {
+    baseName hotelBackend
+    applicationType microservice
+    packageName org.hotel
+    authenticationType oauth2
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+    clientFramework react
+    enableTranslation false
+    nativeLanguage es
+  }
+  entities *
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum BookingStatus {
+  PENDING,    // Reserva creada, espera confirmación
+  CONFIRMED,  // Confirmada
+  CHECKED_IN, // Huésped en casa
+  CHECKED_OUT,// Huésped salió
+  CANCELLED   // Cancelada
+}
+
+enum RoomStatus {
+  AVAILABLE,   // Lista
+  OCCUPIED,    // Ocupada
+  DIRTY,       // A limpiar
+  MAINTENANCE  // Reparaciones
+}
+
+enum RequestStatus {
+  OPEN,
+  IN_PROGRESS,
+  COMPLETED,
+  REJECTED
+}
+
+enum Gender {
+  MALE, FEMALE, OTHER
+}
+
+// ==========================================
+// ENTIDADES
+// ==========================================
+
+/**
+ * Datos extendidos del cliente (Perfil).
+ * Se llena DESPUÉS del registro en Keycloak.
+ */
+entity CustomerDetails {
+  gender Gender required,
+  phone String required pattern(/^\+?[0-9]{7,15}$/),
+  addressLine1 String required,
+  city String required,
+  country String required,
+  // DNI o Pasaporte (Crucial para hoteles)
+  licenseId String required,
+  birthDate LocalDate required
+}
+
+entity RoomType {
+  name String required minlength(3),
+  description TextBlob,
+  maxCapacity Integer required min(1)
+}
+
+entity Room {
+  roomNumber String required unique,
+  status RoomStatus required
+}
+
+entity Booking {
+  checkInDate LocalDate required,
+  checkOutDate LocalDate required,
+  guestCount Integer required min(1),
+  status BookingStatus required,
+  notes String
+}
+
+entity HotelService {
+  name String required,
+  description String,
+  isAvailable Boolean required
+}
+
+entity ServiceRequest {
+  requestDate Instant required,
+  details String,
+  status RequestStatus required
+}
+
+// ==========================================
+// RELACIONES
+// ==========================================
+
+relationship OneToOne {
+  // Vincula los datos extra con el usuario de Keycloak
+  CustomerDetails{user(login) required} to User
+}
+
+relationship OneToMany {
+  RoomType{rooms} to Room{roomType(name) required},
+  Booking{serviceRequests} to ServiceRequest{booking(id) required}
+}
+
+relationship ManyToOne {
+  Booking{roomType(name) required} to RoomType,
+
+  // Asignación de habitación física (Puede ser null al principio)
+  Booking{assignedRoom(roomNumber)} to Room,
+
+  // Vincula la reserva con el Usuario (Login) para seguridad
+  Booking{customer(login) required} to User with builtInEntity,
+
+  ServiceRequest{service(name) required} to HotelService
+}
+
+// Paginación
+paginate Booking, ServiceRequest, Room, CustomerDetails with pagination
+
+// DTOs (Data Transfer Objects)
+dto * with mapstruct
+
