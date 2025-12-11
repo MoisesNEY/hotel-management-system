@@ -69,12 +69,14 @@ entity CustomerDetails {
 entity RoomType {
   name String required minlength(3),
   description TextBlob,
-  maxCapacity Integer required min(1)
+  maxCapacity Integer required min(1),
+  imageUrl String
 }
 
 entity Room {
   roomNumber String required unique,
-  status RoomStatus required
+  status RoomStatus required,
+  isDeleted Boolean
 }
 
 entity Booking {
@@ -88,7 +90,10 @@ entity Booking {
 entity HotelService {
   name String required,
   description String,
-  isAvailable Boolean required
+  isAvailable Boolean required,
+  isDeleted Boolean,
+  cost BigDecimal required min(0),
+  imageUrl String
 }
 
 entity ServiceRequest {
