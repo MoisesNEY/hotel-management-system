@@ -1,6 +1,5 @@
-// src/components/Header.tsx
 import React, { useState, useEffect } from 'react';
-import { Hotel, Menu, X, Crown } from 'lucide-react';
+import { Hotel, Menu, X } from 'lucide-react';
 import '../styles/header.css';
 
 const Header: React.FC = () => {
@@ -11,8 +10,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      
-      // Actualizar enlace activo según scroll
+
       const sections = ['home', 'habitaciones', 'servicios', 'caracteristicas', 'testimonios', 'contacto'];
       const currentSection = sections.find(section => {
         const element = document.getElementById(section);
@@ -121,16 +119,6 @@ const Header: React.FC = () => {
                 }}
               >
                 Características
-              </a>
-              <a 
-                href="#testimonios" 
-                className={`nav-link ${activeLink === 'testimonios' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLinkClick('testimonios');
-                }}
-              >
-                Testimonios
               </a>
               <a 
                 href="#contacto" 

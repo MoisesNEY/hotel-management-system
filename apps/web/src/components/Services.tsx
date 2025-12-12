@@ -1,54 +1,62 @@
-// src/components/Services.tsx
 import React from 'react';
 import { Coffee, Dumbbell, Heart, Car, Umbrella, Wind } from 'lucide-react';
+import '../styles/services.css';
 
 const Services: React.FC = () => {
   const services = [
     {
-      icon: <Coffee size={32} />,
+      icon: <Coffee className="service-icon" />,
       name: 'Restaurante & Bar',
-      description: 'Desayuno buffet y cenas gourmet'
+      description: 'Desayuno buffet premium y cenas gourmet con chefs internacionales'
     },
     {
-      icon: <Dumbbell size={32} />,
-      name: 'Gimnasio',
-      description: 'Equipamiento moderno 24 horas'
+      icon: <Dumbbell className="service-icon" />,
+      name: 'Gimnasio Ejecutivo',
+      description: 'Equipamiento moderno, entrenador personal y acceso 24 horas'
     },
     {
-      icon: <Heart size={32} />,
+      icon: <Heart className="service-icon" />,
       name: 'Spa & Wellness',
-      description: 'Masajes y tratamientos relajantes'
+      description: 'Masajes terapéuticos, tratamientos faciales y relajación total'
     },
     {
-      icon: <Car size={32} />,
-      name: 'Transporte',
-      description: 'Servicio de shuttle al aeropuerto'
+      icon: <Car className="service-icon" />,
+      name: 'Transporte Ejecutivo',
+      description: 'Shuttle al aeropuerto, servicio de limusina y valet parking VIP'
     },
     {
-      icon: <Umbrella size={32} />,
-      name: 'Piscina',
-      description: 'Piscina climatizada y zona de sol'
+      icon: <Umbrella className="service-icon" />,
+      name: 'Piscina Infinity',
+      description: 'Piscina climatizada con vista panorámica y bar de piscina'
     },
     {
-      icon: <Wind size={32} />,
-      name: 'Lavandería',
-      description: 'Servicio express de lavandería'
+      icon: <Wind className="service-icon" />,
+      name: 'Lavandería Express',
+      description: 'Servicio de lavandería y planchado premium en menos de 2 horas'
     }
   ];
 
   return (
     <section className="section services" id="servicios">
       <div className="container">
-        <h2 className="section-title">Servicios del Hotel</h2>
+        <div className="section-header">
+          <h2 className="section-title">Servicios Premium</h2>
+          <p className="section-subtitle">
+            Experimenta el lujo de nuestros servicios exclusivos diseñados para tu máximo confort
+          </p>
+        </div>
+        
         <div className="services-grid">
           {services.map((service, index) => (
             <div key={index} className="service-card">
-              <div className="service-icon">
+              <div className="service-icon-container">
                 {service.icon}
               </div>
               <h3 className="service-name">{service.name}</h3>
               <p className="service-description">{service.description}</p>
-              <button className="btn btn-secondary btn-sm">Solicitar</button>
+              <button className="service-btn">
+                Solicitar Servicio
+              </button>
             </div>
           ))}
         </div>

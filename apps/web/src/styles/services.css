@@ -1,0 +1,351 @@
+.services {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 100px 0;
+    position: relative;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #d4af37, #ffd95a, #d4af37);
+    border-radius: 2px;
+}
+
+.section-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.service-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+}
+
+.service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--service-color-1), var(--service-color-2));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+}
+
+.service-card:hover::before {
+    transform: scaleX(1);
+}
+
+
+/* Colores únicos por tarjeta */
+
+.service-card:nth-child(1) {
+    --service-color-1: #E63946;
+    --service-color-2: #F1A7B5;
+}
+
+.service-card:nth-child(2) {
+    --service-color-1: #457B9D;
+    --service-color-2: #A8DADC;
+}
+
+.service-card:nth-child(3) {
+    --service-color-1: #2A9D8F;
+    --service-color-2: #A2D6C4;
+}
+
+.service-card:nth-child(4) {
+    --service-color-1: #E9C46A;
+    --service-color-2: #F4D06F;
+}
+
+.service-card:nth-child(5) {
+    --service-color-1: #264653;
+    --service-color-2: #4A9B9D;
+}
+
+.service-card:nth-child(6) {
+    --service-color-1: #9B5DE5;
+    --service-color-2: #C7B9FF;
+}
+
+
+/* Contenedor del icono */
+
+.service-icon-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover .service-icon-container {
+    transform: scale(1.05);
+    background: white;
+}
+
+
+/* Colores únicos para los contenedores de iconos */
+
+.service-card:nth-child(1) .service-icon-container {
+    border-color: rgba(230, 57, 70, 0.3);
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.05), rgba(230, 57, 70, 0.02));
+}
+
+.service-card:nth-child(2) .service-icon-container {
+    border-color: rgba(69, 123, 157, 0.3);
+    background: linear-gradient(135deg, rgba(69, 123, 157, 0.05), rgba(69, 123, 157, 0.02));
+}
+
+.service-card:nth-child(3) .service-icon-container {
+    border-color: rgba(42, 157, 143, 0.3);
+    background: linear-gradient(135deg, rgba(42, 157, 143, 0.05), rgba(42, 157, 143, 0.02));
+}
+
+.service-card:nth-child(4) .service-icon-container {
+    border-color: rgba(233, 196, 106, 0.3);
+    background: linear-gradient(135deg, rgba(233, 196, 106, 0.05), rgba(233, 196, 106, 0.02));
+}
+
+.service-card:nth-child(5) .service-icon-container {
+    border-color: rgba(38, 70, 83, 0.3);
+    background: linear-gradient(135deg, rgba(38, 70, 83, 0.05), rgba(38, 70, 83, 0.02));
+}
+
+.service-card:nth-child(6) .service-icon-container {
+    border-color: rgba(155, 93, 229, 0.3);
+    background: linear-gradient(135deg, rgba(155, 93, 229, 0.05), rgba(155, 93, 229, 0.02));
+}
+
+
+/* Iconos con colores únicos */
+
+.service-card:nth-child(1) .service-icon {
+    color: #E63946;
+    /* Rojo vibrante para Restaurante */
+}
+
+.service-card:nth-child(2) .service-icon {
+    color: #457B9D;
+    /* Azul profesional para Gimnasio */
+}
+
+.service-card:nth-child(3) .service-icon {
+    color: #2A9D8F;
+    /* Verde spa para Wellness */
+}
+
+.service-card:nth-child(4) .service-icon {
+    color: #E9C46A;
+    /* Dorado cálido para Transporte */
+}
+
+.service-card:nth-child(5) .service-icon {
+    color: #264653;
+    /* Azul oscuro elegante para Piscina */
+}
+
+.service-card:nth-child(6) .service-icon {
+    color: #9B5DE5;
+    /* Púrpura moderno para Lavandería */
+}
+
+.service-name {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: #1a1a2e;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.service-card:nth-child(1):hover .service-name {
+    color: #E63946;
+}
+
+.service-card:nth-child(2):hover .service-name {
+    color: #457B9D;
+}
+
+.service-card:nth-child(3):hover .service-name {
+    color: #2A9D8F;
+}
+
+.service-card:nth-child(4):hover .service-name {
+    color: #E9C46A;
+}
+
+.service-card:nth-child(5):hover .service-name {
+    color: #264653;
+}
+
+.service-card:nth-child(6):hover .service-name {
+    color: #9B5DE5;
+}
+
+.service-description {
+    color: #666;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+}
+
+.service-btn {
+    background: transparent;
+    color: #1a1a2e;
+    border: 2px solid #e9ecef;
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.service-card:nth-child(1) .service-btn:hover {
+    background: #E63946;
+    border-color: #E63946;
+    color: white;
+}
+
+.service-card:nth-child(2) .service-btn:hover {
+    background: #457B9D;
+    border-color: #457B9D;
+    color: white;
+}
+
+.service-card:nth-child(3) .service-btn:hover {
+    background: #2A9D8F;
+    border-color: #2A9D8F;
+    color: white;
+}
+
+.service-card:nth-child(4) .service-btn:hover {
+    background: #E9C46A;
+    border-color: #E9C46A;
+    color: #1a1a2e;
+}
+
+.service-card:nth-child(5) .service-btn:hover {
+    background: #264653;
+    border-color: #264653;
+    color: white;
+}
+
+.service-card:nth-child(6) .service-btn:hover {
+    background: #9B5DE5;
+    border-color: #9B5DE5;
+    color: white;
+}
+
+
+/* Elementos decorativos opcionales */
+
+.services-decoration {
+    position: absolute;
+    font-size: 8rem;
+    opacity: 0.03;
+    color: #1a1a2e;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.services-decoration:nth-child(1) {
+    top: 20%;
+    left: 5%;
+}
+
+.services-decoration:nth-child(2) {
+    bottom: 20%;
+    right: 5%;
+}
+
+@media (max-width: 1024px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .services {
+        padding: 80px 0;
+    }
+    .section-title {
+        font-size: 2rem;
+    }
+    .services-grid {
+        gap: 20px;
+    }
+    .service-card {
+        padding: 30px 20px;
+    }
+    .service-icon-container {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+        max-width: 350px;
+        margin: 0 auto;
+    }
+    .section-title {
+        font-size: 1.8rem;
+    }
+    .services-decoration {
+        display: none;
+    }
+}

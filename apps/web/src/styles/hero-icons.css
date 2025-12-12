@@ -1,0 +1,53 @@
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+
+/* Efectos específicos por tipo de icono */
+
+.form-group:nth-child(1) .icon-container {
+    background: rgba(255, 107, 53, 0.1);
+    /* Naranja claro */
+    border: 1px solid rgba(255, 107, 53, 0.2);
+}
+
+.form-group:nth-child(2) .icon-container {
+    background: rgba(67, 97, 238, 0.1);
+    /* Azul claro */
+    border: 1px solid rgba(67, 97, 238, 0.2);
+}
+
+.form-group:nth-child(3) .icon-container {
+    background: rgba(42, 157, 143, 0.1);
+    /* Verde claro */
+    border: 1px solid rgba(42, 157, 143, 0.2);
+}
+
+
+/* Hover effects */
+
+.form-group:hover .icon-container {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.form-group:nth-child(1):hover .icon-container {
+    background: rgba(255, 107, 53, 0.15);
+    border-color: rgba(255, 107, 53, 0.3);
+}
+
+.form-group:nth-child(2):hover .icon-container {
+    background: rgba(67, 97, 238, 0.15);
+    border-color: rgba(67, 97, 238, 0.3);
+}
+
+.form-group:nth-child(3):hover .icon-container {
+    background: rgba(42, 157, 143, 0.15);
+    border-color: rgba(42, 157, 143, 0.3);
+}

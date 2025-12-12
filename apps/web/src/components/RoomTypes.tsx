@@ -1,6 +1,6 @@
-// src/components/RoomTypes.tsx
 import React from 'react';
-import { Bed, Users, Maximize } from 'lucide-react';
+import { Bed, Users, Maximize, Check } from 'lucide-react';
+import '../styles/room-pricing-minimal.css';
 
 const RoomTypes: React.FC = () => {
   const rooms = [
@@ -9,27 +9,39 @@ const RoomTypes: React.FC = () => {
       description: 'Perfecta para viajeros individuales o parejas',
       size: '25 m²',
       capacity: '2 personas',
-      price: '$120/noche',
+      price: 120,
       amenities: ['TV Smart', 'WiFi', 'Baño privado', 'Vista ciudad'],
-      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600'
+      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600',
+      features: [
+        { icon: <Check size={16} />, text: 'Cancelación gratuita' },
+        { icon: <Check size={16} />, text: 'Desayuno incluido' }
+      ]
     },
     {
       name: 'Suite Ejecutiva',
       description: 'Espacio amplio con área de trabajo separada',
       size: '45 m²',
       capacity: '3 personas',
-      price: '$220/noche',
+      price: 220,
       amenities: ['Sala de estar', 'Escritorio', 'Minibar', 'Vista panorámica'],
-      image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w-600'
+      image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600',
+      features: [
+        { icon: <Check size={16} />, text: 'Acceso ejecutivo' },
+        { icon: <Check size={16} />, text: 'Late check-out' }
+      ]
     },
     {
       name: 'Suite Presidencial',
       description: 'La máxima experiencia de lujo y confort',
       size: '80 m²',
       capacity: '4 personas',
-      price: '$450/noche',
+      price: 450,
       amenities: ['Jacuzzi', 'Cocina', '2 dormitorios', 'Servicio VIP'],
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600'
+      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600',
+      features: [
+        { icon: <Check size={16} />, text: 'Servicio personal' },
+        { icon: <Check size={16} />, text: 'Todos los beneficios' }
+      ]
     }
   ];
 
@@ -68,10 +80,38 @@ const RoomTypes: React.FC = () => {
                     <span key={idx} className="amenity">{amenity}</span>
                   ))}
                 </div>
-                
-                <div className="room-footer">
-                  <div className="room-price">{room.price}</div>
-                  <button className="btn btn-primary">Reservar Ahora</button>
+                <div className="room-pricing-section">
+                  <div className="pricing-container">
+                    <div className="price-display">
+                      <div className="price-main">
+                        <span className="price-currency">$</span>
+                        <span className="price-amount">{room.price}</span>
+                        <span className="price-period">/noche</span>
+                      </div>
+                      <div className="price-note">Impuestos incluidos</div>
+                    </div>
+                    
+                    <button className="book-btn">
+                      RESERVAR AHORA
+                    </button>
+                    
+                    <div className="price-features">
+                      {room.features.map((feature, idx) => (
+                        <div key={idx} className="price-feature">
+                          <div className="feature-icon">
+                            {feature.icon}
+                          </div>
+                          <div className="feature-text">
+                            {feature.text}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="quality-badge">
+                      Calidad Garantizada
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
