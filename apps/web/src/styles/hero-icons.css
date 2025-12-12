@@ -13,19 +13,16 @@
 
 .form-group:nth-child(1) .icon-container {
     background: rgba(255, 107, 53, 0.1);
-    /* Naranja claro */
     border: 1px solid rgba(255, 107, 53, 0.2);
 }
 
 .form-group:nth-child(2) .icon-container {
     background: rgba(67, 97, 238, 0.1);
-    /* Azul claro */
     border: 1px solid rgba(67, 97, 238, 0.2);
 }
 
 .form-group:nth-child(3) .icon-container {
     background: rgba(42, 157, 143, 0.1);
-    /* Verde claro */
     border: 1px solid rgba(42, 157, 143, 0.2);
 }
 

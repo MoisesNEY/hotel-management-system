@@ -65,7 +65,6 @@
 
 .nav-links .nav-link {
     color: #ffffff !important;
-    /* Forzar blanco solo en enlaces del menú */
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s ease;
