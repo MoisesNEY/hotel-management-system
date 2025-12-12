@@ -5,7 +5,9 @@ npm run dev
 1. react ^19.2.0
 2. react-dom ^19.2.0
 3. lucide-react ^0.560.0 (iconos)
-
+4. next-themes (cambio de tema)
+5. react-router-dom
+6. styled-components
 
 # DEPENDENCIAS DE DESAROLLO
 1. vite ^7.2.4 (bundler y servidor de desarrollo)
@@ -27,5 +29,4 @@ npm run dev
 
 
 # PARA VER LA VERSION DE TAILWINDS
-
 npm list tailwindcss

@@ -1,0 +1,428 @@
+.customer-bg {
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(ellipse at 20% 20%, rgba(10, 20, 60, 0.3) 0%, transparent 70%), radial-gradient(ellipse at 80% 80%, rgba(20, 40, 100, 0.3) 0%, transparent 70%), linear-gradient(135deg, #0a143c 0%, #1a2b5c 50%, #0f1a40 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+
+/* Efecto de estrellas en el fondo */
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.3) 50%, transparent), radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.2) 50%, transparent), radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.2) 50%, transparent), radial-gradient(3px 3px at 130px 80px, rgba(255, 255, 255, 0.1) 50%, transparent);
+    z-index: 0;
+    animation: twinkle 8s infinite alternate;
+}
+
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+
+/* Contenedor principal */
+
+.hotel-form-wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+
+/* Tarjeta del formulario con aspecto de hotel lujoso */
+
+.hotel-form-container {
+    width: 100%;
+    max-width: 800px;
+    background: rgba(15, 25, 60, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 40px;
+    border: 1px solid rgba(100, 150, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 10, 30, 0.4), 0 0 0 1px rgba(100, 150, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* Efecto de luz azul en los bordes */
+
+.hotel-form-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient( 90deg, transparent, #FFD700, /* dorado brillante */
+    transparent);
+    border-radius: 2px;
+}
+
+
+/* Encabezado del formulario */
+
+.hotel-form-header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.hotel-form-title {
+    color: #fff;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+
+/* Icono de hotel */
+
+.hotel-icon {
+    width: 36px;
+    height: 36px;
+    fill: rgba(100, 150, 255, 0.9);
+    filter: drop-shadow(0 0 10px rgba(100, 150, 255, 0.5));
+}
+
+.hotel-form-subtitle {
+    color: rgba(200, 220, 255, 0.7);
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+}
+
+
+/* Grid del formulario */
+
+.hotel-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .hotel-form-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+
+/* Grupos de formulario */
+
+.hotel-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hotel-form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+
+/* Etiquetas */
+
+.hotel-label {
+    color: rgba(220, 230, 255, 0.9);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+/* Iconos de etiquetas */
+
+.label-icon {
+    width: 18px;
+    height: 18px;
+    fill: #FFD700;
+}
+
+
+/* Inputs estilizados */
+
+.hotel-input {
+    padding: 16px 20px 16px 45px;
+    background: rgba(10, 20, 45, 0.6);
+    border: 1px solid rgba(100, 150, 255, 0.2);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    outline: none;
+    position: relative;
+}
+
+.hotel-input::placeholder {
+    color: rgba(200, 220, 255, 0.4);
+}
+
+.hotel-input:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.1), inset 0 0 20px rgba(100, 150, 255, 0.05);
+    background: rgba(10, 20, 45, 0.8);
+}
+
+
+/* Select personalizado */
+
+.hotel-select-wrapper {
+    position: relative;
+}
+
+.hotel-select {
+    padding: 16px 20px 16px 45px;
+    background: rgba(10, 20, 45, 0.6);
+    border: 1px solid rgba(100, 150, 255, 0.2);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;
+    appearance: none;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.hotel-select option {
+    background: #0a142d;
+    color: #fff;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(200, 220, 255, 0.6);
+    pointer-events: none;
+    font-size: 12px;
+}
+
+.hotel-select:focus {
+    border-color: rgba(100, 150, 255, 0.6);
+    box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.1), inset 0 0 20px rgba(100, 150, 255, 0.05);
+    background: rgba(10, 20, 45, 0.8);
+}
+
+
+/* Botón de envío */
+
+.hotel-form-footer {
+    text-align: center;
+}
+
+.hotel-submit-btn {
+    padding: 18px 40px;
+    background-color: #FFD700;
+    /* dorado sólido */
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+
+/* Efecto hover */
+
+.hotel-submit-btn:hover {
+    background-color: #FFC700;
+    /* dorado un poco más brillante al pasar el mouse */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    /* sombra dorada */
+}
+
+.hotel-submit-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.hotel-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(100, 150, 255, 0.3), 0 0 15px rgba(100, 150, 255, 0.2);
+}
+
+.hotel-submit-btn:hover::before {
+    left: 100%;
+}
+
+
+/* Iconos del botón */
+
+.btn-icon {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+.btn-arrow {
+    width: 20px;
+    height: 20px;
+    fill: white;
+    transition: transform 0.3s ease;
+}
+
+.hotel-submit-btn:hover .btn-arrow {
+    transform: translateX(5px);
+}
+
+
+/* Texto de disclaimer */
+
+.form-disclaimer {
+    color: rgba(200, 220, 255, 0.5);
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0.3px;
+}
+
+
+/* Elementos decorativos */
+
+.hotel-decoration {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.decoration-star {
+    width: 20px;
+    height: 20px;
+    fill: rgba(100, 150, 255, 0.3);
+    animation: float 3s infinite ease-in-out;
+}
+
+.decoration-star:nth-child(2) {
+    animation-delay: 1s;
+}
+
+.decoration-star:nth-child(3) {
+    animation-delay: 2s;
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+
+/* Animación de entrada */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hotel-form-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+
+/* Estilo para el input de fecha */
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+
+/* Scrollbar personalizada */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(10, 20, 45, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 150, 255, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 150, 255, 0.5);
+}
+
+
+/* Contenedores de iconos para inputs */
+
+.hotel-form-group {
+    position: relative;
+}
+
+.hotel-form-group .label-icon {
+    position: absolute;
+    left: 15px;
+    top: 40px;
+    z-index: 1;
+}
+
+.hotel-form-group.full-width .label-icon {
+    top: 40px;
+}

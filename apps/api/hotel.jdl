@@ -53,7 +53,7 @@ enum Gender {
 // ==========================================
 
 /**
- * Datos extendidos del cliente (Perfil).
+ * Datos extendidos del cliente (Perfil).D
  * Se llena DESPUÉS del registro en Keycloak.
  */
 entity CustomerDetails {
