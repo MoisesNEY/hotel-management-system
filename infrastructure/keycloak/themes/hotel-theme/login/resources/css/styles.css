@@ -1,0 +1,438 @@
+/* Keycloak Theme - Antigravity Design System */
+/* Optimizado para parent=base con template.ftl personalizado */
+
+:root {
+    /* Colores principales */
+    --primary: #d4af37;
+    --primary-hover: #b5952f;
+    --primary-light: #f3d058;
+
+    /* Fondos */
+    --bg-page: #1a1a2e;
+    --bg-card: rgba(26, 26, 46, 0.95);
+
+    /* Inputs */
+    --input-bg: #16213e;
+    --input-border: #d4af37;
+    --input-border-focus: #f3d058;
+
+    /* Textos */
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* Errores */
+    --error: #ef4444;
+    --error-bg: #7f1d1d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, var(--primary-bg-start, #1a1a2e) 0%, var(--primary-bg-end, #1e293b) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    background-attachment: fixed;
+}
+
+/* Fix: Red asterisk for required fields */
+.required,
+span.required {
+    color: var(--error);
+    margin-left: 0.25rem;
+}
+
+/* Fix: Remove stray clearfix dots */
+.form-group::after,
+.clearfix::after {
+    content: none !important;
+    display: none !important;
+}
+
+.login-pf-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+/* Fix: Headers (Login, Register) in Gold */
+h1,
+#kc-page-title {
+    color: var(--primary);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 1.5rem;
+}
+
+/* Fix: Red asterisk for required fields */
+.required,
+span.required {
+    color: var(--error) !important;
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+/* Fix: Remove stray clearfix dots and list styles */
+.form-group::after,
+.clearfix::after,
+.pf-c-form__group::after {
+    content: none !important;
+    display: none !important;
+}
+
+ul,
+li {
+    list-style: none;
+}
+
+/* Header ANTIGRAVITY */
+#kc-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+#kc-header-wrapper {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Card del formulario */
+#kc-content {
+    width: 100%;
+    max-width: 390px;
+}
+
+#kc-content-wrapper {
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.4),
+        0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* Form */
+#kc-form {
+    width: 100%;
+}
+
+#kc-form-wrapper {
+    width: 100%;
+}
+
+#kc-form-login {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Labels */
+label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.45rem;
+    letter-spacing: 0.025em;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    background-color: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+input[type="email"]::placeholder {
+    color: var(--text-muted);
+}
+
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover {
+    border-color: var(--input-border-focus);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+    border-color: var(--input-border-focus);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    background-color: rgba(26, 33, 62, 0.9);
+}
+
+input[type="text"]:disabled,
+input[type="password"]:disabled,
+input[type="email"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Checkbox */
+.checkbox {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.checkbox label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    cursor: pointer;
+    font-weight: 400;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-right: 0.625rem;
+    cursor: pointer;
+    accent-color: var(--primary);
+    border-radius: 0.25rem;
+}
+
+/* Botones */
+input[type="submit"],
+button[type="submit"],
+.btn-primary {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: var(--bg-page);
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(212, 175, 55, 0.3);
+}
+
+input[type="submit"]:hover,
+button[type="submit"]:hover,
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(212, 175, 55, 0.4);
+}
+
+input[type="submit"]:active,
+button[type="submit"]:active,
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+input[type="submit"]:disabled,
+button[type="submit"]:disabled,
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Form options */
+#kc-form-options {
+    margin-top: 0.75rem;
+}
+
+#kc-form-options>div {
+    margin-bottom: 0.5rem;
+}
+
+/* Links */
+a {
+    color: var(--primary-light);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+/* Mensajes de alerta */
+.alert {
+    padding: 0.875rem 1rem;
+    border-radius: 0.625rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-error {
+    background-color: var(--error-bg);
+    color: #fca5a5;
+    border-color: var(--error);
+}
+
+.alert-success {
+    background-color: #064e3b;
+    color: #6ee7b7;
+    border-color: #10b981;
+}
+
+.alert-warning {
+    background-color: #78350f;
+    color: #fcd34d;
+    border-color: #f59e0b;
+}
+
+.alert-info {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+    border-color: var(--primary);
+}
+
+.kc-feedback-text {
+    flex: 1;
+}
+
+/* Sección de registro */
+#kc-registration-container {
+    margin-top: 2rem;
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+#kc-registration span {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Form buttons container */
+#kc-form-buttons {
+    margin-top: 1.5rem;
+}
+
+/* Info adicional */
+#kc-info {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+#kc-info-wrapper {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Iconos de PatternFly (si existen) */
+.pficon {
+    margin-right: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #kc-content-wrapper {
+        padding: 2rem 1.5rem;
+    }
+
+    #kc-header-wrapper {
+        font-size: 2rem;
+    }
+
+    .login-pf-page {
+        padding: 1rem 0.5rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Password Toggle */
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    line-height: 0;
+    transition: color 0.2s;
+    outline: none;
+}
+
+.password-toggle:hover {
+    color: var(--primary);
+}
+
+.password-toggle svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
