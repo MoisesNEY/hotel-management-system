@@ -8,6 +8,8 @@ const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
 
+
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -31,9 +33,7 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const handleLinkClick = (sectionId: string) => {
     setActiveLink(sectionId);
@@ -86,40 +86,28 @@ const Header: React.FC = () => {
               <a
                 href="#home"
                 className={`nav-link ${activeLink === 'home' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLinkClick('home');
-                }}
+                onClick={(e) => { e.preventDefault(); handleLinkClick('home'); }}
               >
                 Inicio
               </a>
               <a
                 href="#habitaciones"
                 className={`nav-link ${activeLink === 'habitaciones' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLinkClick('habitaciones');
-                }}
+                onClick={(e) => { e.preventDefault(); handleLinkClick('habitaciones'); }}
               >
                 Habitaciones
               </a>
               <a
                 href="#servicios"
                 className={`nav-link ${activeLink === 'servicios' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLinkClick('servicios');
-                }}
+                onClick={(e) => { e.preventDefault(); handleLinkClick('servicios'); }}
               >
                 Servicios
               </a>
               <a
                 href="#caracteristicas"
                 className={`nav-link ${activeLink === 'caracteristicas' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLinkClick('caracteristicas');
-                }}
+                onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}
               >
                 Características
               </a>
@@ -135,10 +123,10 @@ const Header: React.FC = () => {
               </a>
 
               <div className="nav-buttons">
-                <button className="btn btn-secondary" onClick={handleLogin}>
+                <button className="btn btn-secondary" onClick={() => console.log('Login clickeado')}>
                   Iniciar Sesión
                 </button>
-                <button className="btn btn-primary" onClick={handleRegister}>
+                <button className="btn btn-primary" onClick={() => console.log('Register clickeado')}>
                   Registrarse
                 </button>
               </div>
