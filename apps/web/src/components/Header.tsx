@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Hotel, Menu, X } from 'lucide-react';
 import '../styles/header.css';
+import keycloak from '../services/keycloak';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,7 +21,7 @@ const Header: React.FC = () => {
         }
         return false;
       });
-      
+
       if (currentSection) {
         setActiveLink(currentSection);
       }
@@ -37,7 +38,7 @@ const Header: React.FC = () => {
   const handleLinkClick = (sectionId: string) => {
     setActiveLink(sectionId);
     setIsMenuOpen(false);
-    
+
     const element = document.getElementById(sectionId);
     if (element) {
       const offset = 80;
@@ -54,13 +55,15 @@ const Header: React.FC = () => {
   };
 
   const handleLogin = () => {
-    console.log('Iniciar sesión clickeado');
-    // Aquí irá la integración con Keycloak
+    keycloak.login({
+      redirectUri: window.location.origin
+    });
   };
 
   const handleRegister = () => {
-    console.log('Registrarse clickeado');
-    // Aquí irá la integración con Keycloak
+    keycloak.register({
+      redirectUri: window.location.origin
+    });
   };
 
   return (
@@ -74,14 +77,14 @@ const Header: React.FC = () => {
                 <div className="logo-text">Grand Hotel</div>
               </div>
             </div>
-            
+
             <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle menu">
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            
+
             <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-              <a 
-                href="#home" 
+              <a
+                href="#home"
                 className={`nav-link ${activeLink === 'home' ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -90,8 +93,8 @@ const Header: React.FC = () => {
               >
                 Inicio
               </a>
-              <a 
-                href="#habitaciones" 
+              <a
+                href="#habitaciones"
                 className={`nav-link ${activeLink === 'habitaciones' ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -100,8 +103,8 @@ const Header: React.FC = () => {
               >
                 Habitaciones
               </a>
-              <a 
-                href="#servicios" 
+              <a
+                href="#servicios"
                 className={`nav-link ${activeLink === 'servicios' ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -110,8 +113,8 @@ const Header: React.FC = () => {
               >
                 Servicios
               </a>
-              <a 
-                href="#caracteristicas" 
+              <a
+                href="#caracteristicas"
                 className={`nav-link ${activeLink === 'caracteristicas' ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -120,8 +123,8 @@ const Header: React.FC = () => {
               >
                 Características
               </a>
-              <a 
-                href="#contacto" 
+              <a
+                href="#contacto"
                 className={`nav-link ${activeLink === 'contacto' ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -130,7 +133,7 @@ const Header: React.FC = () => {
               >
                 Contacto
               </a>
-              
+
               <div className="nav-buttons">
                 <button className="btn btn-secondary" onClick={handleLogin}>
                   Iniciar Sesión
