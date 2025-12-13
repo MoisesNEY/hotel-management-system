@@ -28,7 +28,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     default Page<Booking> findAllWithEagerRelationships(Pageable pageable) {
         return this.findAllWithToOneRelationships(pageable);
     }
+    /**
+     * 1. Para "Mis Reservas" (Paginado).
+     * Spring genera: SELECT * FROM booking b JOIN jhi_user u ON b.customer_id = u.id WHERE u.login = ?
+     */
+    Page<Booking> findByCustomer_Login(String login, Pageable pageable);
 
+    /**
+     * 2. Para Validar Propiedad (Seguridad IDOR).
+     * Usado al crear ServiceRequest.
+     * Spring genera: SELECT * FROM booking WHERE id = ? AND customer.login = ?
+     */
+    Optional<Booking> findByIdAndCustomer_Login(Long id, String login);
     @Query(
         value = "select booking from Booking booking left join fetch booking.roomType left join fetch booking.assignedRoom left join fetch booking.customer",
         countQuery = "select count(booking) from Booking booking"
