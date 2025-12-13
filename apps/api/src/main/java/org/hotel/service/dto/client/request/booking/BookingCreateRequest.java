@@ -14,9 +14,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class BookingCreateRequest implements Serializable {
     @NotNull
-    private LocalDate checkinDate;
+    private LocalDate checkInDate;
     @NotNull
-    private LocalDate checkoutDate;
+    private LocalDate checkOutDate;
     @NotNull
     @Min(1)
     private Integer guestCount;

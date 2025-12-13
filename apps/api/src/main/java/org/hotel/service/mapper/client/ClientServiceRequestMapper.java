@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ClientServiceRequestMapper {
     @Mapping(target = "serviceId", source = "service.id")
-    @Mapping(target = "servicePrice", source = "service.cost")
+    @Mapping(target = "serviceCost", source = "service.cost")
     @Mapping(target = "serviceName", source = "service.name")
     @Mapping(target = "bookingId", source = "booking.id")
     ServiceRequestResponse toClientResponse(ServiceRequest serviceRequest);

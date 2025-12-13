@@ -19,6 +19,6 @@ public class ServiceRequestResponse implements Serializable {
     private RequestStatus status;
     private Long serviceId;
     private String serviceName;
-    private BigDecimal servicePrice;
+    private BigDecimal serviceCost;
     private Long bookingId;
 }
