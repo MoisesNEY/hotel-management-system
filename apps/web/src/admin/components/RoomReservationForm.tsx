@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import '../styles/room-reservation.css';
+import styles from '../styles/RoomReservationForm.module.css';
 
-const AddRoomForm: React.FC = () => {
+const RoomReservationForm: React.FC = () => {
   const [roomData, setRoomData] = useState({
     name: '',
     description: '',
@@ -11,14 +11,10 @@ const AddRoomForm: React.FC = () => {
     beds: '',
     imageUrl: ''
   });
-
-  const [rooms, setRooms] = useState<any[]>([]);
   const [message, setMessage] = useState('');
 
-  // Función optimizada con console.log para depuración
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    console.log(`Cambiando ${name}: ${value}`); // Para depuración
     
     setRoomData(prev => ({
       ...prev,
@@ -29,33 +25,47 @@ const AddRoomForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validar
+    // Validar campos obligatorios
     if (!roomData.name || !roomData.description || !roomData.basePrice || 
         !roomData.maxCapacity || !roomData.area || !roomData.beds) {
-      setMessage('❌ Error: Todos los campos son obligatorios excepto la imagen');
+      setMessage('Error: Todos los campos son obligatorios excepto la imagen');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
-
-    // Crear nueva habitación
-    const newRoom = {
-      id: Date.now(),
-      name: roomData.name,
-      description: roomData.description,
-      basePrice: parseFloat(roomData.basePrice),
-      maxCapacity: parseInt(roomData.maxCapacity),
-      area: parseInt(roomData.area),
-      beds: parseInt(roomData.beds),
-      imageUrl: roomData.imageUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500&auto=format&fit=crop',
-      fecha: new Date().toLocaleString()
-    };
-
-    // AGREGAR a la lista
-    setRooms(prev => [newRoom, ...prev]);
+    if (isNaN(Number(roomData.basePrice)) || Number(roomData.basePrice) <= 0) {
+      setMessage('Error: El precio base debe ser un número válido mayor a 0');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+    
+    if (isNaN(Number(roomData.maxCapacity)) || Number(roomData.maxCapacity) <= 0) {
+      setMessage('Error: La capacidad máxima debe ser un número válido mayor a 0');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+    
+    if (isNaN(Number(roomData.area)) || Number(roomData.area) <= 0) {
+      setMessage('Error: El área debe ser un número válido mayor a 0');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+    
+    if (isNaN(Number(roomData.beds)) || Number(roomData.beds) <= 0) {
+      setMessage('Error: El número de camas debe ser un número válido mayor a 0');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
     
     // Mostrar mensaje
-    setMessage(`✅ Habitación "${roomData.name}" AGREGADA correctamente!`);
+    setMessage(`Habitación "${roomData.name}" AGREGADA correctamente!`);
     setTimeout(() => setMessage(''), 3000);
+    console.log('Datos de habitación a enviar:', {
+      ...roomData,
+      basePrice: Number(roomData.basePrice),
+      maxCapacity: Number(roomData.maxCapacity),
+      area: Number(roomData.area),
+      beds: Number(roomData.beds)
+    });
     
     // Limpiar formulario
     setRoomData({
@@ -82,16 +92,10 @@ const AddRoomForm: React.FC = () => {
     setMessage('');
   };
 
-  const handleDeleteRoom = (id: number) => {
-    setRooms(prev => prev.filter(room => room.id !== id));
-    setMessage(`🗑️ Habitación eliminada correctamente!`);
-    setTimeout(() => setMessage(''), 3000);
-  };
-
   return (
-    <div className="admin-reservation-container">
-      <div className="admin-reservation-card">
-        <div className="admin-reservation-header">
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.header}>
           <h1>
             <i className="fas fa-plus-circle"></i>
             AGREGAR NUEVA HABITACIÓN
@@ -99,16 +103,16 @@ const AddRoomForm: React.FC = () => {
         </div>
 
         {message && (
-          <div className={`message-alert ${message.includes('✅') ? 'success' : 'error'}`}>
+          <div className={`${styles.messageAlert} ${message.includes('✅') ? styles.success : styles.error}`}>
             {message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ all: 'unset' }}>
-          <div className="admin-reservation-content">
+        <form onSubmit={handleSubmit}>
+          <div className={styles.content}>
             {/* FORMULARIO DE AGREGAR */}
-            <div className="reservation-form-section" style={{ gridColumn: '1 / -1' }}>
-              <h2 className="section-title">
+            <div className={styles.formSection} style={{ gridColumn: '1 / -1' }}>
+              <h2 className={styles.sectionTitle}>
                 <i className="fas fa-plus-square"></i>
                 DATOS DE LA HABITACIÓN
               </h2>
@@ -116,7 +120,7 @@ const AddRoomForm: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 {/* Columna 1 */}
                 <div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label htmlFor="name">
                       <i className="fas fa-hotel"></i>
                       NOMBRE DE HABITACIÓN *
@@ -127,114 +131,88 @@ const AddRoomForm: React.FC = () => {
                       name="name"
                       value={roomData.name}
                       onChange={handleChange}
-                      className="form-control"
+                      className={styles.formControl}
                       placeholder="Ej: Suite Presidencial"
                       required
-                      style={{ 
-                        pointerEvents: 'auto',
-                        opacity: 1,
-                        backgroundColor: 'white'
-                      }}
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label htmlFor="basePrice">
                       <i className="fas fa-dollar-sign"></i>
                       PRECIO BASE ($) *
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       id="basePrice"
                       name="basePrice"
                       value={roomData.basePrice}
                       onChange={handleChange}
-                      className="form-control"
-                      min="0"
-                      step="0.01"
+                      className={styles.formControl}
                       placeholder="Ej: 150.00"
                       required
-                      style={{ 
-                        pointerEvents: 'auto',
-                        opacity: 1,
-                        backgroundColor: 'white'
-                      }}
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label htmlFor="maxCapacity">
                       <i className="fas fa-users"></i>
                       CAPACIDAD MÁXIMA *
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="maxCapacity"
                       name="maxCapacity"
                       value={roomData.maxCapacity}
                       onChange={handleChange}
-                      className="form-control"
-                      min="1"
+                      className={styles.formControl}
                       placeholder="Ej: 4"
                       required
-                      style={{ 
-                        pointerEvents: 'auto',
-                        opacity: 1,
-                        backgroundColor: 'white'
-                      }}
                     />
                   </div>
                 </div>
 
                 {/* Columna 2 */}
                 <div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label htmlFor="area">
                       <i className="fas fa-arrows-alt"></i>
                       ÁREA (m²) *
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       id="area"
                       name="area"
                       value={roomData.area}
                       onChange={handleChange}
-                      className="form-control"
-                      min="1"
+                      className={styles.formControl}
                       placeholder="Ej: 45"
                       required
-                      style={{ 
-                        pointerEvents: 'auto',
-                        opacity: 1,
-                        backgroundColor: 'white'
-                      }}
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label htmlFor="beds">
                       <i className="fas fa-bed"></i>
                       NÚMERO DE CAMAS *
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="beds"
                       name="beds"
                       value={roomData.beds}
                       onChange={handleChange}
-                      className="form-control"
-                      min="1"
+                      className={styles.formControl}
                       placeholder="Ej: 2"
                       required
-                      style={{ 
-                        pointerEvents: 'auto',
-                        opacity: 1,
-                        backgroundColor: 'white'
-                      }}
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label htmlFor="imageUrl">
                       <i className="fas fa-image"></i>
                       URL DE IMAGEN
@@ -245,20 +223,38 @@ const AddRoomForm: React.FC = () => {
                       name="imageUrl"
                       value={roomData.imageUrl}
                       onChange={handleChange}
-                      className="form-control"
+                      className={styles.formControl}
                       placeholder="https://ejemplo.com/imagen.jpg"
-                      style={{ 
-                        pointerEvents: 'auto',
-                        opacity: 1,
-                        backgroundColor: 'white'
-                      }}
                     />
                   </div>
                 </div>
               </div>
 
+              {/* Vista previa de imagen */}
+              {roomData.imageUrl && (
+                <div className={styles.imagePreview} style={{ marginTop: '1rem' }}>
+                  <h3 className={styles.sectionTitle}>
+                    <i className="fas fa-eye"></i>
+                    VISTA PREVIA DE LA IMAGEN
+                  </h3>
+                  <div className={styles.previewImageContainer}>
+                    <img 
+                      src={roomData.imageUrl} 
+                      alt="Vista previa" 
+                      className={styles.previewImage}
+                      onError={(e) => {
+                        e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23667eea"/><text x="50" y="50" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dy=".3em">Imagen no disponible</text></svg>';
+                      }}
+                    />
+                    <div className={styles.previewImageInfo}>
+                      <p><strong>URL:</strong> {roomData.imageUrl.substring(0, 50)}...</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Descripción */}
-              <div className="form-group" style={{ marginTop: '1rem' }}>
+              <div className={styles.formGroup} style={{ marginTop: '1rem' }}>
                 <label htmlFor="description">
                   <i className="fas fa-align-left"></i>
                   DESCRIPCIÓN *
@@ -268,116 +264,24 @@ const AddRoomForm: React.FC = () => {
                   name="description"
                   value={roomData.description}
                   onChange={handleChange}
-                  className="form-control"
+                  className={styles.formControl}
                   rows={4}
                   placeholder="Describe la habitación detalladamente..."
                   required
-                  style={{ 
-                    pointerEvents: 'auto',
-                    opacity: 1,
-                    backgroundColor: 'white'
-                  }}
                 />
               </div>
 
               {/* Botones */}
-              <div className="form-actions" style={{ marginTop: '2rem' }}>
-                <button type="button" className="btn-cancel" onClick={clearForm}>
+              <div className={styles.formActions} style={{ marginTop: '2rem' }}>
+                <button type="button" className={styles.btnCancel} onClick={clearForm}>
                   <i className="fas fa-times"></i>
                   LIMPIAR FORMULARIO
                 </button>
-                <button type="submit" className="btn-submit">
+                <button type="submit" className={styles.btnSubmit}>
                   <i className="fas fa-plus"></i>
                   AGREGAR HABITACIÓN
                 </button>
               </div>
-            </div>
-
-            {/* VISTA PREVIA */}
-            <div className="room-preview-section">
-              <h2 className="section-title">
-                <i className="fas fa-eye"></i>
-                VISTA PREVIA
-              </h2>
-              
-              <div className="room-preview-card">
-                <div 
-                  className="room-image-placeholder"
-                  style={{
-                    background: roomData.imageUrl 
-                      ? `url(${roomData.imageUrl}) center/cover no-repeat`
-                      : `url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500&auto=format&fit=crop') center/cover no-repeat`
-                  }}
-                />
-                
-                <h3>{roomData.name || 'Nombre de la habitación'}</h3>
-                
-                <p className="room-description">
-                  {roomData.description || 'Descripción de la habitación...'}
-                </p>
-                
-                <div className="room-details">
-                  <div className="detail-item">
-                    <i className="fas fa-dollar-sign"></i>
-                    <span>${roomData.basePrice || '0'}/noche</span>
-                  </div>
-                  <div className="detail-item">
-                    <i className="fas fa-users"></i>
-                    <span>{roomData.maxCapacity || '0'} personas</span>
-                  </div>
-                  <div className="detail-item">
-                    <i className="fas fa-arrows-alt"></i>
-                    <span>{roomData.area || '0'} m²</span>
-                  </div>
-                  <div className="detail-item">
-                    <i className="fas fa-bed"></i>
-                    <span>{roomData.beds || '0'} camas</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* HABITACIONES AGREGADAS */}
-            <div className="room-preview-section">
-              <h2 className="section-title">
-                <i className="fas fa-list-check"></i>
-                HABITACIONES AGREGADAS ({rooms.length})
-              </h2>
-              
-              {rooms.length === 0 ? (
-                <div className="empty-state">
-                  <i className="fas fa-bed"></i>
-                  <div>No hay habitaciones agregadas aún</div>
-                </div>
-              ) : (
-                <div className="rooms-list">
-                  {rooms.map((room) => (
-                    <div key={room.id} className="room-item">
-                      <div className="room-item-header">
-                        <div className="room-item-title">{room.name}</div>
-                        <button 
-                          className="btn-delete-room"
-                          onClick={() => handleDeleteRoom(room.id)}
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </div>
-                      <div className="room-item-description">
-                        {room.description.substring(0, 100)}...
-                      </div>
-                      <div className="room-item-details">
-                        <span><i className="fas fa-dollar-sign"></i> ${room.basePrice}</span>
-                        <span><i className="fas fa-users"></i> {room.maxCapacity} pers.</span>
-                        <span><i className="fas fa-arrows-alt"></i> {room.area} m²</span>
-                        <span><i className="fas fa-bed"></i> {room.beds} camas</span>
-                      </div>
-                      <div className="room-item-date">
-                        Agregado: {room.fecha}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </form>
@@ -386,4 +290,4 @@ const AddRoomForm: React.FC = () => {
   );
 };
 
-export default AddRoomForm;
+export default RoomReservationForm;

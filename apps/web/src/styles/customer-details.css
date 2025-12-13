@@ -265,10 +265,8 @@ body::before {
 
 .hotel-submit-btn:hover {
     background-color: #FFC700;
-    /* dorado un poco más brillante al pasar el mouse */
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-    /* sombra dorada */
 }
 
 .hotel-submit-btn::before {
@@ -390,31 +388,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 
-/* Scrollbar personalizada */
-
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(10, 20, 45, 0.5);
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(100, 150, 255, 0.3);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 150, 255, 0.5);
-}
-
-
 /* Contenedores de iconos para inputs */
-
-.hotel-form-group {
-    position: relative;
-}
 
 .hotel-form-group .label-icon {
     position: absolute;
@@ -423,6 +397,40 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     z-index: 1;
 }
 
-.hotel-form-group.full-width .label-icon {
-    top: 40px;
+
+/* El contenedor debe ser relativo */
+
+.hotel-form-group {
+    position: relative;
+}
+
+
+/* Icono SVG */
+
+.hotel-form-group svg.label-icon {
+    position: absolute;
+    left: 16px;
+    /* CENTRADO REAL */
+    top: calc(50% + 14px);
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+
+/* Inputs y selects dejan espacio al icono */
+
+.hotel-input,
+.hotel-select {
+    padding-left: 50px;
+}
+
+.hotel-form-subtitle {
+    text-align: center;
+    margin: 0 auto;
+    max-width: 500px;
 }

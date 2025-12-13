@@ -1,12 +1,10 @@
-/* Estilos específicos para el formulario de reserva - Admin */
-
-.admin-reservation-container {
+.container {
     background: linear-gradient(135deg, #0a1a2d 0%, #1a365d 100%);
     min-height: 100vh;
     padding: 2rem;
 }
 
-.admin-reservation-card {
+.card {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -16,13 +14,13 @@
     overflow: hidden;
 }
 
-.admin-reservation-header {
+.header {
     background: linear-gradient(90deg, #0a1a2d 0%, #1a365d 100%);
     padding: 1.5rem 2rem;
     border-bottom: 3px solid #d4af37;
 }
 
-.admin-reservation-header h1 {
+.header h1 {
     color: #d4af37;
     font-size: 2rem;
     margin: 0;
@@ -31,11 +29,11 @@
     gap: 0.75rem;
 }
 
-.admin-reservation-header h1 i {
+.header h1 i {
     font-size: 1.8rem;
 }
 
-.admin-reservation-content {
+.content {
     padding: 2rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -45,14 +43,15 @@
 
 /* Formulario */
 
-.reservation-form-section {
+.formSection {
     background: #f8f9fa;
     padding: 1.5rem;
     border-radius: 15px;
     border: 1px solid #e0e0e0;
+    grid-column: 1 / -1;
 }
 
-.section-title {
+.sectionTitle {
     color: #0a1a2d;
     font-size: 1.3rem;
     margin-bottom: 1rem;
@@ -63,18 +62,18 @@
     padding-bottom: 0.5rem;
 }
 
-.section-title i {
+.sectionTitle i {
     color: #d4af37;
 }
 
 
 /* Grupos de formulario */
 
-.form-group {
+.formGroup {
     margin-bottom: 1.2rem;
 }
 
-.form-group label {
+.formGroup label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -83,12 +82,12 @@
     margin-bottom: 0.5rem;
 }
 
-.form-group label i {
+.formGroup label i {
     color: #d4af37;
     width: 20px;
 }
 
-.form-control {
+.formControl {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 2px solid #cbd5e0;
@@ -98,117 +97,69 @@
     background: white;
 }
 
-.form-control:focus {
+.formControl:focus {
     outline: none;
     border-color: #d4af37;
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
 }
 
-.form-control.error {
+.formControl.error {
     border-color: #e53e3e;
 }
 
 
-/* Selectores especiales */
+/* Vista previa de imagen */
 
-.capacity-selector,
-.beds-selector {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.capacity-btn,
-.beds-btn {
-    padding: 0.5rem 1rem;
-    border: 2px solid #cbd5e0;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    flex: 1;
-    text-align: center;
-}
-
-.capacity-btn.active,
-.beds-btn.active {
-    background: #1a365d;
-    color: white;
-    border-color: #1a365d;
-}
-
-.capacity-btn:hover,
-.beds-btn:hover {
-    border-color: #d4af37;
-}
-
-
-/* Preview */
-
-.room-preview-section {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 15px;
-    border: 1px solid #e0e0e0;
-}
-
-.room-preview-card {
+.imagePreview {
     background: white;
     border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 1rem;
 }
 
-.room-image-placeholder {
-    height: 200px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.previewImageContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.previewImage {
+    max-width: 300px;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
     border-radius: 10px;
-    margin-bottom: 1rem;
+    border: 2px solid #d4af37;
+}
+
+.header h1 {
+    color: #d4af37;
+    font-size: 2rem;
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 4rem;
+    gap: 0.75rem;
 }
 
-.room-details {
-    margin-bottom: 1rem;
+.previewImageInfo {
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.9rem;
 }
 
-.detail-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+.previewImageInfo p {
+    margin: 0;
     color: #4a5568;
-}
-
-.detail-item i {
-    color: #d4af37;
-    width: 20px;
-}
-
-.price-display {
-    background: linear-gradient(90deg, #0a1a2d 0%, #1a365d 100%);
-    color: white;
-    padding: 1rem;
-    border-radius: 10px;
-    text-align: center;
-    margin-top: 1rem;
-}
-
-.price-display .total {
-    font-size: 2rem;
-    color: #d4af37;
-    font-weight: bold;
 }
 
 
 /* Botones */
 
-.form-actions {
-    grid-column: 1 / -1;
+.formActions {
     display: flex;
     gap: 1rem;
     justify-content: center;
@@ -217,8 +168,8 @@
     border-top: 2px solid #e0e0e0;
 }
 
-.btn-submit,
-.btn-cancel {
+.btnSubmit,
+.btnCancel {
     padding: 0.75rem 2rem;
     border: none;
     border-radius: 10px;
@@ -231,38 +182,87 @@
     gap: 0.5rem;
 }
 
-.btn-submit {
+.btnSubmit {
     background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
     color: #0a1a2d;
 }
 
-.btn-submit:hover {
+.btnSubmit:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
 }
 
-.btn-cancel {
+.btnCancel {
     background: #e2e8f0;
     color: #4a5568;
 }
 
-.btn-cancel:hover {
+.btnCancel:hover {
     background: #cbd5e0;
+}
+
+
+/* Mensajes */
+
+.messageAlert {
+    padding: 1rem;
+    margin: 1rem 2rem;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease;
+}
+
+.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 2px solid #10b981;
+}
+
+.error {
+    background: #fee2e2;
+    color: #7f1d1d;
+    border: 2px solid #ef4444;
 }
 
 
 /* Responsive */
 
 @media (max-width: 768px) {
-    .admin-reservation-content {
+    .content {
         grid-template-columns: 1fr;
     }
-    .admin-reservation-container {
+    .container {
         padding: 1rem;
+    }
+    .formSection {
+        padding: 1rem;
+    }
+    .formActions {
+        flex-direction: column;
+    }
+    .btnSubmit,
+    .btnCancel {
+        width: 100%;
+        justify-content: center;
+    }
+    .header h1 {
+        font-size: 1.5rem;
     }
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-/* Iconos */
-
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+.container {
+    position: relative;
+    z-index: 10;
+}

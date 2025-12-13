@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Hotel, Menu, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import '../styles/header.css';
 
 const Header: React.FC = () => {
@@ -8,7 +7,7 @@ const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
 
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -106,21 +105,6 @@ const Header: React.FC = () => {
                 </button>
                 <button className="btn btn-primary" onClick={() => console.log('Register clickeado')}>
                   Registrarse
-                </button>
-                <button className="btn btn-info" onClick={() => navigate('/customer')}>
-                  Detalles Cliente
-                </button>
-                <button
-                  className="btn btn-admin"
-                  onClick={() => navigate('/admin/reservations')}
-                  style={{
-                    background: 'linear-gradient(90deg, #0a1a2d 0%, #1a365d 100%)',
-                    color: '#d4af37',
-                    border: '1px solid #d4af37'
-                  }}
-                >
-                  <i className="fas fa-tools" style={{ marginRight: '8px' }}></i>
-                  Admin Reservas
                 </button>
               </div>
             </div>
