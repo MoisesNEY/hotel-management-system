@@ -71,29 +71,29 @@ const Header: React.FC = () => {
             </button>
 
             <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-              <a 
-                href="#home" 
+              <a
+                href="#home"
                 className={`nav-link ${activeLink === 'home' ? 'active' : ''}`}
                 onClick={(e) => { e.preventDefault(); handleLinkClick('home'); }}
               >
                 Inicio
               </a>
-              <a 
-                href="#habitaciones" 
+              <a
+                href="#habitaciones"
                 className={`nav-link ${activeLink === 'habitaciones' ? 'active' : ''}`}
                 onClick={(e) => { e.preventDefault(); handleLinkClick('habitaciones'); }}
               >
                 Habitaciones
               </a>
-              <a 
-                href="#servicios" 
+              <a
+                href="#servicios"
                 className={`nav-link ${activeLink === 'servicios' ? 'active' : ''}`}
                 onClick={(e) => { e.preventDefault(); handleLinkClick('servicios'); }}
               >
                 Servicios
               </a>
-              <a 
-                href="#caracteristicas" 
+              <a
+                href="#caracteristicas"
                 className={`nav-link ${activeLink === 'caracteristicas' ? 'active' : ''}`}
                 onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}
               >
@@ -109,6 +109,18 @@ const Header: React.FC = () => {
                 </button>
                 <button className="btn btn-info" onClick={() => navigate('/customer')}>
                   Detalles Cliente
+                </button>
+                <button
+                  className="btn btn-admin"
+                  onClick={() => navigate('/admin/reservations')}
+                  style={{
+                    background: 'linear-gradient(90deg, #0a1a2d 0%, #1a365d 100%)',
+                    color: '#d4af37',
+                    border: '1px solid #d4af37'
+                  }}
+                >
+                  <i className="fas fa-tools" style={{ marginRight: '8px' }}></i>
+                  Admin Reservas
                 </button>
               </div>
             </div>

@@ -1,0 +1,268 @@
+/* Estilos específicos para el formulario de reserva - Admin */
+
+.admin-reservation-container {
+    background: linear-gradient(135deg, #0a1a2d 0%, #1a365d 100%);
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.admin-reservation-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 2px solid #d4af37;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.admin-reservation-header {
+    background: linear-gradient(90deg, #0a1a2d 0%, #1a365d 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 3px solid #d4af37;
+}
+
+.admin-reservation-header h1 {
+    color: #d4af37;
+    font-size: 2rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-reservation-header h1 i {
+    font-size: 1.8rem;
+}
+
+.admin-reservation-content {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+
+/* Formulario */
+
+.reservation-form-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 1px solid #e0e0e0;
+}
+
+.section-title {
+    color: #0a1a2d;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 2px solid #d4af37;
+    padding-bottom: 0.5rem;
+}
+
+.section-title i {
+    color: #d4af37;
+}
+
+
+/* Grupos de formulario */
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1a365d;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-group label i {
+    color: #d4af37;
+    width: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #cbd5e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #d4af37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.form-control.error {
+    border-color: #e53e3e;
+}
+
+
+/* Selectores especiales */
+
+.capacity-selector,
+.beds-selector {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.capacity-btn,
+.beds-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #cbd5e0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    text-align: center;
+}
+
+.capacity-btn.active,
+.beds-btn.active {
+    background: #1a365d;
+    color: white;
+    border-color: #1a365d;
+}
+
+.capacity-btn:hover,
+.beds-btn:hover {
+    border-color: #d4af37;
+}
+
+
+/* Preview */
+
+.room-preview-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 1px solid #e0e0e0;
+}
+
+.room-preview-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+.room-image-placeholder {
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 4rem;
+}
+
+.room-details {
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+}
+
+.detail-item i {
+    color: #d4af37;
+    width: 20px;
+}
+
+.price-display {
+    background: linear-gradient(90deg, #0a1a2d 0%, #1a365d 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.price-display .total {
+    font-size: 2rem;
+    color: #d4af37;
+    font-weight: bold;
+}
+
+
+/* Botones */
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e0e0e0;
+}
+
+.btn-submit,
+.btn-cancel {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-submit {
+    background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
+    color: #0a1a2d;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
+.btn-cancel {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-cancel:hover {
+    background: #cbd5e0;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .admin-reservation-content {
+        grid-template-columns: 1fr;
+    }
+    .admin-reservation-container {
+        padding: 1rem;
+    }
+}
+
+
+/* Iconos */
+
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
