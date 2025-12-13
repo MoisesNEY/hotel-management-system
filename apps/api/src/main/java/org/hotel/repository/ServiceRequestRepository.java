@@ -25,7 +25,8 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     default Page<ServiceRequest> findAllWithEagerRelationships(Pageable pageable) {
         return this.findAllWithToOneRelationships(pageable);
     }
-
+    // Buscar solicitudes filtrando por el login del cliente asociado a la reserva
+    Page<ServiceRequest> findByBooking_Customer_Login(String login, Pageable pageable);
     @Query(
         value = "select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service",
         countQuery = "select count(serviceRequest) from ServiceRequest serviceRequest"
