@@ -6,6 +6,7 @@ import './App.css';
 import './styles/landing.css';
 import keycloak from './services/keycloak';
 import { useEffect, useState } from 'react';
+import UserProfilePage from './pages/UserProfilePage';
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -24,6 +25,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/customer" element={<CustomerDetailsPage />} />
       <Route path="/admin/reservations" element={<AdminReservationPage />} />
+      <Route path="/profile" element={<UserProfilePage />} />
     </Routes>
   );
 }

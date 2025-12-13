@@ -1,16 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { Hotel, Menu, X } from 'lucide-react';
+import { Hotel, Menu, X, User, LogOut, UserCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 import '../styles/header.css';
 import keycloak from '../services/keycloak';
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
-
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ username?: string; email?: string }>({});
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [justRegistered, setJustRegistered] = useState(false);
 
   useEffect(() => {
+    // Inicializar Keycloak
+    const initKeycloak = () => {
+      if (keycloak) {
+        const authenticated = keycloak.authenticated || false;
+        setIsAuthenticated(authenticated);
+
+        if (authenticated && keycloak.tokenParsed) {
+          const tokenParsed = keycloak.tokenParsed;
+          setUserProfile({
+            username: tokenParsed.preferred_username || tokenParsed.name || 'Usuario',
+            email: tokenParsed.email || ''
+          });
+        }
+      }
+    };
+
+    initKeycloak();
+
+    // Verificar si se acaba de registrar (basado en URL o parámetros)
+    const urlParams = new URLSearchParams(window.location.search);
+    const registered = urlParams.get('registered') === 'true';
+    
+    if (registered) {
+  setJustRegistered(true);
+
+  const newUrl = window.location.pathname;
+  window.history.replaceState({}, '', newUrl);
+
+  setTimeout(() => {
+    keycloak.logout({
+      redirectUri: window.location.origin
+    });
+  }, 300);
+}
+
+
+    // Configurar listener para cambios en la autenticación
+    const checkAuth = () => {
+      setIsAuthenticated(keycloak.authenticated || false);
+      if (keycloak.authenticated && keycloak.tokenParsed) {
+        const tokenParsed = keycloak.tokenParsed;
+        setUserProfile({
+          username: tokenParsed.preferred_username || tokenParsed.name || 'Usuario',
+          email: tokenParsed.email || ''
+        });
+      } else {
+        setUserProfile({});
+      }
+    };
+
+    const interval = setInterval(checkAuth, 1000);
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
@@ -30,10 +87,25 @@ const Header: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.user-menu-container') && !target.closest('.user-profile-btn')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('click', handleClickOutside);
+      clearInterval(interval);
+    };
   }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleUserMenu = () => setShowUserMenu(!showUserMenu);
 
   const handleLinkClick = (sectionId: string) => {
     setActiveLink(sectionId);
@@ -59,11 +131,34 @@ const Header: React.FC = () => {
       redirectUri: window.location.origin
     });
   };
+const handleRegister = () => {
+  keycloak.login({
+    action: 'register',
+    redirectUri: `${window.location.origin}?registered=true`
+  });
+};
 
-  const handleRegister = () => {
-    keycloak.register({
+
+  const handleLogout = () => {
+    keycloak.logout({
       redirectUri: window.location.origin
     });
+    setIsAuthenticated(false);
+    setUserProfile({});
+    setShowUserMenu(false);
+  };
+
+ const handleViewProfile = () => {
+    // Método 1: Usando React Router (recomendado)
+    navigate('/profile');
+    setShowUserMenu(false);
+    
+    // Método alternativo: Redirección directa
+    // window.location.href = '/profile';
+  };
+
+  const handleAdminPanel = () => {
+    window.location.href = '/admin';
   };
 
   return (
@@ -123,12 +218,69 @@ const Header: React.FC = () => {
               </a>
 
               <div className="nav-buttons">
-                <button className="btn btn-secondary" onClick={handleLogin}>
-                  Iniciar Sesión
-                </button>
-                <button className="btn btn-primary" onClick={handleRegister}>
-                  Registrarse
-                </button>
+                {!isAuthenticated ? (
+                  <>
+                    {justRegistered && (
+                      <div className="registration-success">
+                        ¡Registro exitoso! Por favor inicia sesión.
+                      </div>
+                    )}
+                    <button className="btn btn-secondary" onClick={handleLogin}>
+                      Iniciar Sesión
+                    </button>
+                    <button className="btn btn-primary" onClick={handleRegister}>
+                      Registrarse
+                    </button>
+                  </>
+                ) : (
+                  <div className="user-menu-container">
+                    <button 
+                      className="user-profile-btn"
+                      onClick={toggleUserMenu}
+                      aria-label="User menu"
+                    >
+                      <div className="user-avatar">
+                        <UserCircle size={32} />
+                      </div>
+                      <span className="user-name">
+                        {userProfile.username || 'Usuario'}
+                      </span>
+                    </button>
+                    
+                    {showUserMenu && (
+                      <div className="user-dropdown-menu">
+                        <div className="user-info">
+                          <div className="user-info-name">{userProfile.username}</div>
+                          <div className="user-info-email">{userProfile.email}</div>
+                        </div>
+                        <div className="dropdown-divider"></div>
+                        <button 
+                          className="dropdown-item" 
+                          onClick={handleViewProfile}
+                        >
+                          <User size={16} />
+                          <span>Ver Perfil</span>
+                        </button>
+                        {keycloak.hasRealmRole('admin') && (
+                          <button 
+                            className="dropdown-item" 
+                            onClick={handleAdminPanel}
+                          >
+                            <span>Panel Admin</span>
+                          </button>
+                        )}
+                        <div className="dropdown-divider"></div>
+                        <button 
+                          className="dropdown-item logout-item" 
+                          onClick={handleLogout}
+                        >
+                          <LogOut size={16} />
+                          <span>Cerrar Sesión</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
