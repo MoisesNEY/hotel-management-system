@@ -25,6 +25,8 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     default Page<Room> findAllWithEagerRelationships(Pageable pageable) {
         return this.findAllWithToOneRelationships(pageable);
     }
+    // Cuenta cuántas habitaciones físicas existen de este tipo
+    long countByRoomTypeId(Long roomTypeId);
 
     @Query(value = "select room from Room room left join fetch room.roomType", countQuery = "select count(room) from Room room")
     Page<Room> findAllWithToOneRelationships(Pageable pageable);
