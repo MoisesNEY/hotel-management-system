@@ -5,21 +5,27 @@ import org.hotel.domain.RoomType;
 import org.hotel.domain.User;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
 import org.hotel.service.mapper.client.ClientBookingMapper;
+import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
+
+import static org.hotel.web.rest.errors.ErrorConstants.*;
 
 @Service
 @Transactional
@@ -31,58 +37,79 @@ public class ClientBookingService {
     private final ClientBookingMapper clientBookingMapper;
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
 
     public ClientBookingService(
         BookingRepository bookingRepository,
         ClientBookingMapper clientBookingMapper,
         UserRepository userRepository,
-        RoomTypeRepository roomTypeRepository
+        RoomTypeRepository roomTypeRepository,
+        RoomRepository roomRepository
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
         this.userRepository = userRepository;
         this.roomTypeRepository = roomTypeRepository;
+        this.roomRepository = roomRepository;
     }
 
     /**
      * Crea una reserva desde el portal del cliente.
-     * Calcula el precio automáticamente y asigna el usuario actual.
+     * Calcula el precio automáticamente, también verifica si hay habitaciones disponibles y asigna el usuario actual.
      */
     public BookingResponse createClientBooking(BookingCreateRequest request) {
         log.debug("Request to create client booking : {}", request);
 
-        // 1. Obtener usuario actual (Login seguro desde el Token)
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
         User customer = userRepository.findOneByLogin(userLogin)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 2. Obtener el tipo de habitación para saber el precio base
+        // Obtener el tipo de habitación para saber el precio base
         RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
-            .orElseThrow(() -> new RuntimeException("Tipo de habitación no encontrado"));
+            .orElseThrow(() -> new BadRequestAlertException(
+                "El tipo de habitación seleccionado no existe.",
+                "roomType",
+                ID_NOT_FOUND
+            ));
 
-        // 3. Convertir DTO a Entidad (El mapper ignora ID, Status, Precio, etc.)
+        // Validación de disponibilidad
+        long totalRooms = roomRepository.countByRoomTypeId(request.getRoomTypeId());
+        // Cantidad de habitaciones disponible en ese lapso de tiempo
+        long occupiedRooms = bookingRepository.countOverlappingBookings(
+            request.getRoomTypeId(),
+            request.getCheckInDate(),
+            request.getCheckOutDate()
+        );
+        if (occupiedRooms >= totalRooms) {
+            throw new BadRequestAlertException(
+                "Lo sentimos, no hay disponibilidad para estas fechas.", // Mensaje por defecto
+                "booking",
+                ERROR_ROOM_AVAILABILITY
+            );
+        }
         Booking booking = clientBookingMapper.toEntity(request);
 
-        // 4. Completar datos críticos de negocio (SERVER-SIDE)
         booking.setCustomer(customer);
         booking.setRoomType(roomType);
-        booking.setStatus(BookingStatus.PENDING); // Siempre empieza pendiente
-        booking.setAssignedRoom(null); // No se asigna habitación al crear
+        booking.setStatus(BookingStatus.PENDING);
+        booking.setAssignedRoom(null);
 
-        // 5. Calcular Precio Total: (Días * PrecioNoche)
+        // Calcular Precio Total: (Días * PrecioNoche)
         long days = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
         if (days < 1) {
-            throw new IllegalArgumentException("La estancia debe ser de al menos 1 noche");
+            throw new BadRequestAlertException(
+                "La fecha de salida debe ser posterior a la de entrada.",
+                "booking",
+                INVALID_DATES
+            );
         }
         BigDecimal totalPrice = roomType.getBasePrice().multiply(BigDecimal.valueOf(days));
         booking.setTotalPrice(totalPrice);
 
-        // 6. Guardar
         booking = bookingRepository.save(booking);
 
-        // 7. Retornar respuesta aplanada
         return clientBookingMapper.toClientResponse(booking);
     }
 
