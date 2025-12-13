@@ -9,6 +9,7 @@ import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsCreat
 import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsUpdateRequest;
 import org.hotel.service.dto.client.response.customerdetails.CustomerDetailsResponse;
 import org.hotel.service.mapper.client.ClientCustomerDetailsMapper;
+import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -58,9 +59,13 @@ public class ClientCustomerDetailsService {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        // 1. Validar que no exista ya un perfil para evitar duplicados/errores
+        // Validar que no exista ya un perfil para evitar duplicados/errores
         if (customerDetailsRepository.findOneByUserLogin(userLogin).isPresent()) {
-            throw new IllegalArgumentException("El perfil de cliente ya existe. Usa la opción de actualizar.");
+            throw new BadRequestAlertException(
+                "El perfil de cliente ya existe. Usa la opción de actualizar.",
+                "customerDetails",
+                "profileExists"
+            );
         }
 
         // Obtener el User de JHipster para hacer el vínculo

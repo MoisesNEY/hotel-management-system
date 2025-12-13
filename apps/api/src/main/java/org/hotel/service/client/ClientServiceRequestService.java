@@ -11,6 +11,7 @@ import org.hotel.security.SecurityUtils;
 import org.hotel.service.dto.client.request.servicerequest.ServiceRequestCreateRequest;
 import org.hotel.service.dto.client.response.servicerequest.ServiceRequestResponse;
 import org.hotel.service.mapper.client.ClientServiceRequestMapper; // <--- OJO: El mapper de cliente
+import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+
+import static org.hotel.web.rest.errors.ErrorConstants.ID_NOT_FOUND;
 
 @Service
 @Transactional
@@ -61,7 +64,11 @@ public class ClientServiceRequestService {
 
         // Buscar el servicio solicitado
         HotelService service = hotelServiceRepository.findById(request.getServiceId())
-            .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
+            .orElseThrow(() -> new BadRequestAlertException(
+                "Servicio no encontrado",
+                "serviceRequest",
+                ID_NOT_FOUND
+            ));
         ServiceRequest entity = clientServiceRequestMapper.toEntity(request);
 
         // Asignar datos del Servidor
