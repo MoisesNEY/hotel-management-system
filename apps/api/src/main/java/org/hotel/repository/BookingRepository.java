@@ -1,5 +1,6 @@
 package org.hotel.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.hotel.domain.Booking;
@@ -28,7 +29,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     default Page<Booking> findAllWithEagerRelationships(Pageable pageable) {
         return this.findAllWithToOneRelationships(pageable);
     }
+    /**
+     * 1. Para "Mis Reservas" (Paginado).
+     * Spring genera: SELECT * FROM booking b JOIN jhi_user u ON b.customer_id = u.id WHERE u.login = ?
+     */
+    Page<Booking> findByCustomer_Login(String login, Pageable pageable);
 
+    /**
+     * 2. Para Validar Propiedad (Seguridad IDOR).
+     * Usado al crear ServiceRequest.
+     * Spring genera: SELECT * FROM booking WHERE id = ? AND customer.login = ?
+     */
+    Optional<Booking> findByIdAndCustomer_Login(Long id, String login);
     @Query(
         value = "select booking from Booking booking left join fetch booking.roomType left join fetch booking.assignedRoom left join fetch booking.customer",
         countQuery = "select count(booking) from Booking booking"
@@ -44,4 +56,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         "select booking from Booking booking left join fetch booking.roomType left join fetch booking.assignedRoom left join fetch booking.customer where booking.id =:id"
     )
     Optional<Booking> findOneWithToOneRelationships(@Param("id") Long id);
+    /**
+     * Cuenta cuántas reservas CONFIRMADAS o PENDIENTES existen para un tipo de habitación
+     * que se solapan con las fechas solicitadas.
+     * * Lógica de Solapamiento de Fechas:
+     * (ReservaExistente.checkIn < NuevoCheckOut) AND (ReservaExistente.CheckOut > NuevoCheckIn)
+     */
+    @Query("""
+        SELECT COUNT(b) FROM Booking b
+        WHERE b.roomType.id = :roomTypeId
+        AND b.status <> 'CANCELLED'
+        AND b.checkInDate < :checkOutDate
+        AND b.checkOutDate > :checkInDate
+    """)
+    long countOverlappingBookings(
+        @Param("roomTypeId") Long roomTypeId,
+        @Param("checkInDate") LocalDate checkInDate,
+        @Param("checkOutDate") LocalDate checkOutDate
+    );
 }

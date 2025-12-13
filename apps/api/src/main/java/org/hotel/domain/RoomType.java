@@ -46,6 +46,14 @@ public class RoomType implements Serializable {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @DecimalMin(value = "0")
+    @Column(name = "area", precision = 21, scale = 2)
+    private BigDecimal area;
+
+    @Min(value = 1)
+    @Column(name = "beds")
+    private Integer beds;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "roomType")
     @JsonIgnoreProperties(value = { "roomType" }, allowSetters = true)
     private Set<Room> rooms = new HashSet<>();
@@ -130,6 +138,32 @@ public class RoomType implements Serializable {
         this.imageUrl = imageUrl;
     }
 
+    public BigDecimal getArea() {
+        return this.area;
+    }
+
+    public RoomType area(BigDecimal area) {
+        this.setArea(area);
+        return this;
+    }
+
+    public void setArea(BigDecimal area) {
+        this.area = area;
+    }
+
+    public Integer getBeds() {
+        return this.beds;
+    }
+
+    public RoomType beds(Integer beds) {
+        this.setBeds(beds);
+        return this;
+    }
+
+    public void setBeds(Integer beds) {
+        this.beds = beds;
+    }
+
     public Set<Room> getRooms() {
         return this.rooms;
     }
@@ -190,6 +224,8 @@ public class RoomType implements Serializable {
             ", basePrice=" + getBasePrice() +
             ", maxCapacity=" + getMaxCapacity() +
             ", imageUrl='" + getImageUrl() + "'" +
+            ", area=" + getArea() +
+            ", beds=" + getBeds() +
             "}";
     }
 }
