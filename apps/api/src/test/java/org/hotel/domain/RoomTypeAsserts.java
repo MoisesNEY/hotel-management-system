@@ -54,7 +54,9 @@ public class RoomTypeAsserts {
                 assertThat(a.getBasePrice()).as("check basePrice").usingComparator(bigDecimalCompareTo).isEqualTo(expected.getBasePrice())
             )
             .satisfies(a -> assertThat(a.getMaxCapacity()).as("check maxCapacity").isEqualTo(expected.getMaxCapacity()))
-            .satisfies(a -> assertThat(a.getImageUrl()).as("check imageUrl").isEqualTo(expected.getImageUrl()));
+            .satisfies(a -> assertThat(a.getImageUrl()).as("check imageUrl").isEqualTo(expected.getImageUrl()))
+            .satisfies(a -> assertThat(a.getArea()).as("check area").usingComparator(bigDecimalCompareTo).isEqualTo(expected.getArea()))
+            .satisfies(a -> assertThat(a.getBeds()).as("check beds").isEqualTo(expected.getBeds()));
     }
 
     /**

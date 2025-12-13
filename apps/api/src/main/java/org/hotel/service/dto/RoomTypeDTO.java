@@ -31,6 +31,12 @@ public class RoomTypeDTO implements Serializable {
 
     private String imageUrl;
 
+    @DecimalMin(value = "0")
+    private BigDecimal area;
+
+    @Min(value = 1)
+    private Integer beds;
+
     public Long getId() {
         return id;
     }
@@ -79,6 +85,22 @@ public class RoomTypeDTO implements Serializable {
         this.imageUrl = imageUrl;
     }
 
+    public BigDecimal getArea() {
+        return area;
+    }
+
+    public void setArea(BigDecimal area) {
+        this.area = area;
+    }
+
+    public Integer getBeds() {
+        return beds;
+    }
+
+    public void setBeds(Integer beds) {
+        this.beds = beds;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -110,6 +132,8 @@ public class RoomTypeDTO implements Serializable {
             ", basePrice=" + getBasePrice() +
             ", maxCapacity=" + getMaxCapacity() +
             ", imageUrl='" + getImageUrl() + "'" +
+            ", area=" + getArea() +
+            ", beds=" + getBeds() +
             "}";
     }
 }

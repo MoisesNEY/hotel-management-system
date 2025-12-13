@@ -32,6 +32,18 @@
     {
       "fieldName": "imageUrl",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "area",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["min"],
+      "fieldValidateRulesMin": "0"
+    },
+    {
+      "fieldName": "beds",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["min"],
+      "fieldValidateRulesMin": "1"
     }
   ],
   "microserviceName": "hotelBackend",

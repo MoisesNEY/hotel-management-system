@@ -52,6 +52,12 @@ class RoomTypeResourceIT {
     private static final String DEFAULT_IMAGE_URL = "AAAAAAAAAA";
     private static final String UPDATED_IMAGE_URL = "BBBBBBBBBB";
 
+    private static final BigDecimal DEFAULT_AREA = new BigDecimal(0);
+    private static final BigDecimal UPDATED_AREA = new BigDecimal(1);
+
+    private static final Integer DEFAULT_BEDS = 1;
+    private static final Integer UPDATED_BEDS = 2;
+
     private static final String ENTITY_API_URL = "/api/room-types";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -89,7 +95,9 @@ class RoomTypeResourceIT {
             .description(DEFAULT_DESCRIPTION)
             .basePrice(DEFAULT_BASE_PRICE)
             .maxCapacity(DEFAULT_MAX_CAPACITY)
-            .imageUrl(DEFAULT_IMAGE_URL);
+            .imageUrl(DEFAULT_IMAGE_URL)
+            .area(DEFAULT_AREA)
+            .beds(DEFAULT_BEDS);
     }
 
     /**
@@ -104,7 +112,9 @@ class RoomTypeResourceIT {
             .description(UPDATED_DESCRIPTION)
             .basePrice(UPDATED_BASE_PRICE)
             .maxCapacity(UPDATED_MAX_CAPACITY)
-            .imageUrl(UPDATED_IMAGE_URL);
+            .imageUrl(UPDATED_IMAGE_URL)
+            .area(UPDATED_AREA)
+            .beds(UPDATED_BEDS);
     }
 
     @BeforeEach
@@ -231,7 +241,9 @@ class RoomTypeResourceIT {
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
             .andExpect(jsonPath("$.[*].basePrice").value(hasItem(sameNumber(DEFAULT_BASE_PRICE))))
             .andExpect(jsonPath("$.[*].maxCapacity").value(hasItem(DEFAULT_MAX_CAPACITY)))
-            .andExpect(jsonPath("$.[*].imageUrl").value(hasItem(DEFAULT_IMAGE_URL)));
+            .andExpect(jsonPath("$.[*].imageUrl").value(hasItem(DEFAULT_IMAGE_URL)))
+            .andExpect(jsonPath("$.[*].area").value(hasItem(sameNumber(DEFAULT_AREA))))
+            .andExpect(jsonPath("$.[*].beds").value(hasItem(DEFAULT_BEDS)));
     }
 
     @Test
@@ -250,7 +262,9 @@ class RoomTypeResourceIT {
             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION))
             .andExpect(jsonPath("$.basePrice").value(sameNumber(DEFAULT_BASE_PRICE)))
             .andExpect(jsonPath("$.maxCapacity").value(DEFAULT_MAX_CAPACITY))
-            .andExpect(jsonPath("$.imageUrl").value(DEFAULT_IMAGE_URL));
+            .andExpect(jsonPath("$.imageUrl").value(DEFAULT_IMAGE_URL))
+            .andExpect(jsonPath("$.area").value(sameNumber(DEFAULT_AREA)))
+            .andExpect(jsonPath("$.beds").value(DEFAULT_BEDS));
     }
 
     @Test
@@ -277,7 +291,9 @@ class RoomTypeResourceIT {
             .description(UPDATED_DESCRIPTION)
             .basePrice(UPDATED_BASE_PRICE)
             .maxCapacity(UPDATED_MAX_CAPACITY)
-            .imageUrl(UPDATED_IMAGE_URL);
+            .imageUrl(UPDATED_IMAGE_URL)
+            .area(UPDATED_AREA)
+            .beds(UPDATED_BEDS);
         RoomTypeDTO roomTypeDTO = roomTypeMapper.toDto(updatedRoomType);
 
         restRoomTypeMockMvc
@@ -375,7 +391,8 @@ class RoomTypeResourceIT {
             .description(UPDATED_DESCRIPTION)
             .basePrice(UPDATED_BASE_PRICE)
             .maxCapacity(UPDATED_MAX_CAPACITY)
-            .imageUrl(UPDATED_IMAGE_URL);
+            .imageUrl(UPDATED_IMAGE_URL)
+            .area(UPDATED_AREA);
 
         restRoomTypeMockMvc
             .perform(
@@ -409,7 +426,9 @@ class RoomTypeResourceIT {
             .description(UPDATED_DESCRIPTION)
             .basePrice(UPDATED_BASE_PRICE)
             .maxCapacity(UPDATED_MAX_CAPACITY)
-            .imageUrl(UPDATED_IMAGE_URL);
+            .imageUrl(UPDATED_IMAGE_URL)
+            .area(UPDATED_AREA)
+            .beds(UPDATED_BEDS);
 
         restRoomTypeMockMvc
             .perform(

@@ -12,11 +12,11 @@ public class RoomTypeTestSamples {
     private static final AtomicInteger intCount = new AtomicInteger(random.nextInt() + (2 * Short.MAX_VALUE));
 
     public static RoomType getRoomTypeSample1() {
-        return new RoomType().id(1L).name("name1").maxCapacity(1).imageUrl("imageUrl1");
+        return new RoomType().id(1L).name("name1").maxCapacity(1).imageUrl("imageUrl1").beds(1);
     }
 
     public static RoomType getRoomTypeSample2() {
-        return new RoomType().id(2L).name("name2").maxCapacity(2).imageUrl("imageUrl2");
+        return new RoomType().id(2L).name("name2").maxCapacity(2).imageUrl("imageUrl2").beds(2);
     }
 
     public static RoomType getRoomTypeRandomSampleGenerator() {
@@ -24,6 +24,7 @@ public class RoomTypeTestSamples {
             .id(longCount.incrementAndGet())
             .name(UUID.randomUUID().toString())
             .maxCapacity(intCount.incrementAndGet())
-            .imageUrl(UUID.randomUUID().toString());
+            .imageUrl(UUID.randomUUID().toString())
+            .beds(intCount.incrementAndGet());
     }
 }
