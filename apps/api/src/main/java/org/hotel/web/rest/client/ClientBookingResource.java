@@ -27,7 +27,7 @@ public class ClientBookingResource {
     @PostMapping
     public ResponseEntity<BookingResponse> createMyBooking(@Valid @RequestBody BookingCreateRequest request) {
         var response = clientBookingService.createClientBooking(request);
-        return ResponseEntity.created(URI.create("/api/client/bookings" + response.getId())).body(response);
+        return ResponseEntity.created(URI.create("/api/client/bookings/" + response.getId())).body(response);
     }
 
     @GetMapping
