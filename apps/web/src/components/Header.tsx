@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Hotel, Menu, X } from 'lucide-react';
 import '../styles/header.css';
+import keycloak from '../services/keycloak';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,6 +54,18 @@ const Header: React.FC = () => {
     }
   };
 
+  const handleLogin = () => {
+    keycloak.login({
+      redirectUri: window.location.origin
+    });
+  };
+
+  const handleRegister = () => {
+    keycloak.register({
+      redirectUri: window.location.origin
+    });
+  };
+
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
       <nav className="navbar">
@@ -97,6 +110,16 @@ const Header: React.FC = () => {
                 onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}
               >
                 Características
+              </a>
+              <a
+                href="#contacto"
+                className={`nav-link ${activeLink === 'contacto' ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLinkClick('contacto');
+                }}
+              >
+                Contacto
               </a>
 
               <div className="nav-buttons">
