@@ -123,10 +123,10 @@ const Header: React.FC = () => {
               </a>
 
               <div className="nav-buttons">
-                <button className="btn btn-secondary" onClick={() => console.log('Login clickeado')}>
+                <button className="btn btn-secondary" onClick={handleLogin}>
                   Iniciar Sesión
                 </button>
-                <button className="btn btn-primary" onClick={() => console.log('Register clickeado')}>
+                <button className="btn btn-primary" onClick={handleRegister}>
                   Registrarse
                 </button>
               </div>
