@@ -72,7 +72,9 @@ entity RoomType {
   description TextBlob,
   basePrice BigDecimal required min(0),
   maxCapacity Integer required min(1),
-  imageUrl String
+  imageUrl String,
+  area BigDecimal min(0),
+  beds Integer min(1)
 }
 
 entity Room {
