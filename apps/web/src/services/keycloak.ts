@@ -2,7 +2,7 @@ import Keycloak from 'keycloak-js';
 
 const keycloakConfig = {
     url: 'http://localhost:9080/',
-    realm: 'jhipster',
+    realm: 'hotel',
     clientId: 'web_app'
 };
 
