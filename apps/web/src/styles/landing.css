@@ -55,7 +55,7 @@
 /* Hero Styles */
 
 .hero {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600') center/cover no-repeat;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://i.pinimg.com/736x/df/86/c3/df86c37d881d0e465563af53701f3cb0.jpg') center/cover no-repeat;
     color: var(--white);
     padding: 180px 0 100px;
     margin-top: 80px;
