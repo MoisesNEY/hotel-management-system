@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails, Long> {
+    Optional<CustomerDetails> findOneByUserLogin(String login);
     default Optional<CustomerDetails> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
