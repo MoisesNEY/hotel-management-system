@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import tech.jhipster.config.JHipsterProperties;
 
@@ -40,8 +41,9 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc, CorsFilter corsFilter) throws Exception {
         http
+            .addFilterBefore(corsFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authz ->
                 // prettier-ignore
