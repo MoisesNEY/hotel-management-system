@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Optional;
 
 @Service
@@ -74,6 +76,26 @@ public class ClientCustomerDetailsService {
 
         CustomerDetails entity = clientCustomerDetailsMapper.toEntity(request);
 
+        // Validación de edad
+        // Calcula la edad exacta al día de hoy
+        int age = Period.between(request.getBirthDate(), LocalDate.now()).getYears();
+
+        if (age < 18) {
+            throw new BadRequestAlertException(
+                "Debes ser mayor de 18 años para acceder nuestros servicios.",
+                "customerDetails",
+                "underage"
+            );
+        }
+        // Validación de "Sanity Check"
+        // Nadie vivo tiene más de 120 años.
+        if (age > 120) {
+            throw new BadRequestAlertException(
+                "La fecha de nacimiento no es válida. Verifica el año.",
+                "customerDetails",
+                "invalidBirthDate"
+            );
+        }
         entity.setUser(currentUser);
 
         entity = customerDetailsRepository.save(entity);
