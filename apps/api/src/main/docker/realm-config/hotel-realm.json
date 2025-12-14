@@ -51,7 +51,7 @@
     "realm" : [ {
       "id" : "58dfedbd-d827-4d7a-9cc1-aff3706dc71b",
       "name" : "ROLE_EMPLOYEE",
-      "description" : "Rol empleado",
+      "description" : "Rol de empleado del Hotel",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "jhipster",
@@ -59,15 +59,20 @@
     }, {
       "id" : "8e986fb5-dafb-43bf-a7c2-7e57572d3d80",
       "name" : "ROLE_ADMIN",
-      "description" : "Jhipster administrator role",
-      "composite" : false,
+      "description" : "Rol de administrador del Hotel",
+      "composite" : true,
+      "composites" : {
+        "client" : {
+          "realm-management" : [ "query-clients", "view-clients", "view-users", "query-users", "manage-users", "query-groups" ]
+        }
+      },
       "clientRole" : false,
       "containerId" : "jhipster",
       "attributes" : { }
     }, {
       "id" : "1dda437b-eab5-44c0-93df-9685d38cf92c",
       "name" : "ROLE_CLIENT",
-      "description" : "Role de cliente",
+      "description" : "Rol de cliente del Hotel",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "jhipster",
@@ -94,7 +99,7 @@
       "description" : "${role_default-roles}",
       "composite" : true,
       "composites" : {
-        "realm" : [ "ROLE_CLIENT", "offline_access", "uma_authorization" ],
+        "realm" : [ "offline_access", "uma_authorization" ],
         "client" : {
           "account" : [ "view-profile", "manage-account" ]
         }
@@ -381,11 +386,19 @@
     "clientRoles" : { }
   }, {
     "id" : "672767bb-4ab0-4d37-93a1-9b6c2416b6b2",
-    "name" : "Users",
-    "path" : "/Users",
+    "name" : "Clients",
+    "path" : "/Clients",
     "subGroups" : [ ],
     "attributes" : { },
-    "realmRoles" : [ "ROLE_USER" ],
+    "realmRoles" : [ "ROLE_CLIENT" ],
+    "clientRoles" : { }
+  }, {
+    "id" : "ea8450d7-ce76-474a-9195-27bc7bd9d3b5",
+    "name" : "Employees",
+    "path" : "/Employees",
+    "subGroups" : [ ],
+    "attributes" : { },
+    "realmRoles" : [ "ROLE_EMPLOYEE" ],
     "clientRoles" : { }
   } ],
   "defaultRole" : {
@@ -396,7 +409,7 @@
     "clientRole" : false,
     "containerId" : "jhipster"
   },
-  "defaultGroups" : [ "/Users" ],
+  "defaultGroups" : [ "/Clients" ],
   "requiredCredentials" : [ "password" ],
   "otpPolicyType" : "totp",
   "otpPolicyAlgorithm" : "HmacSHA1",
@@ -453,29 +466,157 @@
       "account" : [ "view-profile", "manage-account" ]
     },
     "notBefore" : 0,
-    "groups" : [ "/Admins", "/Users" ]
+    "groups" : [ "/Admins", "/Clients" ]
   }, {
-    "id" : "f22ca556-55ab-488f-84b4-7cb193753921",
-    "username" : "moisesney",
-    "firstName" : "Moises",
-    "lastName" : "Mayorga",
-    "email" : "moisesney4@gmail.com",
-    "emailVerified" : false,
-    "createdTimestamp" : 1765646843040,
+    "id" : "7c166267-034f-48b0-b3c1-2ab6862d6194",
+    "username" : "juanperez",
+    "firstName" : "Juan",
+    "lastName" : "Perez",
+    "email" : "juanperez@gmail.com",
+    "emailVerified" : true,
+    "attributes" : {
+      "locale" : [ "es" ]
+    },
+    "createdTimestamp" : 1765693153912,
     "enabled" : true,
     "totp" : false,
     "credentials" : [ {
-      "id" : "90da0e2a-9140-4cd8-aa04-8c9cc9d51d56",
+      "id" : "87e203f1-a70c-4341-b728-80322dbc1ddf",
       "type" : "password",
-      "createdDate" : 1765646843078,
-      "secretData" : "{\"value\":\"HcLKIoCNfBVS/7OXZDZULkQtPpvU2Y6c877XUl5c6zQ=\",\"salt\":\"sPntyLK+9f34++JD04Za6Q==\",\"additionalParameters\":{}}",
+      "userLabel" : "My password",
+      "createdDate" : 1765693192235,
+      "secretData" : "{\"value\":\"nh1lRuuUHuZm9jog4TEZ9rxhOUN/Dqd6hcSuhHonxSw=\",\"salt\":\"ELvTJ6cB/ep75Wk390YoPQ==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-jhipster" ],
     "notBefore" : 0,
-    "groups" : [ "/Users" ]
+    "groups" : [ "/Clients" ]
+  }, {
+    "id" : "d3386ee5-3f8d-430e-8aae-c8070ae90b27",
+    "username" : "leomessi",
+    "firstName" : "Leonel",
+    "lastName" : "Messi",
+    "email" : "leonelmessi@gmail.com",
+    "emailVerified" : false,
+    "attributes" : {
+      "locale" : [ "es" ]
+    },
+    "createdTimestamp" : 1765693538418,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "a4cd5800-c12d-41c7-905a-1d01bf8962c6",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1765693552209,
+      "secretData" : "{\"value\":\"QELXijYjeARoDfpcJLzLU02ntQTa8bwV2+oAUvGSdfI=\",\"salt\":\"LsT/VON6LkmzUP5+7qDGEQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-jhipster" ],
+    "notBefore" : 0,
+    "groups" : [ "/Clients", "/Employees" ]
+  }, {
+    "id" : "8c06c5a4-07e6-4a5d-bcd6-4db506a0ef65",
+    "username" : "linustorvarlds",
+    "firstName" : "Linus",
+    "lastName" : "Torvalds",
+    "email" : "linustorvalds@gmail.com",
+    "emailVerified" : false,
+    "attributes" : {
+      "locale" : [ "es" ]
+    },
+    "createdTimestamp" : 1765693397046,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "963a4122-e087-4eb9-b6e1-1b224390104c",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1765693415224,
+      "secretData" : "{\"value\":\"s2wmFj5rDwDfJpUZKejD4ktNQtzGlo+L03IVg779Z7M=\",\"salt\":\"Q/m8IQfxo5qlDsHliZd28Q==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-jhipster" ],
+    "notBefore" : 0,
+    "groups" : [ "/Clients", "/Employees" ]
+  }, {
+    "id" : "500e56cf-0da5-4f06-be6a-3caf8bac4473",
+    "username" : "pedri",
+    "firstName" : "Pedro",
+    "lastName" : "Gonzalez",
+    "email" : "pedrigonzalez@gmail.com",
+    "emailVerified" : false,
+    "createdTimestamp" : 1765693313342,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "3eade8f9-7b8a-4b3f-b5ed-bb7c3e291838",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1765693326103,
+      "secretData" : "{\"value\":\"9WnaaOJ7IfNmp5A42CgF/9G/2P82EXScXclN5v/vynY=\",\"salt\":\"gpMGNMeZV7pjmA9PU/WQzA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-jhipster" ],
+    "notBefore" : 0,
+    "groups" : [ "/Clients" ]
+  }, {
+    "id" : "adc0df22-02ad-4533-908e-c6a37a4c5c40",
+    "username" : "porterrob",
+    "firstName" : "Porter",
+    "lastName" : "Robinson",
+    "email" : "porterrobinson@gmail.com",
+    "emailVerified" : false,
+    "createdTimestamp" : 1765693260230,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "47c8dc8a-9c6b-4ed9-87f5-8d05e190da94",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1765693274201,
+      "secretData" : "{\"value\":\"bMmD2PptbUKlY4616ZFBRHemFet9CYUoSnBNziGZAXM=\",\"salt\":\"sThL3o3e/SWfGZtTGV8umQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-jhipster" ],
+    "notBefore" : 0,
+    "groups" : [ "/Clients" ]
+  }, {
+    "id" : "f2d49f2b-50de-4d5e-893c-a01956561299",
+    "username" : "stevejobs",
+    "firstName" : "Steve",
+    "lastName" : "Jobs",
+    "email" : "stevejobs@gmail.com",
+    "emailVerified" : false,
+    "attributes" : {
+      "locale" : [ "es" ]
+    },
+    "createdTimestamp" : 1765693470092,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "1d44b585-3f77-47c6-bd56-1333d78770b9",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1765693482775,
+      "secretData" : "{\"value\":\"+qOvNWD597WkeqOLnc1LtspA/S1Q3SZbcvF7yjOgkgw=\",\"salt\":\"5C9oH+GllknpXQYleqVo3w==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-jhipster" ],
+    "notBefore" : 0,
+    "groups" : [ "/Clients", "/Employees" ]
   }, {
     "id" : "c4af4e2f-b432-4c3b-8405-cca86cd5b97b",
     "username" : "user",
@@ -500,7 +641,7 @@
       "account" : [ "view-profile", "manage-account" ]
     },
     "notBefore" : 0,
-    "groups" : [ "/Users" ]
+    "groups" : [ "/Clients" ]
   } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
@@ -767,8 +908,11 @@
   }, {
     "id" : "6e8deddb-b4d6-4e2e-b389-b397d3f74fcd",
     "clientId" : "web_app",
+    "name" : "",
+    "description" : "",
     "rootUrl" : "http://localhost:8080",
     "adminUrl" : "http://localhost:8080",
+    "baseUrl" : "",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
@@ -780,7 +924,7 @@
     "consentRequired" : false,
     "standardFlowEnabled" : true,
     "implicitFlowEnabled" : true,
-    "directAccessGrantsEnabled" : false,
+    "directAccessGrantsEnabled" : true,
     "serviceAccountsEnabled" : false,
     "publicClient" : true,
     "frontchannelLogout" : false,
@@ -790,11 +934,16 @@
       "saml.force.post.binding" : "false",
       "saml.multivalued.roles" : "false",
       "saml.encrypt" : "false",
+      "standard.token.exchange.enabled" : "false",
       "post.logout.redirect.uris" : "+",
+      "oauth2.device.authorization.grant.enabled" : "false",
       "saml.server.signature" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false",
       "saml.server.signature.keyinfo.ext" : "false",
       "exclude.session.state.from.auth.response" : "false",
       "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
       "saml_force_name_id_format" : "false",
       "saml.client.signature" : "false",
       "tls.client.certificate.bound.access.tokens" : "false",
@@ -1473,7 +1622,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "saml-role-list-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper" ]
       }
     }, {
       "id" : "5a1ff0b4-250f-48ee-8169-abff30cf7534",
@@ -1498,7 +1647,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper", "oidc-full-name-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper" ]
       }
     }, {
       "id" : "d045f3f9-15e6-4e69-a419-0e7ff8a635ef",
