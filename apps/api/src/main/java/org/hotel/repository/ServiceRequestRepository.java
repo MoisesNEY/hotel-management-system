@@ -3,6 +3,7 @@ package org.hotel.repository;
 import java.util.List;
 import java.util.Optional;
 import org.hotel.domain.ServiceRequest;
+import org.hotel.domain.enumeration.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -17,7 +18,7 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     default Optional<ServiceRequest> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
-
+    boolean existsByStatusAndServiceId(RequestStatus status, Long serviceId);
     default List<ServiceRequest> findAllWithEagerRelationships() {
         return this.findAllWithToOneRelationships();
     }
