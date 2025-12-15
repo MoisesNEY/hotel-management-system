@@ -13,6 +13,7 @@ import org.hotel.repository.ServiceRequestRepository;
 import org.hotel.service.dto.HotelServiceDTO;
 import org.hotel.service.mapper.HotelServiceMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -128,7 +129,8 @@ public class HotelServiceService {
         }
     }
     public void validateHotelServiceForDeletion(Long hotelServiceId) {
-        HotelService hotelService = hotelServiceRepository.findById(hotelServiceId)
-            .orElseThrow(() -> new BadRequestAlertException("El servicio de hotel no existe", "hotelService", ID_NOT_FOUND));
+        if(!hotelServiceRepository.existsById(hotelServiceId)) {
+            throw new ResourceNotFoundException("Servicio de hotel", hotelServiceId);
+        }
     }
 }
