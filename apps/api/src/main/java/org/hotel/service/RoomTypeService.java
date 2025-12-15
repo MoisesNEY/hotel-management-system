@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.hotel.domain.RoomType;
+import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.service.dto.RoomTypeDTO;
 import org.hotel.service.mapper.RoomTypeMapper;
+import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,12 +25,13 @@ public class RoomTypeService {
     private static final Logger LOG = LoggerFactory.getLogger(RoomTypeService.class);
 
     private final RoomTypeRepository roomTypeRepository;
-
+    private final RoomRepository roomRepository;
     private final RoomTypeMapper roomTypeMapper;
 
-    public RoomTypeService(RoomTypeRepository roomTypeRepository, RoomTypeMapper roomTypeMapper) {
+    public RoomTypeService(RoomTypeRepository roomTypeRepository, RoomRepository roomRepository, RoomTypeMapper roomTypeMapper) {
         this.roomTypeRepository = roomTypeRepository;
         this.roomTypeMapper = roomTypeMapper;
+        this.roomRepository = roomRepository;
     }
 
     /**
@@ -107,6 +110,9 @@ public class RoomTypeService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete RoomType : {}", id);
+        if (roomRepository.countByRoomTypeId(id) > 0) {
+            throw new BadRequestAlertException("No se puede borrar el tipo de habitación porque hay habitaciones físicas asociadas.", "roomType", "delete");
+        }
         roomTypeRepository.deleteById(id);
     }
 }
