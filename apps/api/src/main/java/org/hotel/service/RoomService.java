@@ -9,6 +9,8 @@ import org.hotel.repository.RoomTypeRepository;
 import org.hotel.service.dto.RoomDTO;
 import org.hotel.service.mapper.RoomMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
+import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -149,12 +151,12 @@ public class RoomService {
     }
     private void validateRoomForDeletion(Long roomId) {
         Room room = roomRepository.findById(roomId)
-            .orElseThrow(() -> new BadRequestAlertException("La habitación no existe", "room", ID_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException("Habitación", roomId));;
         if(bookingRepository.existsActiveBookingForRoom(room.getId())) {
-            throw new BadRequestAlertException("No se puede borrar la habitación, tiene reservas asociadas", "room", "roomHasBookings");
+            throw new BusinessRuleException("No se puede borrar la habitación, tiene reservas asociadas");
         }
         if (RoomStatus.OCCUPIED.equals(room.getStatus())) {
-            throw new BadRequestAlertException("No se puede eliminar la habitación porque está ocupada", "room", "roomOccupied");
+            throw new BusinessRuleException("No se puede eliminar la habitación porque está ocupada");
         }
     }
 

@@ -10,6 +10,8 @@ import org.hotel.repository.RoomTypeRepository;
 import org.hotel.service.dto.RoomTypeDTO;
 import org.hotel.service.mapper.RoomTypeMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
+import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -110,8 +112,11 @@ public class RoomTypeService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete RoomType : {}", id);
+        if (!roomTypeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Tipo de habitación", id);
+        }
         if (roomRepository.countByRoomTypeId(id) > 0) {
-            throw new BadRequestAlertException("No se puede borrar el tipo de habitación porque hay habitaciones físicas asociadas.", "roomType", "delete");
+            throw new BusinessRuleException("No se puede borrar el tipo de habitación porque hay habitaciones físicas asociadas.");
         }
         roomTypeRepository.deleteById(id);
     }
