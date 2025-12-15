@@ -2,6 +2,7 @@ package org.hotel.service;
 
 import java.util.Optional;
 import org.hotel.domain.Room;
+import org.hotel.domain.enumeration.RoomStatus;
 import org.hotel.repository.BookingRepository;
 import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.hotel.web.rest.errors.ErrorConstants.ID_NOT_FOUND;
 
 /**
  * Service Implementation for managing {@link org.hotel.domain.Room}.
@@ -131,9 +134,7 @@ public class RoomService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete Room : {}", id);
-        if(bookingRepository.existsActiveBookingForRoom(id)) {
-            throw new BadRequestAlertException("No se puede borrar la habitación, tiene reservas asociadas", "room", "roomHasBookings");
-        }
+        validateRoomForDeletion(id);
         roomRepository.deleteById(id);
     }
     private void validateIfRoomNumberExists(String roomNumber) {
@@ -145,6 +146,16 @@ public class RoomService {
         if(!roomTypeRepository.existsById(roomTypeId))
             throw new BadRequestAlertException("Tipo de habitación no encontrado",
                 "room", "roomTypeNotFound");
+    }
+    private void validateRoomForDeletion(Long roomId) {
+        Room room = roomRepository.findById(roomId)
+            .orElseThrow(() -> new BadRequestAlertException("La habitación no existe", "room", ID_NOT_FOUND));
+        if(bookingRepository.existsActiveBookingForRoom(room.getId())) {
+            throw new BadRequestAlertException("No se puede borrar la habitación, tiene reservas asociadas", "room", "roomHasBookings");
+        }
+        if (RoomStatus.OCCUPIED.equals(room.getStatus())) {
+            throw new BadRequestAlertException("No se puede eliminar la habitación porque está ocupada", "room", "roomOccupied");
+        }
     }
 
 }
