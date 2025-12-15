@@ -10,6 +10,8 @@ import java.util.Optional;
 import org.hotel.repository.BookingRepository;
 import org.hotel.service.BookingService;
 import org.hotel.service.dto.BookingDTO;
+import org.hotel.service.dto.employee.request.booking.AssignRoomRequest;
+import org.hotel.service.employee.EmployeeBookingService;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +41,13 @@ public class BookingResource {
     private String applicationName;
 
     private final BookingService bookingService;
-
     private final BookingRepository bookingRepository;
+    private final EmployeeBookingService employeeBookingService;
 
-    public BookingResource(BookingService bookingService, BookingRepository bookingRepository) {
+    public BookingResource(BookingService bookingService, BookingRepository bookingRepository, EmployeeBookingService employeeBookingService) {
         this.bookingService = bookingService;
         this.bookingRepository = bookingRepository;
+        this.employeeBookingService = employeeBookingService;
     }
 
     /**
@@ -184,5 +187,23 @@ public class BookingResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
+    }
+    @PatchMapping("/{id:\\d+}/assign-room")
+    public ResponseEntity<BookingDTO> assignRoom(@PathVariable Long id, @Valid @RequestBody AssignRoomRequest assignRoomRequest) {
+        LOG.debug("REST request to assign room : {}", assignRoomRequest);
+        BookingDTO bookingDTO = employeeBookingService.assignRoom(id, assignRoomRequest);
+        return ResponseEntity.ok(bookingDTO);
+    }
+    @PatchMapping("/{id:\\d+}/check-in")
+    public ResponseEntity<BookingDTO> checkIn(@PathVariable Long id) {
+        LOG.debug("REST request to check In : {}", id);
+        BookingDTO bookingDTO = employeeBookingService.checkIn(id);
+        return ResponseEntity.ok(bookingDTO);
+    }
+    @PatchMapping("/{id:\\d+}/check-out")
+    public ResponseEntity<BookingDTO> checkOut(@PathVariable Long id) {
+        LOG.debug("REST request to check Out : {}", id);
+        BookingDTO bookingDTO = employeeBookingService.checkOut(id);
+        return ResponseEntity.ok(bookingDTO);
     }
 }

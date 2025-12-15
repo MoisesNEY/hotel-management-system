@@ -10,6 +10,8 @@ import java.util.Optional;
 import org.hotel.repository.ServiceRequestRepository;
 import org.hotel.service.ServiceRequestService;
 import org.hotel.service.dto.ServiceRequestDTO;
+import org.hotel.service.dto.employee.request.servicerequest.ServiceRequestStatusUpdateRequest;
+import org.hotel.service.employee.EmployeeServiceRequestService;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +41,13 @@ public class ServiceRequestResource {
     private String applicationName;
 
     private final ServiceRequestService serviceRequestService;
-
+    private final EmployeeServiceRequestService employeeServiceRequestService;
     private final ServiceRequestRepository serviceRequestRepository;
 
-    public ServiceRequestResource(ServiceRequestService serviceRequestService, ServiceRequestRepository serviceRequestRepository) {
+    public ServiceRequestResource(ServiceRequestService serviceRequestService, ServiceRequestRepository serviceRequestRepository,  EmployeeServiceRequestService employeeServiceRequestService) {
         this.serviceRequestService = serviceRequestService;
         this.serviceRequestRepository = serviceRequestRepository;
+        this.employeeServiceRequestService = employeeServiceRequestService;
     }
 
     /**
@@ -185,5 +188,11 @@ public class ServiceRequestResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
+    }
+    @PatchMapping("{id:\\d+}/status")
+    public ResponseEntity<ServiceRequestDTO> updateStatus(@PathVariable Long id, @Valid @RequestBody ServiceRequestStatusUpdateRequest serviceRequestStatusUpdateRequest) {
+        LOG.debug("REST request to update status of ServiceRequest : {}, {}", id, serviceRequestStatusUpdateRequest);
+        ServiceRequestDTO serviceRequestDTO = employeeServiceRequestService.updateStatus(id, serviceRequestStatusUpdateRequest);
+        return ResponseEntity.ok(serviceRequestDTO);
     }
 }
