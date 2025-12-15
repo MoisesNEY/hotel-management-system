@@ -2,9 +2,13 @@ package org.hotel.service;
 
 import java.util.Optional;
 import org.hotel.domain.Room;
+import org.hotel.domain.RoomType;
+import org.hotel.repository.BookingRepository;
 import org.hotel.repository.RoomRepository;
+import org.hotel.repository.RoomTypeRepository;
 import org.hotel.service.dto.RoomDTO;
 import org.hotel.service.mapper.RoomMapper;
+import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,11 +26,14 @@ public class RoomService {
     private static final Logger LOG = LoggerFactory.getLogger(RoomService.class);
 
     private final RoomRepository roomRepository;
-
+    private final RoomTypeRepository roomTypeRepository;
+    private final BookingRepository bookingRepository;
     private final RoomMapper roomMapper;
 
-    public RoomService(RoomRepository roomRepository, RoomMapper roomMapper) {
+    public RoomService(RoomRepository roomRepository, BookingRepository bookingRepository, RoomTypeRepository roomTypeRepository, RoomMapper roomMapper) {
         this.roomRepository = roomRepository;
+        this.bookingRepository = bookingRepository;
+        this.roomTypeRepository = roomTypeRepository;
         this.roomMapper = roomMapper;
     }
 
@@ -39,6 +46,13 @@ public class RoomService {
     public RoomDTO save(RoomDTO roomDTO) {
         LOG.debug("Request to save Room : {}", roomDTO);
         Room room = roomMapper.toEntity(roomDTO);
+        if(roomRepository.existsByRoomNumber(room.getRoomNumber()))
+            throw new BadRequestAlertException("El numero de habitación ya existe",
+                "room", "roomNumberAlreadyExists");
+
+        if(!roomTypeRepository.existsById(room.getRoomType().getId()))
+            throw new BadRequestAlertException("Tipo de habitación no encontrado",
+                "room", "roomTypeNotFound");
         room = roomRepository.save(room);
         return roomMapper.toDto(room);
     }
@@ -52,6 +66,9 @@ public class RoomService {
     public RoomDTO update(RoomDTO roomDTO) {
         LOG.debug("Request to update Room : {}", roomDTO);
         Room room = roomMapper.toEntity(roomDTO);
+        if(!roomTypeRepository.existsById(room.getRoomType().getId()))
+            throw new BadRequestAlertException("Tipo de habitación no encontrado",
+                "room", "roomTypeNotFound");
         room = roomRepository.save(room);
         return roomMapper.toDto(room);
     }
@@ -64,7 +81,11 @@ public class RoomService {
      */
     public Optional<RoomDTO> partialUpdate(RoomDTO roomDTO) {
         LOG.debug("Request to partially update Room : {}", roomDTO);
-
+        if(roomDTO.getId() != null) {
+            if(!roomTypeRepository.existsById(roomDTO.getRoomType().getId()))
+                throw new BadRequestAlertException("Tipo de habitación no encontrado",
+                    "room", "roomTypeNotFound");
+        }
         return roomRepository
             .findById(roomDTO.getId())
             .map(existingRoom -> {
@@ -116,6 +137,9 @@ public class RoomService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete Room : {}", id);
+        if(bookingRepository.existsActiveBookingForRoom(id)) {
+            throw new BadRequestAlertException("No se puede borrar la habitación, tiene reservas asociadas", "room", "roomHasBookings");
+        }
         roomRepository.deleteById(id);
     }
 }

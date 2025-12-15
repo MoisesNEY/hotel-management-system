@@ -74,4 +74,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         @Param("checkInDate") LocalDate checkInDate,
         @Param("checkOutDate") LocalDate checkOutDate
     );
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.assignedRoom.id = :roomId AND b.status IN ('CONFIRMED', 'CHECKED_IN')")
+    boolean existsActiveBookingForRoom(@Param("roomId") Long roomId);
 }

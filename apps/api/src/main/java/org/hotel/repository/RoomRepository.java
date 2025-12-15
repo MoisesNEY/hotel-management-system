@@ -2,6 +2,8 @@ package org.hotel.repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.validation.constraints.NotNull;
 import org.hotel.domain.Room;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,4 +38,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
 
     @Query("select room from Room room left join fetch room.roomType where room.id =:id")
     Optional<Room> findOneWithToOneRelationships(@Param("id") Long id);
+
+    boolean existsByRoomNumber(@NotNull String roomNumber);
 }
