@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/customer-details.css';
 import { useNavigate } from 'react-router-dom';
+import { apiPost } from '../services/api';
 
 interface CustomerDetails {
-  gender: 'Male' | 'Female' | 'Other';
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
   phone: string;
   addressLine1: string;
   city: string;
@@ -83,7 +84,7 @@ const WarningIcon = () => (
 const CustomerDetailsForm: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<CustomerDetails>({
-    gender: 'Male',
+    gender: 'MALE',
     phone: '',
     addressLine1: '',
     city: '',
@@ -105,7 +106,6 @@ const CustomerDetailsForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Validar datos
       if (!formData.phone || !formData.addressLine1 || !formData.city ||
         !formData.country || !formData.licenseId || !formData.birthDate) {
         alert('Por favor completa todos los campos obligatorios');
@@ -113,32 +113,30 @@ const CustomerDetailsForm: React.FC = () => {
         return;
       }
 
-      // Crear objeto de datos de usuario
-      const userData = {
+      const customerDetailsPayload = {
         gender: formData.gender,
         phone: formData.phone,
-        address: formData.addressLine1,
+        addressLine1: formData.addressLine1,
         city: formData.city,
         country: formData.country,
         licenseId: formData.licenseId,
         birthDate: formData.birthDate
       };
 
-      // Guardar en localStorage
-      localStorage.setItem('userData', JSON.stringify(userData));
+      await apiPost('/api/client/customer-details', customerDetailsPayload);
+
+      localStorage.setItem('userData', JSON.stringify(customerDetailsPayload));
       localStorage.setItem('hasCompletedExtraInfo', 'true');
 
-      // Mostrar mensaje de éxito
-      alert('¡Información guardada exitosamente! Ahora puedes acceder a tu perfil completo.');
-
-      // Redirigir al perfil
-      navigate('/profile');
+      setTimeout(() => {
+        navigate('/profile');
+      }, 0);
 
     } catch (error) {
       console.error('Error al guardar datos:', error);
       alert('Hubo un error al guardar la información. Por favor intenta nuevamente.');
     } finally {
-      setIsSubmitting(false);
+      
     }
   };
 
@@ -257,9 +255,9 @@ const CustomerDetailsForm: React.FC = () => {
                     required
                     disabled={isSubmitting}
                   >
-                    <option value="Male">Masculino</option>
-                    <option value="Female">Femenino</option>
-                    <option value="Other">Otro</option>
+                    <option value="MALE">Masculino</option>
+                    <option value="FEMALE">Femenino</option>
+                    <option value="OTHER">Otro</option>
                   </select>
                   <div className="select-arrow">▼</div>
                 </div>

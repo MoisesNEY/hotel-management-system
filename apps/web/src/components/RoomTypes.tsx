@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import '../styles/room-pricing-minimal.css';
+import { apiPost } from '../services/api';
 
 // Definición de tipos según las entidades
 interface RoomType {
+  id: number; 
   name: string;
   description: string;
   basePrice: number;
@@ -27,6 +29,7 @@ export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 const RoomTypes: React.FC = () => {
   const rooms: RoomType[] = [
     {
+       id: 1,
       name: 'Habitación Estándar',
       description: 'Perfecta para viajeros individuales o parejas. Incluye todas las comodidades básicas para una estancia confortable.',
       basePrice: 120,
@@ -36,6 +39,7 @@ const RoomTypes: React.FC = () => {
       beds: 1
     },
     {
+      id: 2,
       name: 'Suite Ejecutiva',
       description: 'Espacio amplio con área de trabajo separada. Ideal para viajes de negocios o estancias prolongadas.',
       basePrice: 220,
@@ -45,6 +49,7 @@ const RoomTypes: React.FC = () => {
       beds: 2
     },
     {
+      id: 3, 
       name: 'Suite Presidencial',
       description: 'La máxima experiencia de lujo y confort. Incluye servicios exclusivos y amenities premium.',
       basePrice: 450,
@@ -58,6 +63,7 @@ const RoomTypes: React.FC = () => {
   // Estado para el modal
   const [showModal, setShowModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Estado para los datos del formulario según la entidad Booking
   const [formData, setFormData] = useState({
@@ -170,10 +176,9 @@ const RoomTypes: React.FC = () => {
   };
 
   // Enviar formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validaciones básicas
     if (!formData.checkInDate || !formData.checkOutDate) {
       alert('Por favor, selecciona las fechas de check-in y check-out');
       return;
@@ -189,7 +194,6 @@ const RoomTypes: React.FC = () => {
       return;
     }
     
-    // Validar que check-out sea posterior a check-in
     const checkIn = new Date(formData.checkInDate);
     const checkOut = new Date(formData.checkOutDate);
     if (checkOut <= checkIn) {
@@ -197,29 +201,31 @@ const RoomTypes: React.FC = () => {
       return;
     }
     
-    // Calcular noches y precio final
     const nights = calculateNights();
     const finalTotalPrice = selectedRoom ? 
       calculateTotalPrice(selectedRoom.basePrice, formData.guestCount, nights) : 0;
 
-    // Crear objeto de reserva según la entidad Booking
-    const bookingData = {
-      checkInDate: formData.checkInDate,
-      checkOutDate: formData.checkOutDate,
+    const bookingPayload = {
+      roomTypeId: selectedRoom!.id, 
+      checkInDate: new Date(formData.checkInDate).toISOString(),
+      checkOutDate: new Date(formData.checkOutDate).toISOString(),
       guestCount: formData.guestCount,
       status: formData.status,
       totalPrice: finalTotalPrice,
-      notes: formData.notes || undefined // notes es opcional
+      notes: formData.notes || undefined,
+      roomName: selectedRoom?.name,
+      roomDescription: selectedRoom?.description,
+      roomBasePrice: selectedRoom?.basePrice,
+      roomMaxCapacity: selectedRoom?.maxCapacity,
+      roomArea: selectedRoom?.area,
+      roomBeds: selectedRoom?.beds
     };
 
-    // Aquí iría la lógica para enviar la reserva al backend
-    console.log('Reserva enviada:', {
-      room: selectedRoom,
-      booking: bookingData,
-      nights: nights
-    });
-    
-    alert(`¡Reserva enviada con éxito!
+    try {
+      setIsSubmitting(true);
+      await apiPost('/api/client/bookings', bookingPayload);
+
+      alert(`¡Reserva enviada con éxito!
     
 Detalles:
 - Habitación: ${selectedRoom?.name}
@@ -230,8 +236,13 @@ Detalles:
 - Estado: ${formData.status}
 
 Te contactaremos para confirmar.`);
-    
-    closeModal();
+      closeModal();
+    } catch (error) {
+      console.error('Error al enviar la reserva:', error);
+      alert('No se pudo registrar la reserva. Inténtalo nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -497,15 +508,17 @@ Te contactaremos para confirmar.`);
                     type="button" 
                     className="btn-cancel" 
                     onClick={closeModal}
+                    disabled={isSubmitting}
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit" 
                     className="btn-submit"
+                    disabled={isSubmitting}
                   >
                     <CreditCard size={18} />
-                    Confirmar Reserva
+                    {isSubmitting ? 'Enviando...' : 'Confirmar Reserva'}
                   </button>
                 </div>
                 

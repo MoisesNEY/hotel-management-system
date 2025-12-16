@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Coffee, Dumbbell, Heart, Car, Umbrella, Wind, X, Clock, FileText, AlertCircle } from 'lucide-react';
 import '../styles/services.css';
+import { apiPost } from '../services/api';
 
 // Enum para RequestStatus
 export const RequestStatus = {
@@ -65,6 +66,7 @@ const Services: React.FC = () => {
   // Estado para el modal
   const [showModal, setShowModal] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Estado para los datos del formulario según entity ServiceRequest
   const [formData, setFormData] = useState({
@@ -127,10 +129,9 @@ const Services: React.FC = () => {
   };
 
   // Enviar formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validaciones básicas
     if (!formData.requestDate) {
       alert('Por favor, selecciona una fecha y hora para la solicitud');
       return;
@@ -141,7 +142,6 @@ const Services: React.FC = () => {
       return;
     }
     
-    // Validar que la fecha no sea en el pasado
     const selectedDate = new Date(formData.requestDate);
     const now = new Date();
     if (selectedDate < now) {
@@ -149,19 +149,19 @@ const Services: React.FC = () => {
       return;
     }
     
-    // Crear objeto de solicitud según entity ServiceRequest
     const serviceRequestData = {
-      requestDate: formData.requestDate + ':00Z', // Convertir a formato ISO 8601 con zona horaria
+      requestDate: new Date(formData.requestDate).toISOString(),
       details: formData.details.trim(),
       status: formData.status,
       serviceName: selectedService?.name,
       serviceCategory: selectedService?.category
     };
     
-    // Aquí iría la lógica para enviar la solicitud al backend
-    console.log('Solicitud de servicio enviada:', serviceRequestData);
-    
-    alert(`¡Solicitud de servicio enviada con éxito!
+    try {
+      setIsSubmitting(true);
+      await apiPost('/api/client/service-requests', serviceRequestData);
+
+      alert(`¡Solicitud de servicio enviada con éxito!
 
 Servicio: ${selectedService?.name}
 Fecha solicitada: ${formatDateForDisplay(formData.requestDate)}
@@ -170,8 +170,13 @@ Estado: ${formData.status === RequestStatus.PENDING ? 'Pendiente' :
           formData.status === RequestStatus.COMPLETED ? 'Completada' : 'Cancelada'}
 
 Recibirás una confirmación por correo electrónico.`);
-    
-    closeModal();
+      closeModal();
+    } catch (error) {
+      console.error('Error al enviar la solicitud de servicio:', error);
+      alert('No se pudo enviar la solicitud. Intenta nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Opciones de estado para el select
@@ -398,14 +403,16 @@ Ejemplo para ${selectedService.name.includes('Restaurante') ? 'Restaurante: "Res
                     type="button" 
                     className="btn-cancel" 
                     onClick={closeModal}
+                    disabled={isSubmitting}
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit" 
                     className="btn-submit"
+                    disabled={isSubmitting}
                   >
-                    Enviar Solicitud
+                    {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
                   </button>
                 </div>
                 
