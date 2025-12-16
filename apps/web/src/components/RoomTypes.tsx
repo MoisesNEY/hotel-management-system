@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import '../styles/room-pricing-minimal.css';
-import { apiPost } from '../services/api';
+import { createBooking } from '../services/client/bookingService';
 
 // Definición de tipos según las entidades
 interface RoomType {
@@ -205,25 +205,16 @@ const RoomTypes: React.FC = () => {
     const finalTotalPrice = selectedRoom ? 
       calculateTotalPrice(selectedRoom.basePrice, formData.guestCount, nights) : 0;
 
-    const bookingPayload = {
-      roomTypeId: selectedRoom!.id, 
-      checkInDate: new Date(formData.checkInDate).toISOString(),
-      checkOutDate: new Date(formData.checkOutDate).toISOString(),
-      guestCount: formData.guestCount,
-      status: formData.status,
-      totalPrice: finalTotalPrice,
-      notes: formData.notes || undefined,
-      roomName: selectedRoom?.name,
-      roomDescription: selectedRoom?.description,
-      roomBasePrice: selectedRoom?.basePrice,
-      roomMaxCapacity: selectedRoom?.maxCapacity,
-      roomArea: selectedRoom?.area,
-      roomBeds: selectedRoom?.beds
-    };
-
     try {
       setIsSubmitting(true);
-      await apiPost('/api/client/bookings', bookingPayload);
+      
+      await createBooking({
+        roomTypeId: selectedRoom!.id, 
+        checkInDate: new Date(formData.checkInDate).toISOString().split('T')[0],
+        checkOutDate: new Date(formData.checkOutDate).toISOString().split('T')[0],
+        guestCount: formData.guestCount,
+        notes: formData.notes || undefined
+      });
 
       alert(`¡Reserva enviada con éxito!
     
