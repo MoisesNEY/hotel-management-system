@@ -1,0 +1,111 @@
+:root {
+    /* =========================================================
+   * Paper Dashboard Design Tokens
+   * Extracted from _variables.scss and component files
+   * ========================================================= */
+
+    /* --- Colors --- */
+    /* Backgrounds */
+    --paper-bg: #f4f3ef;
+    /* $default-body-bg */
+    --paper-sidebar-bg: #212120;
+    /* $dark-color (Sidebar) */
+    --paper-card-bg: #FFFFFF;
+    /* $white-color */
+
+    /* Text */
+    --paper-text-default: #66615b;
+    /* $default-color */
+    --paper-text-title: #252422;
+    /* $card-black-color (Card Titles) */
+    --paper-text-subtitle: #9A9A9A;
+    /* $dark-gray (Card Categories) */
+    --paper-text-muted: #ccc5b9;
+    /* $card-muted-color */
+    --paper-text-white: #FFFFFF;
+
+    /* Brand Colors */
+    --paper-primary: #51cbce;
+    /* $primary-color */
+    --paper-info: #51bcda;
+    /* $info-color */
+    --paper-success: #6bd098;
+    /* $success-color */
+    --paper-warning: #fbc658;
+    /* $warning-color */
+    --paper-danger: #ef8157;
+    /* $danger-color */
+
+    /* Borders & Dividers */
+    --paper-divider: #DDDDDD;
+    /* $medium-gray */
+    --paper-border-light: rgba(255, 255, 255, 0.2);
+    /* Sidebar separator */
+
+    /* --- Shadows --- */
+    /* _variables.scss: 281 & _cards.scss: 3 */
+    --shadow-card: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
+    --shadow-soft: 0 2px 2px rgba(204, 197, 185, 0.5);
+    --shadow-sidebar: 0 2px 2px rgba(204, 197, 185, 0.5);
+    /* Adapted */
+
+    /* --- Typography --- */
+    --font-family-base: 'Montserrat', "Helvetica", Arial, sans-serif;
+    --font-size-base: 14px;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-bold: 600;
+    /* Paper uses 600 for bold usually */
+
+    /* --- Layout --- */
+    --sidebar-width: 260px;
+}
+
+/* Global Reset/Base */
+body {
+    background-color: var(--paper-bg);
+    color: var(--paper-text-default);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: var(--font-weight-normal);
+}
+
+/* --- Utility Classes based on Template --- */
+.text-primary {
+    color: var(--paper-primary) !important;
+}
+
+.text-info {
+    color: var(--paper-info) !important;
+}
+
+.text-success {
+    color: var(--paper-success) !important;
+}
+
+.text-warning {
+    color: var(--paper-warning) !important;
+}
+
+.text-danger {
+    color: var(--paper-danger) !important;
+}
+
+.text-gray {
+    color: var(--paper-text-subtitle) !important;
+}
+
+/* Perfect Scrollbar helper */
+.ps__rail-y {
+    z-index: 999;
+}
