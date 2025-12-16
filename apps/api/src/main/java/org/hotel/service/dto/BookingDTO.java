@@ -28,7 +28,6 @@ public class BookingDTO implements Serializable {
     @NotNull
     private BookingStatus status;
 
-    @NotNull
     @DecimalMin(value = "0")
     private BigDecimal totalPrice;
 
