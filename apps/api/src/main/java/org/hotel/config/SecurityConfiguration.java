@@ -59,6 +59,10 @@ public class SecurityConfiguration {
                         .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
                         .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
 
+                        // Endpoint de cuentas - accesible para todos los users autenticados (sincroniza al usuario de
+                        // Keycloak)
+                        .requestMatchers(mvc.pattern("/api/account")).authenticated()
+
                         // Endpoints de clientes - solo ROLE_CLIENT
                         .requestMatchers(mvc.pattern("/api/client/**")).hasAuthority(AuthoritiesConstants.CLIENT)
 
