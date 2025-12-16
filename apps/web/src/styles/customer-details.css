@@ -434,3 +434,469 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     margin: 0 auto;
     max-width: 500px;
 }
+
+
+/* ===== ESTILOS PARA EL MODAL DE OMITIR INFORMACIÓN ===== */
+
+
+/* Overlay del modal */
+
+.skip-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeInOverlay 0.3s ease;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* Contenedor principal del modal */
+
+.skip-modal {
+    background: linear-gradient(135deg, #fff9ed 0%, #fff1e6 100%);
+    border-radius: 20px;
+    padding: 35px 40px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    position: relative;
+    border: 3px solid #ffb347;
+    animation: slideInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideInModal {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* Header del modal */
+
+.skip-modal-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #ffe4cc;
+}
+
+.skip-modal-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    background: linear-gradient(135deg, #ff8a00, #ff5e00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(255, 94, 0, 0.3);
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.warning-icon-svg {
+    width: 36px;
+    height: 36px;
+    color: white;
+}
+
+.skip-modal-title {
+    color: #d44000;
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Cuerpo del modal */
+
+.skip-modal-body {
+    margin-bottom: 30px;
+}
+
+.skip-modal-message {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #5a3c1c;
+    margin-bottom: 25px;
+    text-align: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    border-left: 4px solid #ff5e00;
+}
+
+.skip-modal-message strong {
+    color: #d44000;
+    font-weight: 800;
+}
+
+.skip-modal-consequences {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 2px solid #ffcc99;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.skip-modal-consequences h4 {
+    color: #8b4513;
+    font-size: 18px;
+    margin: 0 0 15px 0;
+    font-weight: 700;
+    text-align: center;
+}
+
+.skip-modal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.skip-modal-list li {
+    padding: 10px 0;
+    color: #5a3c1c;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px dashed #ffe4cc;
+    transition: all 0.2s ease;
+}
+
+.skip-modal-list li:last-child {
+    border-bottom: none;
+}
+
+.skip-modal-list li:hover {
+    background: #fff9f0;
+    padding-left: 10px;
+    border-radius: 8px;
+}
+
+.list-icon {
+    color: #ff5e00;
+    font-size: 18px;
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+}
+
+.skip-modal-question {
+    text-align: center;
+    padding: 18px;
+    background: linear-gradient(135deg, #fff4e6, #ffe8d1);
+    border-radius: 12px;
+    border: 2px solid #ffb347;
+}
+
+.skip-modal-question p {
+    margin: 0;
+    color: #8b4513;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+
+/* Footer del modal */
+
+.skip-modal-footer {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.skip-modal-btn {
+    padding: 16px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.skip-modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.skip-modal-btn:not(:disabled):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.skip-modal-btn:not(:disabled):active {
+    transform: translateY(-1px);
+}
+
+.skip-modal-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.skip-modal-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.7s;
+}
+
+.skip-modal-btn:hover::before {
+    left: 100%;
+}
+
+.skip-modal-btn-cancel {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3);
+}
+
+.skip-modal-btn-cancel:hover:not(:disabled) {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4);
+}
+
+.skip-modal-btn-confirm {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+}
+
+.skip-modal-btn-confirm:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+}
+
+
+/* Botón de cerrar */
+
+.skip-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ffcc99;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 24px;
+    color: #ff5e00;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.skip-modal-close:hover {
+    background: #ff5e00;
+    color: white;
+    border-color: #ff5e00;
+    transform: rotate(90deg);
+}
+
+
+/* Animación de pulso para todo el modal */
+
+@keyframes modalPulse {
+    0%,
+    100% {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+    50% {
+        box-shadow: 0 25px 50px -12px rgba(255, 94, 0, 0.5);
+    }
+}
+
+.skip-modal {
+    animation: modalPulse 3s infinite;
+}
+
+
+/* Botón "Completar después" en el formulario */
+
+.skip-btn {
+    margin-top: 20px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.skip-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+}
+
+.skip-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.skip-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.skip-btn:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(50, 50);
+        opacity: 0;
+    }
+}
+
+
+/* Estilos responsivos */
+
+@media (max-width: 768px) {
+    .skip-modal {
+        padding: 25px 20px;
+        margin: 15px;
+        width: calc(100% - 30px);
+    }
+    .skip-modal-title {
+        font-size: 22px;
+    }
+    .skip-modal-btn {
+        min-width: 160px;
+        padding: 14px 20px;
+        font-size: 14px;
+    }
+    .skip-modal-footer {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .skip-modal-icon {
+        width: 60px;
+        height: 60px;
+    }
+    .warning-icon-svg {
+        width: 30px;
+        height: 30px;
+    }
+    .skip-modal-message {
+        font-size: 15px;
+        padding: 12px;
+    }
+    .skip-modal-list li {
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    .skip-modal-question p {
+        font-size: 16px;
+    }
+    .skip-modal-close {
+        top: 15px;
+        right: 15px;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .skip-modal {
+        padding: 20px 15px;
+    }
+    .skip-modal-title {
+        font-size: 20px;
+    }
+    .skip-modal-btn {
+        min-width: 140px;
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+    .skip-modal-message {
+        font-size: 14px;
+    }
+    .skip-modal-list li {
+        font-size: 13px;
+    }
+    .skip-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        max-width: 250px;
+    }
+}

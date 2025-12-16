@@ -265,3 +265,277 @@
     font-weight: bold;
     letter-spacing: 1px;
 }
+
+
+/* Agrega estos estilos al final de tu archivo header.css */
+
+.user-menu-container {
+    position: relative;
+}
+
+.user-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.user-profile-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.user-name {
+    color: white;
+    font-weight: 500;
+    font-size: 14px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 220px;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-info {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.user-info-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.user-info-email {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #374151;
+    font-size: 14px;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f9fafb;
+}
+
+.dropdown-item.logout-item {
+    color: #dc2626;
+}
+
+.dropdown-item.logout-item:hover {
+    background-color: #fee2e2;
+}
+
+.dropdown-item svg {
+    color: #9ca3af;
+}
+
+.dropdown-item.logout-item svg {
+    color: #dc2626;
+}
+
+
+/* Estilos responsivos para el menú de usuario */
+
+@media (max-width: 768px) {
+    .user-dropdown-menu {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 16px 16px 0 0;
+        min-width: auto;
+        animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+    .user-profile-btn {
+        justify-content: center;
+        width: 100%;
+    }
+    .nav-buttons .user-menu-container {
+        width: 100%;
+    }
+}
+
+
+/* Asegurar que el menú de usuario esté por encima del contenido */
+
+.header {
+    z-index: 100;
+}
+
+
+/* Mejoras para el estado activo en móviles */
+
+.nav-links.active .user-menu-container {
+    margin-top: 16px;
+}
+
+
+/* apps/web/src/styles/header.css - Agregar estos estilos */
+
+
+/* Badge animado en el avatar */
+
+.info-required-badge {
+    position: relative;
+    margin-left: 8px;
+    color: #f59e0b;
+    animation: pulse-glow 2s infinite;
+}
+
+.pulse-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+
+/* Item del dropdown para completar información */
+
+.info-required-item {
+    position: relative;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 2px solid #f59e0b;
+    border-radius: 8px;
+    margin: 8px;
+    color: #92400e;
+}
+
+.info-required-item:hover {
+    background: linear-gradient(135deg, #fde68a, #fcd34d);
+}
+
+.info-required-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.info-required-text small {
+    font-size: 11px;
+    color: #d97706;
+    font-weight: 600;
+}
+
+
+/* Animación de pulso */
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-glow {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.8));
+    }
+}
+
+.pulse-animation {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    border: 2px solid #f59e0b;
+    border-radius: 10px;
+    animation: pulse-border 1.5s infinite;
+}
+
+@keyframes pulse-border {
+    0% {
+        width: calc(100% + 12px);
+        height: calc(100% + 12px);
+        opacity: 1;
+    }
+    100% {
+        width: calc(100% + 24px);
+        height: calc(100% + 24px);
+        opacity: 0;
+    }
+}
