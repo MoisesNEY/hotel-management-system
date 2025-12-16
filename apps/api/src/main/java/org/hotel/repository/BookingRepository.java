@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.hotel.domain.Booking;
+import org.hotel.domain.enumeration.BookingStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -85,4 +86,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                @Param("excludeId") Long excludeId);
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.assignedRoom.id = :roomId AND b.status IN ('CONFIRMED', 'CHECKED_IN')")
     boolean existsActiveBookingForRoom(@Param("roomId") Long roomId);
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.id = :id AND b.status IN ('CONFIRMED', 'CHECKED_IN')")
+    boolean existsActiveBookingById(@Param("id") Long id);
 }
