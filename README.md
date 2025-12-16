@@ -4,8 +4,8 @@
 
 Sistema integral de gestión hotelera desarrollado en Spring Boot (backend) y React + TypeScript (frontend). El sistema permite la administración completa de reservas, habitaciones, servicios y clientes.
 
-<div align="center">![pajina de inicio para el Grand Hotel](/capturas-de-pantalla/PaginaDeInicio.png)</div>
-<div align="center">![pajina de inicio para el Grand Hotel](/capturas-de-pantalla/PaginaDeLogin.png)</div>
+![pajina de inicio para el Grand Hotel](/capturas-de-pantalla/PaginaDeInicio.png)
+![pajina de inicio para el Grand Hotel](/capturas-de-pantalla/PaginaDeLogin.png)
 
 El sistema de gestion tiene una pajina de web con diferentes controles y paginas para diferentes roles de usuario.  la pantalla de inicio tiene las opciones de iniciar session o registrarse en la esquina e informacion sobre habitaciones servicios y mucho mas sobre el hotel.  despues de iniciar el sesion o registrarse una cliente se puede buscar habitaciones vacios en dias espicificas, hacer reservaciones y solicitar servicios.  Usuarios con el rol de administrador tienen acceso administrativo a las reservas, habitaciones, servicios y clientes. 
 
