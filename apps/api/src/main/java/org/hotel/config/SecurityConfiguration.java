@@ -67,11 +67,11 @@ public class SecurityConfiguration {
                         .requestMatchers(mvc.pattern("/api/client/**")).hasAuthority(AuthoritiesConstants.CLIENT)
 
                         // Endpoints de empleado - ROLE_EMPLOYEE o ROLE_ADMIN
-                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/bookings/*/assign-room"))
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/assign-room"))
                         .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/bookings/*/check-in"))
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-in"))
                         .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/bookings/*/check-out"))
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-out"))
                         .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/service-requests/*/status"))
                         .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)

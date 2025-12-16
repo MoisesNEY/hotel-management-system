@@ -62,7 +62,7 @@ public class HotelServiceService {
     public HotelServiceDTO update(HotelServiceDTO hotelServiceDTO) {
         LOG.debug("Request to update HotelService : {}", hotelServiceDTO);
         HotelService hotelService = hotelServiceMapper.toEntity(hotelServiceDTO);
-        validateChangePrice(hotelServiceDTO.getCost().equals(hotelService.getCost()),
+        validateChangePrice(!hotelServiceDTO.getCost().equals(hotelService.getCost()),
             serviceRequestRepository.existsByStatusAndServiceId(RequestStatus.OPEN, hotelService.getId()));
         hotelService = hotelServiceRepository.save(hotelService);
         return hotelServiceMapper.toDto(hotelService);
@@ -80,7 +80,7 @@ public class HotelServiceService {
             .findById(hotelServiceDTO.getId())
             .map(existingHotelService -> {
                 if(hotelServiceDTO.getCost() != null){
-                    validateChangePrice(hotelServiceDTO.getCost().equals(existingHotelService.getCost()),
+                    validateChangePrice(!hotelServiceDTO.getCost().equals(existingHotelService.getCost()),
                         serviceRequestRepository.existsByStatusAndServiceId(RequestStatus.OPEN, existingHotelService.getId()));
                 }
                 hotelServiceMapper.partialUpdate(existingHotelService, hotelServiceDTO);
