@@ -1,10 +1,10 @@
 // apps/web/src/pages/UserProfilePage.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, Mail, Phone, Calendar, MapPin, Edit, 
+import {
+  User, Mail, Phone, Calendar, Edit,
   Save, X, Lock, Shield, CreditCard, Bell,
-  ArrowLeft, Key, Package, History, Star,
+  ArrowLeft, Key, Package, Star,
   IdCard, Globe, Home, AlertCircle
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
@@ -35,7 +35,7 @@ const UserProfilePage: React.FC = () => {
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
-  
+
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
     lastName: '',
@@ -90,7 +90,7 @@ const UserProfilePage: React.FC = () => {
       const firstName = token.given_name || '';
       const lastName = token.family_name || '';
       const email = token.email || '';
-      
+
       // Cargar datos extras desde localStorage
       const savedData = localStorage.getItem('userData');
       let extraData = {};
@@ -123,17 +123,17 @@ const UserProfilePage: React.FC = () => {
       licenseId: userData.licenseId,
       birthDate: userData.birthDate
     }));
-    
+
     // También guardar preferencias
     localStorage.setItem('userPreferences', JSON.stringify(userData.preferences));
-    
+
     setIsEditing(false);
     alert('¡Cambios guardados exitosamente!');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setUserData(prev => ({
@@ -179,7 +179,7 @@ const UserProfilePage: React.FC = () => {
   };
 
   const getGenderText = (gender: string) => {
-    switch(gender) {
+    switch (gender) {
       case 'Male': return 'Masculino';
       case 'Female': return 'Femenino';
       case 'Other': return 'Otro';
@@ -199,7 +199,7 @@ const UserProfilePage: React.FC = () => {
           <ArrowLeft size={24} />
           Volver al inicio
         </button>
-        
+
         <div className="header-content">
           <div className="profile-avatar">
             <div className="avatar-circle">
@@ -219,7 +219,7 @@ const UserProfilePage: React.FC = () => {
               )}
             </div>
           </div>
-          
+
           <div className="header-actions">
             {!isEditing ? (
               <>
@@ -228,8 +228,8 @@ const UserProfilePage: React.FC = () => {
                   Editar Perfil
                 </button>
                 {!hasCompletedExtraInfo && (
-                  <button 
-                    className="btn btn-warning" 
+                  <button
+                    className="btn btn-warning"
                     onClick={handleCompleteInfo}
                   >
                     <AlertCircle size={18} />
@@ -265,7 +265,7 @@ const UserProfilePage: React.FC = () => {
                   <span className="section-warning">⚠️ Incompleta</span>
                 )}
               </div>
-              
+
               <div className="info-grid">
                 <div className="info-item">
                   <label><User size={16} /> Nombre</label>
@@ -282,7 +282,7 @@ const UserProfilePage: React.FC = () => {
                     <p>{userData.firstName || 'No especificado'}</p>
                   )}
                 </div>
-                
+
                 <div className="info-item">
                   <label><User size={16} /> Apellido</label>
                   {isEditing ? (
@@ -298,13 +298,13 @@ const UserProfilePage: React.FC = () => {
                     <p>{userData.lastName || 'No especificado'}</p>
                   )}
                 </div>
-                
+
                 <div className="info-item">
                   <label><Mail size={16} /> Email</label>
                   <p className="email-display">{userData.email || 'No especificado'}</p>
                   <small className="email-note">Email verificado con Keycloak</small>
                 </div>
-                
+
                 <div className="info-item">
                   <label><Phone size={16} /> Teléfono</label>
                   {isEditing ? (
@@ -320,7 +320,7 @@ const UserProfilePage: React.FC = () => {
                     <p>{userData.phone || 'No especificado'}</p>
                   )}
                 </div>
-                
+
                 <div className="info-item">
                   <label><Calendar size={16} /> Fecha de Nacimiento</label>
                   {isEditing ? (
@@ -335,7 +335,7 @@ const UserProfilePage: React.FC = () => {
                     <p>{formatDate(userData.birthDate)}</p>
                   )}
                 </div>
-                
+
                 {hasCompletedExtraInfo && (
                   <>
                     <div className="info-item">
@@ -356,7 +356,7 @@ const UserProfilePage: React.FC = () => {
                         <p>{getGenderText(userData.gender)}</p>
                       )}
                     </div>
-                    
+
                     <div className="info-item">
                       <label><IdCard size={16} /> DNI/Pasaporte</label>
                       {isEditing ? (
@@ -372,7 +372,7 @@ const UserProfilePage: React.FC = () => {
                         <p>{userData.licenseId || 'No especificado'}</p>
                       )}
                     </div>
-                    
+
                     <div className="info-item full-width">
                       <label><Home size={16} /> Dirección</label>
                       {isEditing ? (
@@ -388,7 +388,7 @@ const UserProfilePage: React.FC = () => {
                         <p>{userData.address || 'No especificada'}</p>
                       )}
                     </div>
-                    
+
                     <div className="info-item">
                       <label><Globe size={16} /> Ciudad</label>
                       {isEditing ? (
@@ -404,7 +404,7 @@ const UserProfilePage: React.FC = () => {
                         <p>{userData.city || 'No especificada'}</p>
                       )}
                     </div>
-                    
+
                     <div className="info-item">
                       <label><Globe size={16} /> País</label>
                       {isEditing ? (
@@ -431,7 +431,7 @@ const UserProfilePage: React.FC = () => {
                 <Shield size={20} />
                 <h2>Seguridad</h2>
               </div>
-              
+
               <div className="security-actions">
                 <button className="security-btn" onClick={handleChangePassword}>
                   <Key size={18} />
@@ -440,7 +440,7 @@ const UserProfilePage: React.FC = () => {
                     <p>Actualiza tu contraseña regularmente</p>
                   </div>
                 </button>
-                
+
                 <button className="security-btn">
                   <Lock size={18} />
                   <div>
@@ -460,7 +460,7 @@ const UserProfilePage: React.FC = () => {
                 <Star size={20} />
                 <h2>Preferencias</h2>
               </div>
-              
+
               <div className="preferences-grid">
                 <div className="preference-item">
                   <div className="preference-info">
@@ -481,7 +481,7 @@ const UserProfilePage: React.FC = () => {
                     <span className="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div className="preference-item">
                   <div className="preference-info">
                     <Mail size={18} />
@@ -501,7 +501,7 @@ const UserProfilePage: React.FC = () => {
                     <span className="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div className="preference-item">
                   <div className="preference-info">
                     <Package size={18} />
@@ -523,12 +523,12 @@ const UserProfilePage: React.FC = () => {
                     </select>
                   ) : (
                     <span className="preference-value">
-                      {userData.preferences.language === 'es' ? 'Español' : 
-                       userData.preferences.language === 'en' ? 'English' : 'Français'}
+                      {userData.preferences.language === 'es' ? 'Español' :
+                        userData.preferences.language === 'en' ? 'English' : 'Français'}
                     </span>
                   )}
                 </div>
-                
+
                 <div className="preference-item">
                   <div className="preference-info">
                     <CreditCard size={18} />
@@ -563,7 +563,7 @@ const UserProfilePage: React.FC = () => {
                 <Shield size={20} />
                 <h2>Información del Sistema</h2>
               </div>
-              
+
               <div className="system-info">
                 <div className="system-item">
                   <span className="system-label">Estado de la cuenta:</span>
@@ -571,21 +571,21 @@ const UserProfilePage: React.FC = () => {
                     {hasCompletedExtraInfo ? 'Completa' : 'Incompleta'}
                   </span>
                 </div>
-                
+
                 <div className="system-item">
                   <span className="system-label">Autenticación:</span>
                   <span className="system-value active">Keycloak</span>
                 </div>
-                
+
                 <div className="system-item">
                   <span className="system-label">Última actualización:</span>
                   <span className="system-value">
                     {new Date().toLocaleDateString('es-ES')}
                   </span>
                 </div>
-                
+
                 {!hasCompletedExtraInfo && (
-                  <button 
+                  <button
                     className="btn-complete-info"
                     onClick={handleCompleteInfo}
                   >

@@ -1,5 +1,5 @@
 // App.tsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import CustomerDetailsPage from './pages/CustomerDetailsPage';
 import AdminReservationPage from './pages/AdminReservationPage';
@@ -9,7 +9,6 @@ import './App.css';
 import './styles/landing.css';
 import keycloak from './services/keycloak';
 import { useEffect, useState } from 'react';
-import { UserProvider } from './contexts/UserContext';
 
 // ✅ Variable global para evitar múltiples inicializaciones
 let keycloakInitialized = false;

@@ -31,18 +31,24 @@ import tech.jhipster.web.util.ResponseUtil;
 /**
  * REST controller for managing users.
  * <p>
- * This class accesses the {@link org.hotel.domain.User} entity, and needs to fetch its collection of authorities.
+ * This class accesses the {@link org.hotel.domain.User} entity, and needs to
+ * fetch its collection of authorities.
  * <p>
- * For a normal use-case, it would be better to have an eager relationship between User and Authority,
- * and send everything to the client side: there would be no View Model and DTO, a lot less code, and an outer-join
+ * For a normal use-case, it would be better to have an eager relationship
+ * between User and Authority,
+ * and send everything to the client side: there would be no View Model and DTO,
+ * a lot less code, and an outer-join
  * which would be good for performance.
  * <p>
  * We use a View Model and a DTO for 3 reasons:
  * <ul>
- * <li>We want to keep a lazy association between the user and the authorities, because people don't
+ * <li>We want to keep a lazy association between the user and the authorities,
+ * because people don't
  * always have authorities, and sometimes lots of them.</li>
- * <li>We want to be able to hand write the DTO and the View Model to override different parts of the standard Spring MVC configuration.</li>
- * <li>We want to separate the internal domain objects and the API contract (DTOs).</li>
+ * <li>We want to be able to hand write the DTO and the View Model to override
+ * different parts of the standard Spring MVC configuration.</li>
+ * <li>We want to separate the internal domain objects and the API contract
+ * (DTOs).</li>
  * </ul>
  */
 @RestController
@@ -63,19 +69,23 @@ public class UserResource {
     }
 
     /**
-     * {@code GET /admin/users} : get all users with all the details - calling this are only allowed for the administrators.
+     * {@code GET /admin/users} : get all users with all the details - calling this
+     * are only allowed for the administrators.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body all users.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         all users.
      */
     @GetMapping
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
-    public ResponseEntity<List<AdminUserDTO>> getAllUsers(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<AdminUserDTO>> getAllUsers(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get all User for an admin");
 
         // Usamos el método que devuelve AdminUserDTO (con roles, estado activado, etc.)
         final Page<AdminUserDTO> page = userService.getAllManagedUsers(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 
@@ -83,7 +93,8 @@ public class UserResource {
      * {@code GET /admin/users/:login} : get the "login" user.
      *
      * @param login the login of the user to find.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the "login" user, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the "login" user, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{login}")
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
@@ -96,7 +107,8 @@ public class UserResource {
      * {@code PUT /admin/users} : Updates an existing User.
      *
      * @param userDTO the user to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated user.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated user.
      */
     @PutMapping
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
@@ -104,25 +116,28 @@ public class UserResource {
         LOG.debug("REST request to update User : {}", userDTO);
 
         // Validaciones básicas antes de llamar al servicio
-        Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
-        if (existingUser.isPresent() && (!existingUser.get().getId().equals(userDTO.getId()))) {
-            throw new EmailAlreadyUsedException();
-        }
-        existingUser = userRepository.findOneByLogin(userDTO.getLogin().toLowerCase());
-        if (existingUser.isPresent() && (!existingUser.get().getId().equals(userDTO.getId()))) {
-            throw new LoginAlreadyUsedException();
-        }
+        userRepository.findOneByEmailIgnoreCase(userDTO.getEmail())
+                .filter(user -> !user.getId().equals(userDTO.getId()))
+                .ifPresent(user -> {
+                    throw new EmailAlreadyUsedException();
+                });
+
+        userRepository.findOneByLogin(userDTO.getLogin().toLowerCase())
+                .filter(user -> !user.getId().equals(userDTO.getId()))
+                .ifPresent(user -> {
+                    throw new LoginAlreadyUsedException();
+                });
 
         // Aquí es donde ocurre la magia de ACTIVAR/DESACTIVAR y CAMBIAR ROLES
         // Necesitas implementar este método en UserService que reciba AdminUserDTO
         // O usar los métodos parciales que discutimos antes.
-        // JHipster estándar suele tener un método updateUser(AdminUserDTO) en el servicio.
+        // JHipster estándar suele tener un método updateUser(AdminUserDTO) en el
+        // servicio.
         Optional<AdminUserDTO> updatedUser = userService.updateUser(userDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            updatedUser,
-            HeaderUtil.createAlert(applicationName, "userManagement.updated", userDTO.getLogin())
-        );
+                updatedUser,
+                HeaderUtil.createAlert(applicationName, "userManagement.updated", userDTO.getLogin()));
     }
 
     /**
@@ -137,7 +152,7 @@ public class UserResource {
         LOG.debug("REST request to delete User: {}", login);
         userService.deleteUser(login);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createAlert(applicationName, "userManagement.deleted", login))
-            .build();
+                .headers(HeaderUtil.createAlert(applicationName, "userManagement.deleted", login))
+                .build();
     }
 }

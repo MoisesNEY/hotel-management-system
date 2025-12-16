@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Coffee, Dumbbell, Heart, Car, Umbrella, Wind, X, Clock, FileText, AlertCircle } from 'lucide-react';
 import '../styles/services.css';
-import { apiPost } from '../services/api';
+import { createServiceRequest } from '../services/client/serviceRequestService';
 
 // Enum para RequestStatus
 export const RequestStatus = {
@@ -149,17 +149,13 @@ const Services: React.FC = () => {
       return;
     }
     
-    const serviceRequestData = {
-      requestDate: new Date(formData.requestDate).toISOString(),
-      details: formData.details.trim(),
-      status: formData.status,
-      serviceName: selectedService?.name,
-      serviceCategory: selectedService?.category
-    };
-    
     try {
       setIsSubmitting(true);
-      await apiPost('/api/client/service-requests', serviceRequestData);
+      await createServiceRequest({
+        details: `${formData.details.trim()} [Fecha: ${formData.requestDate}] [Servicio: ${selectedService?.name}]`,
+        serviceId: 1, // Placeholder Mock ID
+        bookingId: 1 // Placeholder Mock ID
+      });
 
       alert(`¡Solicitud de servicio enviada con éxito!
 
