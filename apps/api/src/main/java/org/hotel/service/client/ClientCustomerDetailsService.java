@@ -10,11 +10,14 @@ import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsUpdat
 import org.hotel.service.dto.client.response.customerdetails.CustomerDetailsResponse;
 import org.hotel.service.mapper.client.ClientCustomerDetailsMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Optional;
 
 @Service
@@ -74,6 +77,20 @@ public class ClientCustomerDetailsService {
 
         CustomerDetails entity = clientCustomerDetailsMapper.toEntity(request);
 
+        // Validación de edad
+        // Calcula la edad exacta al día de hoy
+        int age = Period.between(request.getBirthDate(), LocalDate.now()).getYears();
+
+        if (age < 18) {
+            throw new BusinessRuleException(
+                "Debes ser mayor de 18 años para acceder nuestros servicios.");
+        }
+        // Validación de "Sanity Check"
+        // Nadie vivo tiene más de 120 años.
+        if (age > 120) {
+            throw new BusinessRuleException(
+                "La fecha de nacimiento no es válida. Verifica el año.");
+        }
         entity.setUser(currentUser);
 
         entity = customerDetailsRepository.save(entity);

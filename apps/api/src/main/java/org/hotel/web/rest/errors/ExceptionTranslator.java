@@ -1,5 +1,6 @@
 package org.hotel.web.rest.errors;
 
+import static org.hotel.web.rest.errors.ErrorConstants.DEFAULT_TYPE;
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -176,7 +177,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
     private URI getMappedType(Throwable err) {
         if (err instanceof MethodArgumentNotValidException) return ErrorConstants.CONSTRAINT_VIOLATION_TYPE;
-        return ErrorConstants.DEFAULT_TYPE;
+        return DEFAULT_TYPE;
     }
 
     private String getMappedMessageKey(Throwable err) {
@@ -243,5 +244,29 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     private boolean containsPackageName(String message) {
         // This list is for sure not complete
         return StringUtils.containsAny(message, "org.", "java.", "net.", "jakarta.", "javax.", "com.", "io.", "de.", "org.hotel");
+    }
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ProblemDetailWithCause> handleNotFound(ResourceNotFoundException ex) {
+        ProblemDetailWithCause problem = new ProblemDetailWithCauseBuilder()
+            .withStatus(HttpStatus.NOT_FOUND.value())
+            .withTitle("Recurso no encontrado")
+            .withDetail(ex.getMessage())
+            .withType(DEFAULT_TYPE)
+            .withProperty("message", "error." + "http.404")
+            .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ProblemDetailWithCause> handleBusinessLogic(BusinessRuleException ex) {
+        ProblemDetailWithCause problem = new ProblemDetailWithCauseBuilder()
+            .withStatus(HttpStatus.CONFLICT.value())
+            .withTitle("Violación de regla de negocio")
+            .withDetail(ex.getMessage())
+            .withType(DEFAULT_TYPE)
+            .withProperty("message", "error." + "http.409")
+            .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
     }
 }

@@ -1,22 +1,35 @@
-import { Routes, Route } from 'react-router-dom';
+// App.tsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import CustomerDetailsPage from './pages/CustomerDetailsPage';
 import AdminReservationPage from './pages/AdminReservationPage';
+import UserProfilePage from './pages/UserProfilePage';
+
 import './App.css';
 import './styles/landing.css';
 import keycloak from './services/keycloak';
 import { useEffect, useState } from 'react';
+import { UserProvider } from './contexts/UserContext';
+
+// ✅ Variable global para evitar múltiples inicializaciones
+let keycloakInitialized = false;
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    keycloak.init({
-      onLoad: 'check-sso',  // Verifica si hay sesión sin forzar login
-      checkLoginIframe: false
-    }).then(authenticated => {
-      setAuthenticated(authenticated);
-    });
+    if (!keycloakInitialized) {
+      keycloakInitialized = true;
+
+      keycloak.init({
+        onLoad: 'check-sso',
+        checkLoginIframe: false
+      }).then(auth => {
+        setAuthenticated(auth);
+      }).catch(err => {
+        console.error('Error al inicializar Keycloak:', err);
+      });
+    }
   }, []);
 
   return (
@@ -24,6 +37,8 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/customer" element={<CustomerDetailsPage />} />
       <Route path="/admin/reservations" element={<AdminReservationPage />} />
+      <Route path="/profile" element={<UserProfilePage />} />
+      <Route path="*" element={!authenticated ? <Navigate to="/" /> : null} />
     </Routes>
   );
 }

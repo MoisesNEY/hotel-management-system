@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.hotel.repository.RoomRepository;
+import org.hotel.security.AuthoritiesConstants;
 import org.hotel.service.RoomService;
 import org.hotel.service.dto.RoomDTO;
 import org.hotel.web.rest.errors.BadRequestAlertException;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -51,10 +53,13 @@ public class RoomResource {
      * {@code POST  /rooms} : Create a new room.
      *
      * @param roomDTO the roomDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new roomDTO, or with status {@code 400 (Bad Request)} if the room has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new roomDTO, or with status {@code 400 (Bad Request)} if the
+     *         room has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
+    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<RoomDTO> createRoom(@Valid @RequestBody RoomDTO roomDTO) throws URISyntaxException {
         LOG.debug("REST request to save Room : {}", roomDTO);
         if (roomDTO.getId() != null) {
@@ -62,25 +67,28 @@ public class RoomResource {
         }
         roomDTO = roomService.save(roomDTO);
         return ResponseEntity.created(new URI("/api/rooms/" + roomDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, roomDTO.getId().toString()))
-            .body(roomDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        roomDTO.getId().toString()))
+                .body(roomDTO);
     }
 
     /**
      * {@code PUT  /rooms/:id} : Updates an existing room.
      *
-     * @param id the id of the roomDTO to save.
+     * @param id      the id of the roomDTO to save.
      * @param roomDTO the roomDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated roomDTO,
-     * or with status {@code 400 (Bad Request)} if the roomDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the roomDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated roomDTO,
+     *         or with status {@code 400 (Bad Request)} if the roomDTO is not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the roomDTO
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<RoomDTO> updateRoom(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody RoomDTO roomDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody RoomDTO roomDTO) throws URISyntaxException {
         LOG.debug("REST request to update Room : {}, {}", id, roomDTO);
         if (roomDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -95,26 +103,30 @@ public class RoomResource {
 
         roomDTO = roomService.update(roomDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, roomDTO.getId().toString()))
-            .body(roomDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        roomDTO.getId().toString()))
+                .body(roomDTO);
     }
 
     /**
-     * {@code PATCH  /rooms/:id} : Partial updates given fields of an existing room, field will ignore if it is null
+     * {@code PATCH  /rooms/:id} : Partial updates given fields of an existing room,
+     * field will ignore if it is null
      *
-     * @param id the id of the roomDTO to save.
+     * @param id      the id of the roomDTO to save.
      * @param roomDTO the roomDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated roomDTO,
-     * or with status {@code 400 (Bad Request)} if the roomDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the roomDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the roomDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated roomDTO,
+     *         or with status {@code 400 (Bad Request)} if the roomDTO is not valid,
+     *         or with status {@code 404 (Not Found)} if the roomDTO is not found,
+     *         or with status {@code 500 (Internal Server Error)} if the roomDTO
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<RoomDTO> partialUpdateRoom(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody RoomDTO roomDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody RoomDTO roomDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update Room partially : {}, {}", id, roomDTO);
         if (roomDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -130,23 +142,24 @@ public class RoomResource {
         Optional<RoomDTO> result = roomService.partialUpdate(roomDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, roomDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, roomDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /rooms} : get all the rooms.
      *
-     * @param pageable the pagination information.
-     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of rooms in body.
+     * @param pageable  the pagination information.
+     * @param eagerload flag to eager load entities from relationships (This is
+     *                  applicable for many-to-many).
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of rooms in body.
      */
     @GetMapping("")
+    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<List<RoomDTO>> getAllRooms(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
-    ) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload) {
         LOG.debug("REST request to get a page of Rooms");
         Page<RoomDTO> page;
         if (eagerload) {
@@ -154,7 +167,8 @@ public class RoomResource {
         } else {
             page = roomService.findAll(pageable);
         }
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -162,9 +176,11 @@ public class RoomResource {
      * {@code GET  /rooms/:id} : get the "id" room.
      *
      * @param id the id of the roomDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the roomDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the roomDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<RoomDTO> getRoom(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Room : {}", id);
         Optional<RoomDTO> roomDTO = roomService.findOne(id);
@@ -178,11 +194,12 @@ public class RoomResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<Void> deleteRoom(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Room : {}", id);
         roomService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }

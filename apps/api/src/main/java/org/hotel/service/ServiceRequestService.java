@@ -1,10 +1,17 @@
 package org.hotel.service;
 
+import java.time.Instant;
 import java.util.Optional;
 import org.hotel.domain.ServiceRequest;
+import org.hotel.domain.enumeration.RequestStatus;
+import org.hotel.repository.BookingRepository;
+import org.hotel.repository.HotelServiceRepository;
 import org.hotel.repository.ServiceRequestRepository;
+import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.dto.ServiceRequestDTO;
 import org.hotel.service.mapper.ServiceRequestMapper;
+import org.hotel.web.rest.errors.BusinessRuleException;
+import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,11 +29,14 @@ public class ServiceRequestService {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestService.class);
 
     private final ServiceRequestRepository serviceRequestRepository;
-
+    private final BookingRepository bookingRepository;
+    private final HotelServiceRepository hotelServiceRepository;
     private final ServiceRequestMapper serviceRequestMapper;
 
-    public ServiceRequestService(ServiceRequestRepository serviceRequestRepository, ServiceRequestMapper serviceRequestMapper) {
+    public ServiceRequestService(ServiceRequestRepository serviceRequestRepository, HotelServiceRepository hotelServiceRepository, BookingRepository bookingRepository, ServiceRequestMapper serviceRequestMapper) {
+        this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
+        this.hotelServiceRepository = hotelServiceRepository;
         this.serviceRequestMapper = serviceRequestMapper;
     }
 
@@ -39,6 +49,10 @@ public class ServiceRequestService {
     public ServiceRequestDTO save(ServiceRequestDTO serviceRequestDTO) {
         LOG.debug("Request to save ServiceRequest : {}", serviceRequestDTO);
         ServiceRequest serviceRequest = serviceRequestMapper.toEntity(serviceRequestDTO);
+        serviceRequest.setRequestDate(Instant.now());
+        serviceRequest.setStatus(RequestStatus.OPEN);
+        validateBookingStatus(serviceRequest.getBooking().getId());
+        validateHotelServiceDisposability(serviceRequest.getService().getId());
         serviceRequest = serviceRequestRepository.save(serviceRequest);
         return serviceRequestMapper.toDto(serviceRequest);
     }
@@ -52,6 +66,8 @@ public class ServiceRequestService {
     public ServiceRequestDTO update(ServiceRequestDTO serviceRequestDTO) {
         LOG.debug("Request to update ServiceRequest : {}", serviceRequestDTO);
         ServiceRequest serviceRequest = serviceRequestMapper.toEntity(serviceRequestDTO);
+        validateBookingStatus(serviceRequest.getBooking().getId());
+        validateHotelServiceDisposability(serviceRequest.getService().getId());
         serviceRequest = serviceRequestRepository.save(serviceRequest);
         return serviceRequestMapper.toDto(serviceRequest);
     }
@@ -69,7 +85,12 @@ public class ServiceRequestService {
             .findById(serviceRequestDTO.getId())
             .map(existingServiceRequest -> {
                 serviceRequestMapper.partialUpdate(existingServiceRequest, serviceRequestDTO);
-
+                if(serviceRequestDTO.getBooking() != null && serviceRequestDTO.getBooking().getId() != null) {
+                    validateBookingStatus(serviceRequestDTO.getBooking().getId());
+                }
+                if(serviceRequestDTO.getService() != null && serviceRequestDTO.getService().getId() != null) {
+                    validateHotelServiceDisposability(serviceRequestDTO.getService().getId());
+                }
                 return existingServiceRequest;
             })
             .map(serviceRequestRepository::save)
@@ -116,6 +137,19 @@ public class ServiceRequestService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete ServiceRequest : {}", id);
+        if (!serviceRequestRepository.existsById(id)) {
+            throw new ResourceNotFoundException("ServiceRequest", id);
+        }
         serviceRequestRepository.deleteById(id);
+    }
+    public void validateBookingStatus(Long bookingId) {
+        if(!bookingRepository.existsActiveBookingById(bookingId)) {
+            throw new BusinessRuleException("No se pueden crear solicitudes de servicio con el estado de la reserva seleccionada");
+        }
+    }
+    public void validateHotelServiceDisposability(Long hotelServiceId) {
+        if(!hotelServiceRepository.existsByIdAndIsAvailableTrue(hotelServiceId)) {
+            throw new BusinessRuleException("Servicio de hotel no disponible");
+        }
     }
 }
