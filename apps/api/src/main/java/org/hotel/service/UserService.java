@@ -223,4 +223,77 @@ public class UserService {
         user.setActivated(activated);
         return user;
     }
+    /**
+     * Activate or deactivate a user.
+     * @param login the login of the user.
+     * @param activated true to activate, false to deactivate.
+     */
+    public void updateUserActivation(String login, boolean activated) {
+        userRepository.findOneByLogin(login).ifPresent(user -> {
+            user.setActivated(activated);
+            LOG.debug("Changed Activated for User: {}", user);
+            // Esto evita que el usuario haga acciones aunque tenga token válido
+        });
+    }
+    /**
+     * Update authorities for a specific user.
+     */
+    public void updateUserAuthorities(String login, Set<String> authorities) {
+        userRepository.findOneByLogin(login).ifPresent(user -> {
+            Set<Authority> newAuthorities = authorities.stream()
+                .map(authorityRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+
+            user.setAuthorities(newAuthorities);
+            LOG.debug("Changed Authorities for User: {}", user);
+        });
+    }
+    /**
+     * Delete a user by login.
+     */
+    public void deleteUser(String login) {
+        userRepository.findOneByLogin(login).ifPresent(user -> {
+            userRepository.delete(user);
+            LOG.debug("Deleted User: {}", user);
+        });
+    }
+    /**
+     * Update all information for a specific user, and return the modified user.
+     *
+     * @param userDTO user to update.
+     * @return updated user.
+     */
+    public Optional<AdminUserDTO> updateUser(AdminUserDTO userDTO) {
+        return Optional.of(userRepository.findById(userDTO.getId()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(user -> {
+                user.setLogin(userDTO.getLogin().toLowerCase());
+                user.setFirstName(userDTO.getFirstName());
+                user.setLastName(userDTO.getLastName());
+                if (userDTO.getEmail() != null) {
+                    user.setEmail(userDTO.getEmail().toLowerCase());
+                }
+                user.setImageUrl(userDTO.getImageUrl());
+                user.setActivated(userDTO.isActivated()); // bloqueo/desbloqueo
+                user.setLangKey(userDTO.getLangKey());
+
+                // Actualizar Roles
+                Set<Authority> managedAuthorities = user.getAuthorities();
+                managedAuthorities.clear();
+                userDTO
+                    .getAuthorities()
+                    .stream()
+                    .map(authorityRepository::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .forEach(managedAuthorities::add);
+
+                LOG.debug("Changed Information for User: {}", user);
+                return user;
+            })
+            .map(AdminUserDTO::new);
+    }
 }
