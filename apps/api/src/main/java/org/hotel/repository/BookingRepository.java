@@ -88,4 +88,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     boolean existsActiveBookingForRoom(@Param("roomId") Long roomId);
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.id = :id AND b.status IN ('CONFIRMED', 'CHECKED_IN')")
     boolean existsActiveBookingById(@Param("id") Long id);
+    // Para saber si el Usuario asociado a este perfil tiene reservas
+    boolean existsByCustomerId(String userId);
 }

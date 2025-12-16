@@ -38,4 +38,8 @@ public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails
 
     @Query("select customerDetails from CustomerDetails customerDetails left join fetch customerDetails.user where customerDetails.id =:id")
     Optional<CustomerDetails> findOneWithToOneRelationships(@Param("id") Long id);
+    boolean existsByLicenseId(String licenseId);
+    boolean existsByUserId(String user_id);
+    Optional<CustomerDetails> findOneByLicenseId(String userLogin);
+
 }
