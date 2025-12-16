@@ -10,10 +10,6 @@ const Footer: React.FC = () => {
                 {/* Copyright */}
                 <div className="flex items-center space-x-2 mb-2 md:mb-0">
                     <span>© {currentYear} Hotel Management System</span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="flex items-center">
-                        Hecho con <Heart className="w-4 h-4 mx-1 text-red-500 fill-current" /> por Grupo B
-                    </span>
                 </div>
 
                 {/* Links */}

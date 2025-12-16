@@ -83,7 +83,7 @@ const RoomsView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Gestión de Habitaciones</h1>
                     <p className="text-gray-500 text-sm mt-1">Control de inventario y estados</p>
                 </div>
-                <Button leftIcon={<Plus size={18} />}>Nueva Habitación</Button>
+                <Button>Nueva Habitación</Button>
             </div>
 
             {/* Quick Stats */}
@@ -99,18 +99,23 @@ const RoomsView = () => {
             <Card className="border shadow-none">
                 {/* Filters */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                    {['ALL', 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'CLEANING'].map((status) => (
-                        <button
-                            key={status}
-                            onClick={() => setStatusFilter(status)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${statusFilter === status
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            {status === 'ALL' ? 'Todas' : status}
-                        </button>
-                    ))}
+                    {['ALL', 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'CLEANING'].map((status) => {
+                        const isActive = statusFilter === status;
+                        return (
+                            <Button
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                variant={isActive ? 'primary' : 'ghost'}
+                                size="sm"
+                                className={isActive
+                                    ? 'shadow-md'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-none shadow-none hover:shadow-none'
+                                }
+                            >
+                                {status === 'ALL' ? 'Todas' : status}
+                            </Button>
+                        );
+                    })}
                 </div>
 
                 <Table

@@ -1,6 +1,6 @@
 import React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'light' | 'info' | 'warning' | 'error';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'light' | 'info' | 'warning' | 'error' | 'link';
 type ButtonSize = 'sm' | 'md' | 'lg' | 'round';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -10,66 +10,63 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     leftIcon?: React.ReactNode; // Alias for icon or explicit left position
     isLoading?: boolean;
     block?: boolean; // Full width
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({
+    children,
     variant = 'primary',
     size = 'md',
+    className = '',
     icon,
     leftIcon,
     isLoading = false,
     block = false,
-    children,
-    className = '',
     disabled,
     ...props
 }) => {
+    // Determine CSS classes based on props
+    let btnClass = 'btn';
 
-    // Use exact Paper Dashboard classes or inline styles where possible
-    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed border-box box-border';
+    // Variant classes (map to .btn-primary, .btn-danger etc defined in css)
+    if (variant && variant !== 'ghost') {
+        btnClass += ` btn-${variant}`;
+    } else if (variant === 'ghost') {
+        btnClass += ' btn-neutral'; // closest match or custom
+    }
 
-    // Paper Dashboard specific overrides
-    const variants = {
-        primary: 'bg-[#51cbce] text-white hover:bg-[#4bc2c5] hover:shadow-md border border-[#51cbce]', /* $primary-color */
-        secondary: 'bg-[#66615B] text-white hover:bg-[#403D39] hover:shadow-md border border-[#66615B]', /* $default-color */
-        info: 'bg-[#51bcda] text-white hover:bg-[#4ab4d1] hover:shadow-md border border-[#51bcda]',
-        success: 'bg-[#6bd098] text-white hover:bg-[#63c38e] hover:shadow-md border border-[#6bd098]',
-        warning: 'bg-[#fbc658] text-white hover:bg-[#fab52d] hover:shadow-md border border-[#fbc658]',
-        danger: 'bg-[#ef8157] text-white hover:bg-[#eb7446] hover:shadow-md border border-[#ef8157]',
-        error: 'bg-[#ef8157] text-white hover:bg-[#eb7446] hover:shadow-md border border-[#ef8157]', /* Error alias for danger */
-        outline: 'bg-transparent text-[#66615B] border-[2px] border-[#66615B] hover:bg-[#66615B] hover:text-white',
-        ghost: 'bg-transparent text-[#66615B] hover:text-[#403D39] shadow-none hover:shadow-none border-none',
-        light: 'bg-white text-[#66615B] border border-[#ccc5b9] hover:bg-gray-50'
-    };
+    // Size classes
+    if (size === 'sm') {
+        btnClass += ' btn-sm';
+    } else if (size === 'lg') {
+        btnClass += ' btn-lg';
+    }
 
-    const sizes = {
-        sm: 'px-[15px] py-[5px] text-[12px] rounded-[3px]', /* btn-sm */
-        md: 'px-[22px] py-[11px] text-[14px] rounded-[4px]', /* Default btn padding */
-        lg: 'px-[48px] py-[15px] text-[16px] rounded-[6px]', /* btn-lg */
-        round: 'px-[23px] py-[11px] text-[14px] rounded-[30px]' /* Special round variant found in template */
-    };
+    // Shape
+    // Paper Dashboard buttons are 'round' (pill) by default for main actions in our design, 
+    // or explicit 'btn-round' class. 
+    // User requested "estilo pill (rounded-30px)".
+    if (size !== 'round') { // 'round' size usually implies icon button, handle separately or here
+        btnClass += ' btn-round';
+    } else {
+        // Icon button case
+        btnClass += ' btn-round btn-icon';
+        // Add specific style for icon button size if needed, usually handles padding
+    }
 
-    // If user passed a specific 'round' prop or we want to support it via size? 
-    // For now we map standard sizes to Paper Dashboard standard button size.
-    // Use `className` prop to pass `rounded-full` if needed, or we can add a `shape` prop later.
+    if (block) {
+        btnClass += ' w-full';
+    }
 
-    const widthClass = block ? 'w-full' : '';
+    if (className) {
+        btnClass += ` ${className}`;
+    }
+
     const iconContent = leftIcon || icon;
-
-    // Check if variant exists or fallback to primary
-    const variantClass = variants[variant as keyof typeof variants] || variants.primary;
 
     return (
         <button
-            className={`
-                ${baseStyles}
-                ${variantClass}
-                ${sizes[size] || sizes.md}
-                ${widthClass}
-                uppercase tracking-wide
-                ${className}
-            `}
+            className={btnClass}
             disabled={disabled || isLoading}
             {...props}
         >
@@ -79,7 +76,9 @@ const Button: React.FC<ButtonProps> = ({
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
             )}
-            {!isLoading && iconContent && <span className="mr-2">{iconContent}</span>}
+
+            {!isLoading && iconContent && <span className={`${children ? 'mr-2' : ''} flex items-center`}>{iconContent}</span>}
+
             {children}
         </button>
     );

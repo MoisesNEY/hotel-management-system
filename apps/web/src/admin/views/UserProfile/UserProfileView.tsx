@@ -226,12 +226,7 @@ const UserProfileView: React.FC = () => {
                             {/* Submit */}
                             <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
                                 <div className="update ml-auto mr-auto" style={{ margin: '0 auto', marginTop: '15px' }}>
-                                    <Button
-                                        type="submit"
-                                        variant="primary"
-                                        size="round"
-                                        className="btn-round"
-                                    >
+                                    <Button>
                                         Update Profile
                                     </Button>
                                 </div>

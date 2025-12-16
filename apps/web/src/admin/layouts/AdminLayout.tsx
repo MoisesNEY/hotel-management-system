@@ -13,8 +13,9 @@ const AdminLayout: React.FC = () => {
     const [bgColor, setBgColor] = useState<string>('black');
     const [activeColor, setActiveColor] = useState<string>('primary');
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const mainPanelRef = useRef<HTMLDivElement>(null);
-    const location = useLocation(); // Hook usage
+    const location = useLocation();
 
     // Load theme from localStorage
     useEffect(() => {
@@ -49,7 +50,7 @@ const AdminLayout: React.FC = () => {
     useEffect(() => {
         if (mainPanelRef.current) {
             mainPanelRef.current.scrollTop = 0;
-            // Also scroll window just in case, though main-panel is the scrolling overflow usually
+            // Also scroll window just in case
             window.scrollTo(0, 0);
         }
     }, [location.pathname]);
@@ -64,8 +65,41 @@ const AdminLayout: React.FC = () => {
         localStorage.setItem('admin-active-color', color);
     };
 
+    const handleToggleSidebar = () => {
+        // Desktop Collapse Logic
+        if (document.documentElement.clientWidth > 991) {
+            setIsCollapsed(!isCollapsed);
+            return;
+        }
+
+        // Mobile Overlay Logic
+        setSidebarOpen(!sidebarOpen);
+        const html = document.documentElement;
+        const body = document.body;
+
+        if (!sidebarOpen) {
+            html.classList.add('nav-open');
+            body.classList.add('nav-open');
+        } else {
+            html.classList.remove('nav-open');
+            body.classList.remove('nav-open');
+        }
+    };
+
+    // Close sidebar when route changes on mobile
+    useEffect(() => {
+        const html = document.documentElement;
+        const body = document.body;
+        html.classList.remove('nav-open');
+        body.classList.remove('nav-open');
+        setSidebarOpen(false);
+    }, [location.pathname]);
+
     return (
-        <div className="wrapper" style={{ backgroundColor: '#f4f3ef', position: 'relative', minHeight: '100vh', display: 'block', top: 0, height: '100vh' }}>
+        <div
+            className={`wrapper ${isCollapsed ? 'sidebar-mini' : ''}`}
+            style={{ backgroundColor: '#f4f3ef', position: 'relative', minHeight: '100vh', display: 'block', top: 0, height: '100vh', overflowX: 'hidden' }}
+        >
             <Sidebar
                 bgColor={bgColor}
                 activeColor={activeColor}
@@ -78,14 +112,22 @@ const AdminLayout: React.FC = () => {
                 style={{
                     position: 'relative',
                     float: 'right',
-                    width: 'calc(100% - 260px)',
                     backgroundColor: '#f4f3ef',
-                    transition: 'all 0.5s cubic-bezier(0.685, 0.0473, 0.346, 1)',
                     maxHeight: '100%',
-                    height: '100%'
+                    height: '100%',
+                    overflow: 'auto',
+                    // width is handled by CSS (calc(100% - 260px) or calc(100% - 80px) via sidebar-mini)
                 }}
             >
-                <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+                <Navbar onToggleSidebar={handleToggleSidebar} />
+
+                {/* Overlay for mobile sidebar closing - visible via CSS when nav-open */}
+                <div
+                    className="close-layer"
+                    onClick={() => {
+                        if (sidebarOpen) handleToggleSidebar();
+                    }}
+                />
 
                 <div className="content" style={{ padding: '0 30px 30px', minHeight: 'calc(100vh - 123px)', marginTop: '80px' }}> {/* Increased margin-top to prevent overlap */}
                     <Routes>
@@ -104,7 +146,7 @@ const AdminLayout: React.FC = () => {
                 <Footer />
             </div>
 
-            {/* Theme Switcher kept for functionality, though UI might need check */}
+            {/* Theme Switcher kept for functionality */}
             <ThemeSwitcher
                 onBgColorChange={handleBgColorChange}
                 onActiveColorChange={handleActiveColorChange}

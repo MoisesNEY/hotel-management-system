@@ -8,8 +8,6 @@ import {
     MapPin,
     Bell,
     Table2,
-    Type,
-    Palette,
     User
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -20,12 +18,10 @@ import RoomsView from './views/Rooms/RoomsView';
 import BookingsView from './views/Bookings/BookingsView'; // Imported
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView'; // Imported
-import IconsView from './views/Icons/IconsView';
 import MapsView from './views/Maps/MapsView';
 import NotificationsView from './views/Notifications/NotificationsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
-import TypographyView from './views/Typography/TypographyView';
 
 export interface RouteConfig {
     path: string;
@@ -55,7 +51,7 @@ const routes: RouteConfig[] = [
         path: '/bookings',
         name: 'Reservas',
         icon: CalendarCheck,
-        component: BookingsView, // Corrected
+        component: BookingsView,
         layout: '/admin'
     },
     {
@@ -69,14 +65,7 @@ const routes: RouteConfig[] = [
         path: '/customers',
         name: 'Clientes',
         icon: Users,
-        component: CustomersView, // Corrected
-        layout: '/admin'
-    },
-    {
-        path: '/icons',
-        name: 'Iconos',
-        icon: Palette,
-        component: IconsView,
+        component: CustomersView,
         layout: '/admin'
     },
     {
@@ -105,13 +94,6 @@ const routes: RouteConfig[] = [
         name: 'Tablas',
         icon: Table2,
         component: TablesView,
-        layout: '/admin'
-    },
-    {
-        path: '/typography',
-        name: 'Tipografía',
-        icon: Type,
-        component: TypographyView,
         layout: '/admin'
     }
 ];

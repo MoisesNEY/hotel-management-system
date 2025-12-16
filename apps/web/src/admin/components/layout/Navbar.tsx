@@ -15,8 +15,6 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         if (path.includes('dashboard')) return 'DASHBOARD';
         if (path.includes('user-profile')) return 'USER PROFILE';
         if (path.includes('table')) return 'TABLE LIST';
-        if (path.includes('typography')) return 'TYPOGRAPHY';
-        if (path.includes('icons')) return 'ICONS';
         if (path.includes('maps')) return 'MAPS';
         if (path.includes('notifications')) return 'NOTIFICATIONS';
         return 'ADMIN PANEL';

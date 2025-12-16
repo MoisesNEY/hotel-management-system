@@ -77,7 +77,7 @@ const ServicesView = () => {
                                     <span className="font-bold text-blue-600">{formatCurrency(service.price)}</span>
                                 </div>
                             ))}
-                            <Button variant="outline" block className="mt-4" leftIcon={<Plus size={16} />}>
+                            <Button block className="mt-4">
                                 Agregar Servicio
                             </Button>
                         </div>

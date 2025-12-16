@@ -104,7 +104,7 @@ const Dashboard = () => {
     return (
         <div className="content">
             {/* Stats Components Row */}
-            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px', marginBottom: '30px' }}>
                 <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
                     <StatsCard
                         type="warning"
@@ -163,11 +163,6 @@ const Dashboard = () => {
                         </div>
                         {/* Footer (Legend within Footer or below chart) */}
                         <div className="card-footer" style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}>
-                            <div className="legend" style={{ display: 'none' }}> {/* Legend handled by ChartJS or custom HTML if needed */}
-                                <i className="fa fa-circle text-primary"></i> Open
-                                <i className="fa fa-circle text-warning"></i> Click
-                                <i className="fa fa-circle text-danger"></i> Click Second Time
-                            </div>
                             <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
                                 <RefreshCw size={14} style={{ marginRight: '5px' }} /> Updated 3 minutes ago
                             </div>
