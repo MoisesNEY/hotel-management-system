@@ -19,6 +19,7 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
         return this.findOneWithToOneRelationships(id);
     }
     boolean existsByStatusAndServiceId(RequestStatus status, Long serviceId);
+    boolean existsByBookingId(Long bookingId);
     default List<ServiceRequest> findAllWithEagerRelationships() {
         return this.findAllWithToOneRelationships();
     }
