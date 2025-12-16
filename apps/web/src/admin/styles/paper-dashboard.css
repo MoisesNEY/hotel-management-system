@@ -109,3 +109,53 @@ h6 {
 .ps__rail-y {
     z-index: 999;
 }
+
+/* --- Sidebar Themes --- */
+/* Black Theme (Default) */
+.sidebar[data-color="black"] {
+    background-color: var(--paper-sidebar-bg);
+    color: #ffffff;
+}
+
+.sidebar[data-color="black"] .nav li>a,
+.sidebar[data-color="black"] .logo-normal {
+    color: #ffffff !important;
+}
+
+/* White Theme */
+.sidebar[data-color="white"] {
+    background-color: #ffffff !important;
+    border-right: 1px solid #ddd;
+}
+
+.sidebar[data-color="white"] .logo:after {
+    background-color: #ddd !important;
+    /* Darker separator */
+}
+
+.sidebar[data-color="white"] .nav li>a,
+.sidebar[data-color="white"] .logo-normal {
+    color: #66615b !important;
+    /* Dark Gray Text */
+    font-weight: 600;
+}
+
+.sidebar[data-color="white"] .nav li>a:not(.active):hover,
+.sidebar[data-color="white"] .nav li>a:not(.active):focus {
+    color: var(--paper-primary) !important;
+    /* Hover color on white theme */
+}
+
+.sidebar[data-color="white"] .simple-text {
+    color: #66615b !important;
+}
+
+.sidebar[data-color="white"] .nav i {
+    color: rgba(102, 97, 91, 0.5) !important;
+    /* Darker icons */
+}
+
+.sidebar[data-color="white"] .nav li.active i {
+    color: inherit !important;
+    /* Keep active color (cyan/green/etc) */
+}

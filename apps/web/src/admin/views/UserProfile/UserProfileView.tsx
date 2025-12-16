@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import Card from '../../components/shared/Card';
-import { User } from 'lucide-react';
+import Button from '../../components/shared/Button';
+// import { User, Mail, MapPin, Briefcase } from 'lucide-react'; // Unused icons removed
 
 const FormInput = ({ label, name, value, onChange, type = "text", placeholder = "", disabled = false }: any) => (
-    <div className="form-group">
-        <label className="block text-xs uppercase text-gray-400 font-semibold mb-2 tracking-wider">
+    <div className="form-group mb-4">
+        <label className="block text-xs uppercase text-gray-500 font-bold mb-2 tracking-wide">
             {label}
         </label>
         <input
@@ -17,7 +18,7 @@ const FormInput = ({ label, name, value, onChange, type = "text", placeholder = 
             className={`
                 w-full px-3 py-2 
                 bg-white border text-gray-700 text-sm
-                ${disabled ? 'border-transparent bg-gray-50 text-gray-500 cursor-not-allowed' : 'border-gray-200 focus:border-blue-400'}
+                ${disabled ? 'border-transparent bg-transparent text-gray-500 cursor-not-allowed' : 'border-gray-200 focus:border-cyan-400'}
                 rounded transition-colors duration-200 outline-none
                 placeholder-gray-300
             `}
@@ -29,15 +30,14 @@ const UserProfileView: React.FC = () => {
     const [formData, setFormData] = useState({
         company: 'Creative Code Inc.',
         username: 'michael23',
-        firstName: 'Juan',
-        lastName: 'Pérez',
-        email: 'juan.perez@example.com',
-        phone: '+1 234 567 8900',
-        address: 'Calle Principal 123',
-        city: 'Ciudad de México',
-        country: 'México',
-        zipCode: '01000',
-        bio: 'Administrador del sistema de gestión hotelera.'
+        firstName: 'Chet',
+        lastName: 'Faker',
+        email: '',
+        address: 'Melbourne, Australia',
+        city: 'Melbourne',
+        country: 'Australia',
+        zipCode: '',
+        aboutMe: "Oh so, your weak rhyme You doubt I'll bother, reading into it"
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,158 +51,194 @@ const UserProfileView: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            {/* <div className="mb-6">
-                 <h1 className="text-2xl font-bold text-gray-800">User Profile</h1>
-            </div> */}
-            {/* Header hidden to match original template minimal look if desired, or kept small */}
+        <div className="content">
+            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Profile Card */}
-                <Card className="shadow-card border border-gray-100 lg:col-span-1 h-fit">
-                    <div className="flex flex-col items-center text-center pb-4">
-                        <div className="relative -mt-12 mb-4">
-                            <div className="w-32 h-32 bg-white p-1 rounded-full shadow-lg">
-                                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center overflow-hidden">
-                                    {/* Placeholder for real image */}
-                                    <User className="w-16 h-16 text-white opacity-80" />
-                                </div>
-                            </div>
+                {/* Profile Card (Left on Large, Top on Mobile? - Original template has it on Right actually in some demos, but we keep it Left or Right based on user preference, typically Left 4 cols, Right 8 cols in this requested layout) */}
+                <div className="col-md-4" style={{ width: '33.33333%', padding: '0 15px', flex: '0 0 33.33333%', maxWidth: '33.33333%' }}>
+                    <div className="card card-user" style={{
+                        borderRadius: '12px',
+                        boxShadow: '0 6px 10px -4px rgba(0,0,0,0.15)',
+                        backgroundColor: '#fff',
+                        marginBottom: '20px',
+                        overflow: 'hidden', /* For the background image */
+                        border: '0 none'
+                    }}>
+                        <div className="image" style={{ height: '110px', overflow: 'hidden', position: 'relative' }}>
+                            <img src="https://demos.creative-tim.com/paper-dashboard-react/static/media/damir-bosnjak.45952932.jpg" alt="..." style={{ width: '100%', height: 'auto' }} />
                         </div>
-
-                        <h3 className="text-xl font-bold text-gray-800 mb-1">
-                            {formData.firstName} {formData.lastName}
-                        </h3>
-                        <p className="text-sm text-gray-400 font-medium mb-4">@{formData.username}</p>
-
-                        <p className="text-gray-500 text-sm px-6 italic mb-6">
-                            "Administrador principal del sistema de gestión hotelera"
-                        </p>
-
-                        <div className="flex justify-center w-full pt-6 border-t border-gray-100 gap-8">
-                            <div className="text-center">
-                                <span className="block text-lg font-bold text-gray-700">12</span>
-                                <span className="text-xs text-gray-400 uppercase tracking-widest">Files</span>
+                        <div className="card-body" style={{ minHeight: '240px', padding: '15px 15px 10px 15px', textAlign: 'center' }}>
+                            <div className="author" style={{ marginTop: '-65px', textAlign: 'center' }}>
+                                <a href="#pablo" onClick={e => e.preventDefault()} style={{ textDecoration: 'none' }}>
+                                    <div style={{
+                                        width: '124px',
+                                        height: '124px',
+                                        border: '5px solid #fff',
+                                        borderRadius: '50%',
+                                        margin: '0 auto',
+                                        overflow: 'hidden',
+                                        position: 'relative',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f8f9fa'
+                                    }}>
+                                        {/* Placeholder Avatar */}
+                                        <img src="https://demos.creative-tim.com/paper-dashboard-react/static/media/mike.4947936a.jpg" alt="..." style={{ width: '100%' }} />
+                                    </div>
+                                    <h5 className="title" style={{ color: '#403D39', fontSize: '1.57em', fontWeight: 600, lineHeight: '1.4em', marginBottom: '0', marginTop: '10px' }}>
+                                        {formData.firstName} {formData.lastName}
+                                    </h5>
+                                </a>
+                                <p className="description" style={{ color: '#9A9A9A', fontWeight: 400, fontSize: '14px' }}>
+                                    @{formData.username}
+                                </p>
                             </div>
-                            <div className="text-center">
-                                <span className="block text-lg font-bold text-gray-700">2GB</span>
-                                <span className="text-xs text-gray-400 uppercase tracking-widest">Used</span>
-                            </div>
-                            <div className="text-center">
-                                <span className="block text-lg font-bold text-gray-700">24.6$</span>
-                                <span className="text-xs text-gray-400 uppercase tracking-widest">Spent</span>
+                            <p className="description text-center" style={{ marginTop: '15px', color: '#9A9A9A', fontSize: '14px', lineHeight: '1.5' }}>
+                                "{formData.aboutMe}"
+                            </p>
+                        </div>
+                        <div className="card-footer" style={{ borderTop: '1px solid #ddd', padding: '15px 15px 10px 15px', backgroundColor: 'transparent' }}>
+                            <hr style={{ marginTop: '5px', marginBottom: '15px', border: 0 }} />
+                            <div className="button-container" style={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
+                                <Button className="btn-icon btn-round" variant="ghost" size="sm" style={{ color: '#3b5998' }}><i className="fa fa-facebook"></i> F</Button>
+                                <Button className="btn-icon btn-round" variant="ghost" size="sm" style={{ color: '#55acee' }}><i className="fa fa-twitter"></i> T</Button>
+                                <Button className="btn-icon btn-round" variant="ghost" size="sm" style={{ color: '#dd4b39' }}><i className="fa fa-google"></i> G</Button>
                             </div>
                         </div>
                     </div>
-                </Card>
+                </div>
 
-                {/* Edit Form */}
-                <Card title="Edit Profile" className="shadow-card border border-gray-100 lg:col-span-2">
-                    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-                        {/* Row 1 */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <FormInput
-                                    label="Company"
-                                    name="company"
-                                    value={formData.company}
-                                    disabled={true}
-                                />
+                {/* Edit Profile Form (Right, 8 cols) */}
+                <div className="col-md-8" style={{ width: '66.66667%', padding: '0 15px', flex: '0 0 66.66667%', maxWidth: '66.66667%' }}>
+                    <Card title="Edit Profile" className="card-user">
+                        <form onSubmit={handleSubmit}>
+                            {/* Row 1 */}
+                            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                                <div className="col-5 pr-1" style={{ width: '41.66667%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Company (disabled)"
+                                        name="company"
+                                        value={formData.company}
+                                        disabled={true}
+                                    />
+                                </div>
+                                <div className="col-3 px-1" style={{ width: '25%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Username"
+                                        name="username"
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="col-4 pl-1" style={{ width: '33.33333%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Email address"
+                                        name="email"
+                                        type="email"
+                                        placeholder="Email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <FormInput
-                                    label="Username"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                />
+
+                            {/* Row 2 */}
+                            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                                <div className="col-6 pr-1" style={{ width: '50%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="First Name"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="col-6 pl-1" style={{ width: '50%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Last Name"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <FormInput
-                                    label="Email address"
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                />
+
+                            {/* Row 3 */}
+                            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                                <div className="col-12" style={{ width: '100%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Address"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Row 2 */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormInput
-                                label="First Name"
-                                name="firstName"
-                                value={formData.firstName}
-                                onChange={handleChange}
-                            />
-                            <FormInput
-                                label="Last Name"
-                                name="lastName"
-                                value={formData.lastName}
-                                onChange={handleChange}
-                            />
-                        </div>
+                            {/* Row 4 */}
+                            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                                <div className="col-4 pr-1" style={{ width: '33.33333%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="City"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="col-4 px-1" style={{ width: '33.33333%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Country"
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="col-4 pl-1" style={{ width: '33.33333%', padding: '0 15px' }}>
+                                    <FormInput
+                                        label="Postal Code"
+                                        name="zipCode"
+                                        type="number"
+                                        placeholder="ZIP Code"
+                                        value={formData.zipCode}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
 
-                        {/* Address */}
-                        <div>
-                            <FormInput
-                                label="Address"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                            />
-                        </div>
+                            {/* Row 5 */}
+                            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                                <div className="col-12" style={{ width: '100%', padding: '0 15px' }}>
+                                    <div className="form-group">
+                                        <label className="block text-xs uppercase text-gray-500 font-bold mb-2 tracking-wide">
+                                            About Me
+                                        </label>
+                                        <textarea
+                                            className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-gray-700 outline-none focus:border-cyan-400 transition-colors resize-none placeholder-gray-300"
+                                            rows={4}
+                                            name="aboutMe"
+                                            value={formData.aboutMe}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
 
-                        {/* City Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <FormInput
-                                label="City"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                            />
-                            <FormInput
-                                label="Country"
-                                name="country"
-                                value={formData.country}
-                                onChange={handleChange}
-                            />
-                            <FormInput
-                                label="Postal Code"
-                                name="zipCode"
-                                value={formData.zipCode}
-                                onChange={handleChange}
-                                type="number"
-                            />
-                        </div>
-
-                        {/* Bio */}
-                        <div>
-                            <label className="block text-xs uppercase text-gray-400 font-semibold mb-2 tracking-wider">
-                                About Me
-                            </label>
-                            <textarea
-                                name="bio"
-                                value={formData.bio}
-                                onChange={handleChange}
-                                rows={4}
-                                className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-gray-700 outline-none focus:border-blue-400 transition-colors resize-none placeholder-gray-300"
-                            />
-                        </div>
-
-                        {/* Submit Button */}
-                        <div className="flex justify-center pt-4">
-                            <button
-                                type="submit"
-                                className="px-8 py-2.5 bg-cyan-400 text-white rounded-full hover:bg-cyan-500 transition-colors font-semibold text-sm tracking-wide shadow-md hover:shadow-lg transform active:scale-95 duration-150"
-                            >
-                                Update Profile
-                            </button>
-                        </div>
-                    </form>
-                </Card>
+                            {/* Submit */}
+                            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                                <div className="update ml-auto mr-auto" style={{ margin: '0 auto', marginTop: '15px' }}>
+                                    <Button
+                                        type="submit"
+                                        variant="primary"
+                                        size="round"
+                                        className="btn-round"
+                                    >
+                                        Update Profile
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+                    </Card>
+                </div>
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'; // Added useLocation
 import PerfectScrollbar from 'perfect-scrollbar';
 import 'perfect-scrollbar/css/perfect-scrollbar.css';
 
@@ -14,6 +14,7 @@ const AdminLayout: React.FC = () => {
     const [activeColor, setActiveColor] = useState<string>('primary');
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const mainPanelRef = useRef<HTMLDivElement>(null);
+    const location = useLocation(); // Hook usage
 
     // Load theme from localStorage
     useEffect(() => {
@@ -48,6 +49,8 @@ const AdminLayout: React.FC = () => {
     useEffect(() => {
         if (mainPanelRef.current) {
             mainPanelRef.current.scrollTop = 0;
+            // Also scroll window just in case, though main-panel is the scrolling overflow usually
+            window.scrollTo(0, 0);
         }
     }, [location.pathname]);
 
@@ -84,7 +87,7 @@ const AdminLayout: React.FC = () => {
             >
                 <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-                <div className="content" style={{ padding: '0 30px 30px', minHeight: 'calc(100vh - 123px)', marginTop: '30px' }}>
+                <div className="content" style={{ padding: '0 30px 30px', minHeight: 'calc(100vh - 123px)', marginTop: '80px' }}> {/* Increased margin-top to prevent overlap */}
                     <Routes>
                         {routes.map((route, index) => (
                             <Route

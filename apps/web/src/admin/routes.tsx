@@ -17,7 +17,9 @@ import type { LucideIcon } from 'lucide-react';
 // Import views
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
+import BookingsView from './views/Bookings/BookingsView'; // Imported
 import ServicesView from './views/Services/ServicesView';
+import CustomersView from './views/Customers/CustomersView'; // Imported
 import IconsView from './views/Icons/IconsView';
 import MapsView from './views/Maps/MapsView';
 import NotificationsView from './views/Notifications/NotificationsView';
@@ -53,7 +55,7 @@ const routes: RouteConfig[] = [
         path: '/bookings',
         name: 'Reservas',
         icon: CalendarCheck,
-        component: RoomsView, // Placeholder - reuse RoomsView for now
+        component: BookingsView, // Corrected
         layout: '/admin'
     },
     {
@@ -67,7 +69,7 @@ const routes: RouteConfig[] = [
         path: '/customers',
         name: 'Clientes',
         icon: Users,
-        component: RoomsView, // Placeholder - reuse RoomsView for now
+        component: CustomersView, // Corrected
         layout: '/admin'
     },
     {

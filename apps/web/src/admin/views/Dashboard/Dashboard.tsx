@@ -19,10 +19,11 @@ import {
     RefreshCw,
     Calendar,
     Clock,
-    Activity
+    Activity,
+    Circle
 } from 'lucide-react';
 
-import StatsCard from '../../components/shared/StatsCard'; // New custom card
+import StatsCard from '../../components/shared/StatsCard';
 import Card from '../../components/shared/Card';
 import { dashboardService } from '../../services/api';
 import type { DashboardStats, ChartData } from '../../types';
@@ -49,11 +50,8 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // In a real scenario, these would be separate parallel calls
                 const dashboardData = await dashboardService.getStats();
                 setStats(dashboardData);
-
-                // Mock chart data fetch
                 const revenueData = await dashboardService.getRevenueChartData();
                 setChartData(revenueData);
             } catch (error) {
@@ -62,7 +60,6 @@ const Dashboard = () => {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -73,41 +70,20 @@ const Dashboard = () => {
     const chartOptions = {
         responsive: true,
         plugins: {
-            legend: {
-                position: 'top' as const,
-            },
+            legend: { display: false }, // Custom legend layout in Paper Dashboard
+            tooltip: { mode: 'index' as const, intersect: false },
         },
         scales: {
             y: {
-                beginAtZero: true,
-                grid: {
-                    color: '#f3f3f3',
-                    drawBorder: false,
-                },
-                ticks: {
-                    padding: 20,
-                    color: "#9f9f9f"
-                }
+                ticks: { color: "#9f9f9f", font: { size: 10 } },
+                grid: { color: "#f3f3f3", drawBorder: false }
             },
             x: {
-                grid: {
-                    display: false,
-                    drawBorder: false,
-                },
-                ticks: {
-                    padding: 20,
-                    color: "#9f9f9f"
-                }
+                grid: { display: false, drawBorder: false },
+                ticks: { color: "#9f9f9f", font: { size: 10 } }
             }
         },
-        layout: {
-            padding: {
-                left: 0,
-                right: 0,
-                top: 15,
-                bottom: 15
-            }
-        }
+        layout: { padding: 0 }
     };
 
     const revenueChartData = chartData ? {
@@ -116,7 +92,7 @@ const Dashboard = () => {
             ...ds,
             tension: 0.4,
             fill: true,
-            borderColor: '#51cbce', // Primary cyan
+            borderColor: '#51cbce',
             backgroundColor: 'transparent',
             pointBorderColor: '#51cbce',
             pointRadius: 4,
@@ -125,12 +101,11 @@ const Dashboard = () => {
         }))
     } : { labels: [], datasets: [] };
 
-
     return (
         <div className="content">
-            {/* Stats Row */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
-                <div style={{ width: '25%', padding: '0 15px', flex: '0 0 25%', maxWidth: '25%', boxSizing: 'border-box' }} className="w-full md:w-1/2 lg:w-1/4 mb-4">
+            {/* Stats Components Row */}
+            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
                     <StatsCard
                         type="warning"
                         icon={CalendarCheck}
@@ -140,7 +115,7 @@ const Dashboard = () => {
                         footerText="Actualizado ahora"
                     />
                 </div>
-                <div style={{ width: '25%', padding: '0 15px', flex: '0 0 25%', maxWidth: '25%', boxSizing: 'border-box' }} className="w-full md:w-1/2 lg:w-1/4 mb-4">
+                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
                     <StatsCard
                         type="success"
                         icon={DollarSign}
@@ -150,7 +125,7 @@ const Dashboard = () => {
                         footerText="Último mes"
                     />
                 </div>
-                <div style={{ width: '25%', padding: '0 15px', flex: '0 0 25%', maxWidth: '25%', boxSizing: 'border-box' }} className="w-full md:w-1/2 lg:w-1/4 mb-4">
+                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
                     <StatsCard
                         type="danger"
                         icon={Users}
@@ -160,7 +135,7 @@ const Dashboard = () => {
                         footerText="En la última hora"
                     />
                 </div>
-                <div style={{ width: '25%', padding: '0 15px', flex: '0 0 25%', maxWidth: '25%', boxSizing: 'border-box' }} className="w-full md:w-1/2 lg:w-1/4 mb-4">
+                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
                     <StatsCard
                         type="primary"
                         icon={BedDouble}
@@ -173,10 +148,11 @@ const Dashboard = () => {
             </div>
 
             {/* Charts Row */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
-                <div style={{ padding: '0 15px', flex: '0 0 100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                <div className="col-md-12" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 100%', maxWidth: '100%' }}>
                     <Card title="Comportamiento de Usuarios" subtitle="Rendimiento de 24 Horas">
-                        <div style={{ height: '400px', width: '100%' }}>
+                        {/* Chart Container */}
+                        <div style={{ position: 'relative', height: '400px', width: '100%', marginTop: '10px' }}>
                             {chartData ? (
                                 <Line data={revenueChartData} options={chartOptions} />
                             ) : (
@@ -185,9 +161,53 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </div>
+                        {/* Footer (Legend within Footer or below chart) */}
                         <div className="card-footer" style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}>
+                            <div className="legend" style={{ display: 'none' }}> {/* Legend handled by ChartJS or custom HTML if needed */}
+                                <i className="fa fa-circle text-primary"></i> Open
+                                <i className="fa fa-circle text-warning"></i> Click
+                                <i className="fa fa-circle text-danger"></i> Click Second Time
+                            </div>
                             <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
                                 <RefreshCw size={14} style={{ marginRight: '5px' }} /> Updated 3 minutes ago
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Bottom Row: Additional Charts or Tables could go here like in demo logic (Email Stats / NASDQ) */}
+            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
+                <div className="col-md-4" style={{ padding: '0 15px', width: '33.3333%', flex: '0 0 33.3333%', maxWidth: '33.3333%' }}>
+                    <Card title="Estadísticas Email" subtitle="Rendimiento de Campaña">
+                        <div style={{ height: '245px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>
+                            {/* Placeholder Pie Chart */}
+                            [ Pie Chart Placeholder ]
+                        </div>
+                        <div className="legend" style={{ padding: '10px 0', fontSize: '12px', color: '#9a9a9a' }}>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                <span style={{ display: 'flex', alignItems: 'center' }}><Circle size={10} className="text-blue-400 fill-current mr-1" /> Abierto</span>
+                                <span style={{ display: 'flex', alignItems: 'center' }}><Circle size={10} className="text-yellow-400 fill-current mr-1" /> Leído</span>
+                                <span style={{ display: 'flex', alignItems: 'center' }}><Circle size={10} className="text-red-400 fill-current mr-1" /> Eliminado</span>
+                            </div>
+                        </div>
+                        <div className="card-footer" style={{ borderTop: '0 none', paddingTop: '10px' }}>
+                            <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+                                <Calendar size={14} style={{ marginRight: '5px' }} /> Número de emails enviados
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+                <div className="col-md-8" style={{ padding: '0 15px', width: '66.6666%', flex: '0 0 66.6666%', maxWidth: '66.6666%' }}>
+                    <Card title="NASDAQ: APHA" subtitle="Histórico 2018">
+                        <div style={{ height: '277px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>
+                            {/* Placeholder Line Chart with different config */}
+                            [ Detailed Line Chart Placeholder ]
+                        </div>
+                        <div className="card-footer" style={{ borderTop: '0 none', paddingTop: '0' }}>
+                            {/* Footer content */}
+                            <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+                                <Activity size={14} style={{ marginRight: '5px' }} /> Datos certificados
                             </div>
                         </div>
                     </Card>

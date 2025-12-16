@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Card from '../../components/shared/Card';
-import { Info, AlertCircle, CheckCircle, XCircle, X } from 'lucide-react';
+import Button from '../../components/shared/Button';
+import { Info, CheckCircle, AlertCircle, XCircle, X } from 'lucide-react';
 
 interface Toast {
     id: number;
@@ -30,148 +31,124 @@ const NotificationsView: React.FC = () => {
         setToasts(prev => prev.filter(t => t.id !== id));
     };
 
-    const getToastStyles = (type: Toast['type']) => {
-        const styles = {
-            info: {
-                bg: 'bg-blue-50 border-blue-200',
-                text: 'text-blue-800',
-                icon: Info,
-                iconColor: 'text-blue-600'
-            },
-            success: {
-                bg: 'bg-green-50 border-green-200',
-                text: 'text-green-800',
-                icon: CheckCircle,
-                iconColor: 'text-green-600'
-            },
-            warning: {
-                bg: 'bg-orange-50 border-orange-200',
-                text: 'text-orange-800',
-                icon: AlertCircle,
-                iconColor: 'text-orange-600'
-            },
-            error: {
-                bg: 'bg-red-50 border-red-200',
-                text: 'text-red-800',
-                icon: XCircle,
-                iconColor: 'text-red-600'
-            }
-        };
-
-        return styles[type];
+    // Paper Dashboard specific colors for alerts
+    const getAlertStyle = (type: string) => {
+        switch (type) {
+            case 'info': return { backgroundColor: '#51bcda', color: '#fff' };
+            case 'success': return { backgroundColor: '#6bd098', color: '#fff' };
+            case 'warning': return { backgroundColor: '#fbc658', color: '#fff' };
+            case 'error': return { backgroundColor: '#ef8157', color: '#fff' };
+            default: return { backgroundColor: '#51bcda', color: '#fff' };
+        }
     };
 
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Notificaciones</h1>
-                <p className="text-gray-600">
-                    Sistema de notificaciones y alertas
-                </p>
+    const Alert: React.FC<{ type: 'info' | 'success' | 'warning' | 'error'; children: React.ReactNode }> = ({ type, children }) => {
+        const style = getAlertStyle(type);
+        return (
+            <div className="alert fade show" role="alert" style={{
+                ...style,
+                borderRadius: '4px',
+                border: '0',
+                padding: '20px 15px',
+                marginBottom: '20px',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center'
+            }}>
+                {children}
             </div>
+        );
+    };
 
-            {/* Demo Buttons */}
-            <Card title="Tipos de Notificaciones" className="shadow-md border-none">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button
-                        onClick={() => showNotification('info', 'Esta es una notificación informativa')}
-                        className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                    >
-                        Info
-                    </button>
-                    <button
-                        onClick={() => showNotification('success', '¡Operación completada exitosamente!')}
-                        className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
-                    >
-                        Success
-                    </button>
-                    <button
-                        onClick={() => showNotification('warning', 'Advertencia: Verifica los datos ingresados')}
-                        className="px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-                    >
-                        Warning
-                    </button>
-                    <button
-                        onClick={() => showNotification('error', 'Error: No se pudo completar la operación')}
-                        className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                    >
-                        Error
-                    </button>
-                </div>
-            </Card>
 
-            {/* Static Alerts */}
-            <Card title="Alertas Estáticas" className="shadow-md border-none">
-                <div className="space-y-4">
-                    {/* Info Alert */}
-                    <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                        <div className="flex-1">
-                            <h4 className="font-semibold text-blue-900">Información</h4>
-                            <p className="text-sm text-blue-700 mt-1">
-                                Este es un mensaje informativo para el usuario
-                            </p>
-                        </div>
+    return (
+        <div className="content">
+            <Card title="Notifications" subtitle="Estilos de Notificaciones y Alertas">
+                <div className="row">
+                    <div className="col-md-6" style={{ padding: '0 15px' }}>
+                        <h5 className="card-title text-uppercase text-muted mb-4 font-bold text-sm">NOTIFICACIONES STATIC</h5>
+
+                        <Alert type="info">
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                <b style={{ marginRight: '5px' }}> Info - </b> Este es un mensaje de alerta informativo.
+                            </span>
+                        </Alert>
+                        <Alert type="success">
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                <b style={{ marginRight: '5px' }}> Success - </b> Operación completada con éxito.
+                            </span>
+                        </Alert>
+                        <Alert type="warning">
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                <b style={{ marginRight: '5px' }}> Warning - </b> Ten cuidado con esta acción.
+                            </span>
+                        </Alert>
+                        <Alert type="error">
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                <b style={{ marginRight: '5px' }}> Error - </b> Algo salió mal, por favor intenta de nuevo.
+                            </span>
+                        </Alert>
                     </div>
 
-                    {/* Success Alert */}
-                    <div className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                        <div className="flex-1">
-                            <h4 className="font-semibold text-green-900">Éxito</h4>
-                            <p className="text-sm text-green-700 mt-1">
-                                La operación se completó correctamente
-                            </p>
-                        </div>
-                    </div>
+                    <div className="col-md-6" style={{ padding: '0 15px' }}>
+                        <h5 className="card-title text-uppercase text-muted mb-4 font-bold text-sm">NOTIFICACIONES INTERACTIVAS</h5>
+                        <p className="text-gray-600 mb-4">Haz clic para probar las notificaciones flotantes</p>
 
-                    {/* Warning Alert */}
-                    <div className="flex items-start space-x-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                        <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
-                        <div className="flex-1">
-                            <h4 className="font-semibold text-orange-900">Advertencia</h4>
-                            <p className="text-sm text-orange-700 mt-1">
-                                Por favor revisa los datos antes de continuar
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Error Alert */}
-                    <div className="flex items-start space-x-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                        <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                        <div className="flex-1">
-                            <h4 className="font-semibold text-red-900">Error</h4>
-                            <p className="text-sm text-red-700 mt-1">
-                                Ocurrió un error al procesar la solicitud
-                            </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Button variant="info" block onClick={() => showNotification('info', "Bienvenido al Dashboard")}>
+                                Info Notification
+                            </Button>
+                            <Button variant="success" block onClick={() => showNotification('success', "Datos guardados correctamente")}>
+                                Success Notification
+                            </Button>
+                            <Button variant="warning" block onClick={() => showNotification('warning', "Faltan datos en el formulario")}>
+                                Warning Notification
+                            </Button>
+                            <Button variant="danger" block onClick={() => showNotification('error', "Error de conexión con el servidor")}>
+                                Error Notification
+                            </Button>
                         </div>
                     </div>
                 </div>
             </Card>
 
-            {/* Toast Container */}
-            <div className="fixed top-4 right-4 z-50 space-y-2" style={{ maxWidth: '400px' }}>
+            {/* Toast Container (Fixed) */}
+            <div className="fixed-plugin" style={{
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                zIndex: 9999,
+                width: '350px'
+            }}>
                 {toasts.map(toast => {
-                    const styles = getToastStyles(toast.type);
-                    const Icon = styles.icon;
-
+                    const style = getAlertStyle(toast.type);
                     return (
-                        <div
-                            key={toast.id}
-                            className={`
-                                flex items-start space-x-3 p-4 rounded-lg border shadow-lg
-                                ${styles.bg} ${styles.text}
-                                animate-slide-in-right
-                            `}
+                        <div key={toast.id} className="alert alert-with-icon" style={{
+                            ...style,
+                            borderRadius: '4px',
+                            border: '0',
+                            padding: '15px',
+                            marginBottom: '10px',
+                            boxShadow: '0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(156, 39, 176, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            animation: 'fadeIn 0.5s',
+                            cursor: 'pointer'
+                        }}
+                            onClick={() => removeToast(toast.id)}
                         >
-                            <Icon className={`w-5 h-5 ${styles.iconColor} mt-0.5`} />
-                            <p className="flex-1 text-sm">{toast.message}</p>
-                            <button
-                                onClick={() => removeToast(toast.id)}
-                                className="hover:opacity-70 transition-opacity"
-                            >
-                                <X className="w-4 h-4" />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ fontSize: '20px', marginRight: '10px' }}>
+                                    {toast.type === 'info' && <Info />}
+                                    {toast.type === 'success' && <CheckCircle />}
+                                    {toast.type === 'warning' && <AlertCircle />}
+                                    {toast.type === 'error' && <XCircle />}
+                                </div>
+                                <span data-notify="message">{toast.message}</span>
+                            </div>
+                            <button type="button" className="close" style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '18px', lineHeight: '1' }}>
+                                <X size={16} />
                             </button>
                         </div>
                     );

@@ -1,7 +1,7 @@
 import React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'light';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'light' | 'info' | 'warning' | 'error';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'round';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
@@ -37,6 +37,7 @@ const Button: React.FC<ButtonProps> = ({
         success: 'bg-[#6bd098] text-white hover:bg-[#63c38e] hover:shadow-md border border-[#6bd098]',
         warning: 'bg-[#fbc658] text-white hover:bg-[#fab52d] hover:shadow-md border border-[#fbc658]',
         danger: 'bg-[#ef8157] text-white hover:bg-[#eb7446] hover:shadow-md border border-[#ef8157]',
+        error: 'bg-[#ef8157] text-white hover:bg-[#eb7446] hover:shadow-md border border-[#ef8157]', /* Error alias for danger */
         outline: 'bg-transparent text-[#66615B] border-[2px] border-[#66615B] hover:bg-[#66615B] hover:text-white',
         ghost: 'bg-transparent text-[#66615B] hover:text-[#403D39] shadow-none hover:shadow-none border-none',
         light: 'bg-white text-[#66615B] border border-[#ccc5b9] hover:bg-gray-50'
