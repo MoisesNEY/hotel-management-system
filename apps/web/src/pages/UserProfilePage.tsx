@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Calendar, Edit,
   Save, X, Lock, Shield, Bell,
-  ArrowLeft, Key, Star,
+  ArrowLeft, Key, Star, Bed, Coffee,
   IdCard, Globe, Home, AlertCircle, CreditCard, Package
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import type { CustomerDetailsUpdateRequest, Gender } from '../types/clientTypes';
 import '../styles/user-profile.css';
 
+// Interfaces para los datos
 interface UserData {
   firstName: string;
   lastName: string;
@@ -29,6 +30,26 @@ interface UserData {
   };
 }
 
+interface Booking {
+  id: string;
+  roomType: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  status: 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
+  totalPrice: number;
+  roomNumber?: string;
+}
+
+interface ServiceRequest {
+  id: string;
+  serviceType: string;
+  requestedDate: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  notes?: string;
+  price?: number;
+}
+
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -36,6 +57,11 @@ const UserProfilePage: React.FC = () => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
 
+  // Estados para los modales
+  const [showBookingsModal, setShowBookingsModal] = useState(false);
+  const [showServicesModal, setShowServicesModal] = useState(false);
+
+  // Estados para los datos
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
     lastName: '',
@@ -54,6 +80,11 @@ const UserProfilePage: React.FC = () => {
       currency: 'USD'
     }
   });
+
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
 
   useEffect(() => {
     // Verificar autenticación
@@ -81,12 +112,11 @@ const UserProfilePage: React.FC = () => {
       setUserData(prev => ({ ...prev, ...baseData }));
 
       // 2. Intentar cargar perfil completo del backend
-      // Import dinámico para evitar ciclos
       const { getMyProfile } = await import('../services/client/customerDetailsService');
       const profileResponse = await getMyProfile();
-      
+
       console.log('[UserProfile] Profile loaded:', profileResponse);
-      
+
       // Actualizar estado con datos del backend
       setUserData(prev => ({
         ...prev,
@@ -97,22 +127,115 @@ const UserProfilePage: React.FC = () => {
         country: profileResponse.country || '',
         licenseId: profileResponse.licenseId || '',
         birthDate: profileResponse.birthDate || '',
-        // Normalizar Gender de API (MALE) a UI (Male)
-        gender: profileResponse.gender 
-          ? profileResponse.gender.charAt(0) + profileResponse.gender.slice(1).toLowerCase() 
+        gender: profileResponse.gender
+          ? profileResponse.gender.charAt(0) + profileResponse.gender.slice(1).toLowerCase()
           : '',
       }));
-      
+
       // Confirmar que tenemos info
       setHasCompletedExtraInfo(true);
       localStorage.setItem('hasCompletedExtraInfo', 'true');
 
     } catch (error) {
       console.warn('[UserProfile] Failed to load profile from backend (might be incomplete)', error);
-      // Fallback: Si falla, asumimos que no tiene perfil completo
       setHasCompletedExtraInfo(false);
     }
   };
+
+  // Función para cargar reservas
+  const loadBookings = async () => {
+    setIsLoadingBookings(true);
+    try {
+      // Aquí deberías llamar a tu servicio de reservas
+      // Ejemplo: const response = await getMyBookings();
+
+      // Datos de ejemplo (simulación)
+      const mockBookings: Booking[] = [
+        {
+          id: '1',
+          roomType: 'Suite Presidencial',
+          checkIn: '2024-01-15',
+          checkOut: '2024-01-20',
+          guests: 2,
+          status: 'COMPLETED',
+          totalPrice: 1200,
+          roomNumber: '301'
+        },
+        {
+          id: '2',
+          roomType: 'Habitación Deluxe',
+          checkIn: '2024-02-10',
+          checkOut: '2024-02-15',
+          guests: 2,
+          status: 'CONFIRMED',
+          totalPrice: 800
+        }
+      ];
+
+      // Simular delay de API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setBookings(mockBookings);
+    } catch (error) {
+      console.error('Error cargando reservas:', error);
+      setBookings([]);
+    } finally {
+      setIsLoadingBookings(false);
+    }
+  };
+
+  // Función para cargar servicios solicitados
+  const loadServiceRequests = async () => {
+    setIsLoadingServices(true);
+    try {
+      // Aquí deberías llamar a tu servicio de solicitudes de servicio
+      // Ejemplo: const response = await getMyServiceRequests();
+
+      // Datos de ejemplo (simulación)
+      const mockServices: ServiceRequest[] = [
+        {
+          id: '1',
+          serviceType: 'Spa - Masaje Relajante',
+          requestedDate: '2024-01-16 15:00',
+          status: 'COMPLETED',
+          notes: 'Masaje de 60 minutos',
+          price: 80
+        },
+        {
+          id: '2',
+          serviceType: 'Room Service - Cena',
+          requestedDate: '2024-01-17 20:00',
+          status: 'COMPLETED',
+          notes: 'Filete con vino tinto',
+          price: 45
+        }
+      ];
+
+      // Simular delay de API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setServiceRequests(mockServices);
+    } catch (error) {
+      console.error('Error cargando servicios:', error);
+      setServiceRequests([]);
+    } finally {
+      setIsLoadingServices(false);
+    }
+  };
+
+  // Abrir modal de reservas
+  const handleOpenBookingsModal = () => {
+    setShowBookingsModal(true);
+    loadBookings();
+  };
+
+  // Abrir modal de servicios
+  const handleOpenServicesModal = () => {
+    setShowServicesModal(true);
+    loadServiceRequests();
+  };
+
+  // Cerrar modales
+  const handleCloseBookingsModal = () => setShowBookingsModal(false);
+  const handleCloseServicesModal = () => setShowServicesModal(false);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -122,7 +245,6 @@ const UserProfilePage: React.FC = () => {
     try {
       const { updateProfile } = await import('../services/client/customerDetailsService');
 
-      // Mapear género UI -> API
       let apiGender: Gender = 'OTHER';
       if (userData.gender === 'Male' || userData.gender === 'Masculino') apiGender = 'MALE';
       else if (userData.gender === 'Female' || userData.gender === 'Femenino') apiGender = 'FEMALE';
@@ -138,18 +260,16 @@ const UserProfilePage: React.FC = () => {
       console.log('[UserProfile] Updating profile:', updateRequest);
       await updateProfile(updateRequest);
 
-      // Guardar cambios en localStorage (cache optimista)
       localStorage.setItem('userData', JSON.stringify({
         gender: userData.gender,
         phone: userData.phone,
         address: userData.address,
         city: userData.city,
         country: userData.country,
-        licenseId: userData.licenseId, // No se edita pero se guarda
-        birthDate: userData.birthDate // No se edita pero se guarda
+        licenseId: userData.licenseId,
+        birthDate: userData.birthDate
       }));
 
-      // También guardar preferencias (esto es local por ahora si no hay endpoint)
       localStorage.setItem('userPreferences', JSON.stringify(userData.preferences));
 
       setIsEditing(false);
@@ -159,8 +279,6 @@ const UserProfilePage: React.FC = () => {
       alert('Error al actualizar el perfil. Por favor verifica los datos.');
     }
   };
-
-
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -183,13 +301,11 @@ const UserProfilePage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // Recargar datos originales
     loadUserData();
     setIsEditing(false);
   };
 
   const handleChangePassword = () => {
-    // Redirigir a cambio de contraseña de Keycloak
     if (keycloak.accountManagement) {
       keycloak.accountManagement();
     }
@@ -209,6 +325,18 @@ const UserProfilePage: React.FC = () => {
     });
   };
 
+  const formatDateTime = (dateTimeString: string) => {
+    if (!dateTimeString) return 'No especificada';
+    const date = new Date(dateTimeString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const getGenderText = (gender: string) => {
     switch (gender) {
       case 'Male': return 'Masculino';
@@ -218,13 +346,177 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  // Determinar si el usuario es nuevo (menos de 7 días)
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'Confirmada';
+      case 'PENDING': return 'Pendiente';
+      case 'CANCELLED': return 'Cancelada';
+      case 'COMPLETED': return 'Completada';
+      case 'IN_PROGRESS': return 'En Progreso';
+      default: return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'bg-green-100 text-green-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
+      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const isNewUser = () => {
     return !hasCompletedExtraInfo;
   };
 
   return (
     <div className="user-profile-container">
+      {/* Modales */}
+      {showBookingsModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <Bed size={24} />
+                Mis Reservas
+              </h2>
+              <button className="modal-close" onClick={handleCloseBookingsModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-content">
+              {isLoadingBookings ? (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando reservas...</p>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="empty-state">
+                  <Bed size={48} className="empty-icon" />
+                  <h3>No has realizado ninguna reserva</h3>
+                  <p>Cuando hagas una reserva en nuestro hotel, aparecerá aquí.</p>
+                  <button className="btn btn-primary" onClick={() => navigate('/')}>
+                    Explorar Habitaciones
+                  </button>
+                </div>
+              ) : (
+                <div className="bookings-list">
+                  {bookings.map(booking => (
+                    <div key={booking.id} className="booking-card">
+                      <div className="booking-header">
+                        <h3>{booking.roomType}</h3>
+                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
+                          {getStatusText(booking.status)}
+                        </span>
+                      </div>
+                      <div className="booking-details">
+                        <div className="detail">
+                          <span className="detail-label">Check-in:</span>
+                          <span className="detail-value">{formatDate(booking.checkIn)}</span>
+                        </div>
+                        <div className="detail">
+                          <span className="detail-label">Check-out:</span>
+                          <span className="detail-value">{formatDate(booking.checkOut)}</span>
+                        </div>
+                        <div className="detail">
+                          <span className="detail-label">Huéspedes:</span>
+                          <span className="detail-value">{booking.guests}</span>
+                        </div>
+                        {booking.roomNumber && (
+                          <div className="detail">
+                            <span className="detail-label">Habitación:</span>
+                            <span className="detail-value">{booking.roomNumber}</span>
+                          </div>
+                        )}
+                        <div className="detail">
+                          <span className="detail-label">Total:</span>
+                          <span className="detail-value font-bold">${booking.totalPrice}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseBookingsModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showServicesModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <Coffee size={24} />
+                Mis Servicios Solicitados
+              </h2>
+              <button className="modal-close" onClick={handleCloseServicesModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-content">
+              {isLoadingServices ? (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando servicios...</p>
+                </div>
+              ) : serviceRequests.length === 0 ? (
+                <div className="empty-state">
+                  <Coffee size={48} className="empty-icon" />
+                  <h3>No has solicitado ningún servicio</h3>
+                  <p>Cuando solicites un servicio durante tu estancia, aparecerá aquí.</p>
+                </div>
+              ) : (
+                <div className="services-list">
+                  {serviceRequests.map(service => (
+                    <div key={service.id} className="service-card">
+                      <div className="service-header">
+                        <h3>{service.serviceType}</h3>
+                        <span className={`status-badge ${getStatusColor(service.status)}`}>
+                          {getStatusText(service.status)}
+                        </span>
+                      </div>
+                      <div className="service-details">
+                        <div className="detail">
+                          <span className="detail-label">Solicitado:</span>
+                          <span className="detail-value">{formatDateTime(service.requestedDate)}</span>
+                        </div>
+                        {service.notes && (
+                          <div className="detail">
+                            <span className="detail-label">Notas:</span>
+                            <span className="detail-value">{service.notes}</span>
+                          </div>
+                        )}
+                        {service.price && (
+                          <div className="detail">
+                            <span className="detail-label">Precio:</span>
+                            <span className="detail-value">${service.price}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseServicesModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contenido principal */}
       <div className="profile-header">
         <button className="back-button" onClick={() => navigate('/')}>
           <ArrowLeft size={24} />
@@ -257,6 +549,14 @@ const UserProfilePage: React.FC = () => {
                 <button className="btn btn-edit" onClick={handleEditToggle}>
                   <Edit size={18} />
                   Editar Perfil
+                </button>
+                <button className="btn btn-reservations" onClick={handleOpenBookingsModal}>
+                  <Bed size={18} />
+                  Mis Reservas
+                </button>
+                <button className="btn btn-services" onClick={handleOpenServicesModal}>
+                  <Coffee size={18} />
+                  Mis Servicios
                 </button>
                 {!hasCompletedExtraInfo && (
                   <button
@@ -293,7 +593,7 @@ const UserProfilePage: React.FC = () => {
                 <User size={20} />
                 <h2>Información Personal</h2>
                 {!hasCompletedExtraInfo && (
-                  <span className="section-warning text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold border border-red-200">
+                  <span className="section-warning">
                     ⚠️ Obligatorio completar
                   </span>
                 )}
@@ -301,93 +601,93 @@ const UserProfilePage: React.FC = () => {
 
               <div className="info-grid">
                 <div className="info-item">
-                  <label className="text-gray-700 font-medium mb-1 block"><User size={16} className="inline mr-2" /> Nombre</label>
+                  <label><User size={16} /> Nombre</label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={userData.firstName}
                       disabled
-                      className="edit-input bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
+                      className="edit-input"
                     />
                   ) : (
-                    <p className="py-2 text-gray-800">{userData.firstName || 'No especificado'}</p>
+                    <p>{userData.firstName || 'No especificado'}</p>
                   )}
                 </div>
 
                 <div className="info-item">
-                  <label className="text-gray-700 font-medium mb-1 block"><User size={16} className="inline mr-2" /> Apellido</label>
+                  <label><User size={16} /> Apellido</label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={userData.lastName}
                       disabled
-                      className="edit-input bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
+                      className="edit-input"
                     />
                   ) : (
-                    <p className="py-2 text-gray-800">{userData.lastName || 'No especificado'}</p>
+                    <p>{userData.lastName || 'No especificado'}</p>
                   )}
                 </div>
 
                 <div className="info-item">
-                  <label className="text-gray-700 font-medium mb-1 block"><Mail size={16} className="inline mr-2" /> Email</label>
+                  <label><Mail size={16} /> Email</label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={userData.email}
                       disabled
-                      className="edit-input bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
+                      className="edit-input"
                     />
                   ) : (
                     <>
-                      <p className="email-display py-2 text-gray-800">{userData.email || 'No especificado'}</p>
-                      <small className="email-note text-green-600 flex items-center gap-1"><Shield size={12}/> Verificado</small>
+                      <p>{userData.email || 'No especificado'}</p>
+                      <small className="email-note"><Shield size={12} /> Verificado</small>
                     </>
                   )}
                 </div>
 
                 <div className="info-item">
-                  <label className="text-gray-700 font-medium mb-1 block"><Phone size={16} className="inline mr-2" /> Teléfono <span className="text-red-500">*</span></label>
+                  <label><Phone size={16} /> Teléfono <span className="required">*</span></label>
                   {isEditing ? (
                     <input
                       type="tel"
                       name="phone"
                       value={userData.phone}
                       onChange={handleInputChange}
-                      className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
+                      className="edit-input"
                       placeholder="+505 1234 5678"
                       required
                     />
                   ) : (
-                    <p className={`py-2 ${!userData.phone ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                    <p className={!userData.phone ? 'required-field' : ''}>
                       {userData.phone || 'Requerido - No especificado'}
                     </p>
                   )}
                 </div>
 
                 <div className="info-item">
-                  <label className="text-gray-700 font-medium mb-1 block"><Calendar size={16} className="inline mr-2" /> Fecha de Nacimiento</label>
+                  <label><Calendar size={16} /> Fecha de Nacimiento</label>
                   {isEditing ? (
                     <input
                       type="date"
                       value={userData.birthDate}
                       disabled
-                      className="edit-input bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
+                      className="edit-input"
                     />
                   ) : (
-                    <p className="py-2 text-gray-800">{formatDate(userData.birthDate)}</p>
+                    <p>{formatDate(userData.birthDate)}</p>
                   )}
                 </div>
 
                 {hasCompletedExtraInfo && (
                   <>
                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><User size={16} className="inline mr-2" /> Género</label>
+                      <label><User size={16} /> Género</label>
                       {isEditing ? (
                         <select
                           name="gender"
                           value={userData.gender}
                           onChange={handleInputChange}
-                          className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10 bg-white"
+                          className="edit-input"
                         >
                           <option value="">Seleccionar...</option>
                           <option value="Male">Masculino</option>
@@ -395,76 +695,76 @@ const UserProfilePage: React.FC = () => {
                           <option value="Other">Otro</option>
                         </select>
                       ) : (
-                        <p className="py-2 text-gray-800">{getGenderText(userData.gender)}</p>
+                        <p>{getGenderText(userData.gender)}</p>
                       )}
                     </div>
 
                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><IdCard size={16} className="inline mr-2" /> DNI/Pasaporte</label>
+                      <label><IdCard size={16} /> DNI/Pasaporte</label>
                       {isEditing ? (
                         <input
                           type="text"
                           value={userData.licenseId}
                           disabled
-                          className="edit-input bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
+                          className="edit-input"
                         />
                       ) : (
-                        <p className="py-2 text-gray-800">{userData.licenseId || 'No especificado'}</p>
+                        <p>{userData.licenseId || 'No especificado'}</p>
                       )}
                     </div>
 
-                    <div className="info-item full-width col-span-1 md:col-span-2">
-                      <label className="text-gray-700 font-medium mb-1 block"><Home size={16} className="inline mr-2" /> Dirección <span className="text-red-500">*</span></label>
+                    <div className="info-item full-width">
+                      <label><Home size={16} /> Dirección <span className="required">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
                           name="address"
                           value={userData.address}
                           onChange={handleInputChange}
-                          className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
+                          className="edit-input"
                           placeholder="Dirección completa"
                           required
                         />
                       ) : (
-                        <p className={`py-2 ${!userData.address ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                        <p className={!userData.address ? 'required-field' : ''}>
                           {userData.address || 'Requerido - No especificada'}
                         </p>
                       )}
                     </div>
 
                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> Ciudad <span className="text-red-500">*</span></label>
+                      <label><Globe size={16} /> Ciudad <span className="required">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
                           name="city"
                           value={userData.city}
                           onChange={handleInputChange}
-                          className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
+                          className="edit-input"
                           placeholder="Ciudad"
                           required
                         />
                       ) : (
-                        <p className={`py-2 ${!userData.city ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                        <p className={!userData.city ? 'required-field' : ''}>
                           {userData.city || 'Requerido - No especificada'}
                         </p>
                       )}
                     </div>
 
                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
+                      <label><Globe size={16} /> País <span className="required">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
                           name="country"
                           value={userData.country}
                           onChange={handleInputChange}
-                          className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
+                          className="edit-input"
                           placeholder="País"
                           required
                         />
                       ) : (
-                        <p className={`py-2 ${!userData.country ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                        <p className={!userData.country ? 'required-field' : ''}>
                           {userData.country || 'Requerido - No especificado'}
                         </p>
                       )}
@@ -501,7 +801,7 @@ const UserProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Columna derecha - Preferencias */}
+          {/* Columna derecha */}
           <div className="right-column">
             {/* Preferencias */}
             <div className="section-card">
