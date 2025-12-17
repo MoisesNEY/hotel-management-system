@@ -19,37 +19,37 @@ const HotelGallery: React.FC = () => {
   const hotelImages = [
     {
       id: 1,
-      url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      url: 'https://img.freepik.com/foto-gratis/salon-recepcion-hotel-lujo-restaurante-salon-techos-altos_105762-1771.jpg?semt=ais_hybrid&w=740&q=80',
       title: 'Lobby Principal',
       description: 'Recepción de lujo con diseño contemporáneo'
     },
     {
       id: 2,
-      url: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      url: 'https://www.swissotel.com/assets/0/92/2119/2178/2217/2219/6442451722/83eb355a-2f1c-49d8-ad51-1ccce3b52b33.jpg',
       title: 'Suite Presidencial',
       description: 'La máxima expresión de confort y elegancia'
     },
     {
       id: 3,
-      url: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      url: 'https://img.freepik.com/fotos-premium/restaurante-hotel-alta-gama-platos-gourmet-ambiente-sofisticado_1310094-4278.jpg?semt=ais_hybrid&w=740&q=80',
       title: 'Restaurante Gourmet',
       description: 'Experiencia culinaria única con vista panorámica'
     },
     {
       id: 4,
-      url: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      url: 'https://media.istockphoto.com/id/155161088/es/foto/moderna-villa.jpg?s=612x612&w=0&k=20&c=wE1I5W9qDJwRjrN-AihfPbEfaPRSPQTfNmNXo_moiPE=',
       title: 'Piscina Infinity',
       description: 'Piscina climatizada con vista al volcán'
     },
     {
       id: 5,
-      url: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      url: 'https://static.vecteezy.com/system/resources/thumbnails/027/807/864/small/spa-accessory-composition-set-in-day-spa-hotel-beauty-wellness-centre-spa-product-are-placed-in-luxury-spa-resort-room-ready-for-massage-therapy-from-professional-service-photo.jpg',
       title: 'Spa & Wellness',
       description: 'Centro de bienestar y relajación total'
     },
     {
       id: 6,
-      url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      url: 'https://i.pinimg.com/736x/3c/62/14/3c6214d9b1be7787e40bbd1f55334032.jpg',
       title: 'Salón de Eventos',
       description: 'Espacios versátiles para todo tipo de ocasiones'
     }
