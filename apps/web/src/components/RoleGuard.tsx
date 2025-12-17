@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthProvider';
 import type { UserRole } from '../contexts/AuthProvider';
 
@@ -11,7 +11,7 @@ interface RoleGuardProps {
 
 const RoleGuard: React.FC<RoleGuardProps> = ({ requiredRole, allowedRoles, children }) => {
   const { isAuthenticated, isInitialized, hasRole, login } = useAuth();
-  const location = useLocation();
+
 
   React.useEffect(() => {
     if (isInitialized && !isAuthenticated) {

@@ -40,20 +40,16 @@ const ServicesView = () => {
         loadData();
     }, []);
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const [servicesResult, requestsResult] = await Promise.all([
-                getAllHotelServices(),
-                getAllServiceRequests()
-            ]);
-            setServices(servicesResult.data);
-            setRequests(requestsResult.data);
-        } catch (error) {
-            console.error("Error loading services", error);
-        } finally {
-            setLoading(false);
-        }
+
+    // Handlers
+    const handleCreateClick = () => {
+        setEditingService(null);
+        setShowForm(true);
+    };
+
+    const handleEditClick = (service: HotelServiceDTO) => {
+        setEditingService(service);
+        setShowForm(true);
     };
 
     const handleUpdateStatus = async (request: ServiceRequestDTO) => {
@@ -198,6 +194,21 @@ const ServicesView = () => {
                     title="Catálogo de Servicios"
                     emptyMessage="No hay servicios disponibles"
                     keyExtractor={(item: HotelServiceDTO) => item.id}
+                />
+            </Card>
+
+            <Modal
+                isOpen={showForm}
+                onClose={() => setShowForm(false)}
+                title={editingService ? 'Editar Servicio' : 'Nuevo Servicio'}
+            >
+                <ServiceForm
+                    initialData={editingService || undefined}
+                    onSuccess={() => {
+                        setShowForm(false);
+                        loadData();
+                    }}
+                    onCancel={() => setShowForm(false)}
                 />
             </Modal>
         </div>

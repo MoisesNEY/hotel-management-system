@@ -23,6 +23,59 @@ const BookingsView = () => {
     const [selectedRoomId, setSelectedRoomId] = useState<number | string>('');
     const [assignLoading, setAssignLoading] = useState(false);
 
+    // Handlers
+    const openAssignModal = async (bookingId: number) => {
+        setAssigningBookingId(bookingId);
+        setSelectedRoomId('');
+        setShowAssignModal(true);
+        // Load available rooms
+        try {
+            const response = await getAllRooms();
+            // Filter only available rooms (assuming status 'AVAILABLE')
+            setAvailableRooms(response.data.filter(r => r.status === 'AVAILABLE'));
+        } catch (error) {
+            console.error("Error loading rooms", error);
+        }
+    };
+
+    const handleAssignRoom = async () => {
+        if (!assigningBookingId || !selectedRoomId) return;
+        setAssignLoading(true);
+        try {
+            await assignRoom(assigningBookingId, Number(selectedRoomId));
+            setShowAssignModal(false);
+            loadBookings();
+            alert('Habitación asignada correctamente');
+        } catch (error) {
+            console.error("Error assigning room", error);
+            alert('Error al asignar habitación');
+        } finally {
+            setAssignLoading(false);
+        }
+    };
+
+    const handleCheckIn = async (bookingId: number) => {
+        if (!confirm('¿Confirmar Check-In?')) return;
+        try {
+            await checkIn(bookingId);
+            loadBookings();
+        } catch (error) {
+            console.error("Error during check-in", error);
+            alert('Error al realizar Check-In');
+        }
+    };
+
+    const handleCheckOut = async (bookingId: number) => {
+        if (!confirm('¿Confirmar Check-Out?')) return;
+        try {
+            await checkOut(bookingId);
+            loadBookings();
+        } catch (error) {
+            console.error("Error during check-out", error);
+            alert('Error al realizar Check-Out');
+        }
+    };
+
     useEffect(() => {
         loadBookings();
     }, []);

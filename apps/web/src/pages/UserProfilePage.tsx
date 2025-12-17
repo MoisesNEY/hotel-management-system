@@ -52,6 +52,10 @@ const UserProfilePage: React.FC = () => {
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
+  
+  // Estados para los modales
+  const [showBookingsModal, setShowBookingsModal] = useState(false);
+  const [showServicesModal, setShowServicesModal] = useState(false);
   // Estados para los datos
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
@@ -278,6 +282,40 @@ const UserProfilePage: React.FC = () => {
   };
   const isNewUser = () => {
     return !hasCompletedExtraInfo;
+  };
+
+  const formatDateTime = (dateTimeString: string) => {
+    if (!dateTimeString) return 'No especificada';
+    const date = new Date(dateTimeString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'Confirmada';
+      case 'PENDING': return 'Pendiente';
+      case 'CANCELLED': return 'Cancelada';
+      case 'COMPLETED': return 'Completada';
+      case 'IN_PROGRESS': return 'En Progreso';
+      default: return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'bg-green-100 text-green-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
+      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   const renderBookingStatus = (status: string) => {

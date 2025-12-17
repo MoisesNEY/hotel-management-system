@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import Button from '../../components/shared/Button';
 import { createRoom, updateRoom } from '../../../services/admin/roomService';
-import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
+
 import type { RoomDTO, RoomTypeDTO, RoomStatus } from '../../../types/sharedTypes';
 
 interface RoomFormProps {
