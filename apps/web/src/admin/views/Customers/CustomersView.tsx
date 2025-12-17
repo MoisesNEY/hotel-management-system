@@ -3,11 +3,12 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { customersService } from '../../services/api';
-import type { Customer } from '../../types';
+import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
+import type { CustomerDetailsDTO } from '../../../types/sharedTypes';
+import { formatDate } from '../../utils/helpers';
 
 const CustomersView = () => {
-    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -17,8 +18,8 @@ const CustomersView = () => {
     const loadCustomers = async () => {
         try {
             setLoading(true);
-            const data = await customersService.getAll();
-            setCustomers(data);
+            const response = await getAllCustomerDetails();
+            setCustomers(response.data);
         } catch (error) {
             console.error("Error loading customers", error);
         } finally {
@@ -26,7 +27,7 @@ const CustomersView = () => {
         }
     };
 
-    const columns: Column<Customer>[] = [
+    const columns: Column<CustomerDetailsDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -81,7 +82,7 @@ const CustomersView = () => {
         },
         {
             header: 'Fecha de Nacimiento',
-            accessor: (row) => row.birthDate
+            accessor: (row) => formatDate(row.birthDate)
         },
         {
             header: 'Acciones',

@@ -4,16 +4,16 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
-import { roomTypesService } from '../../services/api';
-import type { RoomType } from '../../services/api';
+import { getAllRoomTypes, deleteRoomType } from '../../../services/admin/roomTypeService';
+import type { RoomTypeDTO } from '../../../types/sharedTypes';
 import { formatCurrency } from '../../utils/helpers';
 import RoomTypeForm from './RoomTypeForm';
 
 const RoomTypesView = () => {
-    const [types, setTypes] = useState<RoomType[]>([]);
+    const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [editingType, setEditingType] = useState<RoomType | null>(null);
+    const [editingType, setEditingType] = useState<RoomTypeDTO | null>(null);
 
     useEffect(() => {
         loadTypes();
@@ -21,9 +21,8 @@ const RoomTypesView = () => {
 
     const loadTypes = async () => {
         try {
-            setLoading(true);
-            const data = await roomTypesService.getAll();
-            setTypes(data);
+            const result = await getAllRoomTypes();
+            setRoomTypes(result.data);
         } catch (error) {
             console.error("Error loading room types", error);
         } finally {
@@ -31,7 +30,7 @@ const RoomTypesView = () => {
         }
     };
 
-    const handleEdit = (type: RoomType) => {
+    const handleEdit = (type: RoomTypeDTO) => {
         setEditingType(type);
         setShowModal(true);
     };
@@ -39,8 +38,8 @@ const RoomTypesView = () => {
     const handleDelete = async (id: number) => {
         if (window.confirm('¿Estás seguro de eliminar este tipo de habitación?')) {
             try {
-                await roomTypesService.delete(id);
-                loadTypes();
+                await deleteRoomType(id);
+                setRoomTypes(roomTypes.filter(rt => rt.id !== id));
             } catch (error) {
                 console.error(error);
                 alert('No se pudo eliminar, verifique si hay habitaciones asociadas.');
@@ -59,7 +58,7 @@ const RoomTypesView = () => {
         setEditingType(null);
     };
 
-    const columns: Column<RoomType>[] = [
+    const columns: Column<RoomTypeDTO>[] = [
         { header: 'ID', accessor: (row) => row.id },
         {
             header: 'Nombre',
@@ -108,7 +107,7 @@ const RoomTypesView = () => {
 
             <Card>
                 <Table
-                    data={types}
+                    data={roomTypes}
                     columns={columns}
                     isLoading={loading}
                     title="Catálogo"

@@ -3,12 +3,12 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { bookingsService } from '../../services/api';
-import type { Booking } from '../../types';
+import { getAllBookings } from '../../../services/admin/bookingService';
+import type { BookingDTO } from '../../../types/sharedTypes';
 import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
 
 const BookingsView = () => {
-    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [bookings, setBookings] = useState<BookingDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,8 +18,8 @@ const BookingsView = () => {
     const loadBookings = async () => {
         try {
             setLoading(true);
-            const data = await bookingsService.getAll();
-            setBookings(data);
+            const response = await getAllBookings();
+            setBookings(response.data);
         } catch (error) {
             console.error("Error loading bookings", error);
         } finally {
@@ -27,7 +27,7 @@ const BookingsView = () => {
         }
     };
 
-    const columns: Column<Booking>[] = [
+    const columns: Column<BookingDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id

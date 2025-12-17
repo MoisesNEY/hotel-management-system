@@ -1,23 +1,26 @@
 import { useState, useEffect } from 'react';
-import { roomTypesService } from '../../services/api';
-import type { RoomType } from '../../services/api';
+import { Save } from 'lucide-react';
+import Button from '../../components/shared/Button';
+import { createRoomType, updateRoomType } from '../../../services/admin/roomTypeService';
+import type { RoomTypeDTO } from '../../../types/sharedTypes';
 
 interface RoomTypeFormProps {
-    initialData?: RoomType | null;
+    initialData?: RoomTypeDTO | null;
     onSuccess: () => void;
     onCancel: () => void;
 }
 
 const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) => {
-    const [formData, setFormData] = useState<Partial<RoomType>>({
+    const [formData, setFormData] = useState<Partial<RoomTypeDTO>>({
         name: '',
         description: '',
         basePrice: 0,
         maxCapacity: 1,
-        imageUrl: '',
+        beds: 1,
         area: 0,
-        beds: 1
+        imageUrl: ''
     });
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,10 +46,10 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
         setError(null);
 
         try {
-            if (initialData?.id) {
-                await roomTypesService.update(initialData.id, formData);
+            if (initialData && initialData.id) {
+                await updateRoomType(initialData.id, formData as RoomTypeDTO);
             } else {
-                await roomTypesService.create(formData as RoomType);
+                await createRoomType(formData as RoomTypeDTO);
             }
             onSuccess();
         } catch (err) {
@@ -57,225 +60,131 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
         }
     };
 
-    const inputStyle: React.CSSProperties = {
-        width: '100%',
-        padding: '10px 12px',
-        border: '1px solid #d1d5db',
-        borderRadius: '8px',
-        fontSize: '14px',
-        backgroundColor: '#ffffff',
-        outline: 'none',
-        transition: 'all 0.2s',
-    };
-
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        fontSize: '11px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        color: '#6b7280',
-        marginBottom: '6px',
-    };
-
-    const gridStyle: React.CSSProperties = {
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '16px',
-    };
-
-    const grid2ColumnsStyle: React.CSSProperties = {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px',
-    };
+    const inputStyle = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#51cbce] focus:border-transparent outline-none transition-all";
+    const labelStyle = "block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1";
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div style={{ padding: '24px 24px', ...gridStyle }}>
-                {error && (
-                    <div style={{
-                        padding: '12px',
-                        backgroundColor: '#fef2f2',
-                        border: '1px solid #fecaca',
-                        borderRadius: '8px',
-                        color: '#991b1b',
-                        fontSize: '14px'
-                    }}>
-                        {error}
-                    </div>
-                )}
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {error}
+                </div>
+            )}
 
+            <div>
+                <label className={labelStyle}>
+                    Nombre del Tipo <span className="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ej: Suite Junior, Doble Estándar"
+                    className={inputStyle}
+                />
+            </div>
+
+            <div>
+                <label className={labelStyle}>Descripción</label>
+                <textarea
+                    name="description"
+                    value={formData.description || ''}
+                    onChange={handleChange}
+                    placeholder="Describe las características principales..."
+                    className={`${inputStyle} h-24 resize-none`}
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label style={labelStyle}>
-                        Nombre del Tipo <span style={{ color: '#ef4444' }}>*</span>
+                    <label className={labelStyle}>
+                        Precio Base <span className="text-red-500">*</span>
                     </label>
                     <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
+                        type="number"
+                        name="basePrice"
+                        value={formData.basePrice}
                         onChange={handleChange}
+                        min="0"
+                        step="0.01"
                         required
-                        placeholder="Ej: Suite Junior, Doble Estándar"
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={inputStyle}
                     />
                 </div>
 
                 <div>
-                    <label style={labelStyle}>Descripción</label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder="Describe las características principales..."
-                        style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                    />
-                </div>
-
-                <div style={grid2ColumnsStyle}>
-                    <div>
-                        <label style={labelStyle}>
-                            Precio Base <span style={{ color: '#ef4444' }}>*</span>
-                        </label>
-                        <input
-                            type="number"
-                            name="basePrice"
-                            value={formData.basePrice}
-                            onChange={handleChange}
-                            min="0"
-                            step="0.01"
-                            required
-                            placeholder="0.00"
-                            style={inputStyle}
-                            onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                        />
-                    </div>
-
-                    <div>
-                        <label style={labelStyle}>
-                            Capacidad Máxima <span style={{ color: '#ef4444' }}>*</span>
-                        </label>
-                        <input
-                            type="number"
-                            name="maxCapacity"
-                            value={formData.maxCapacity}
-                            onChange={handleChange}
-                            min="1"
-                            required
-                            placeholder="1"
-                            style={inputStyle}
-                            onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                        />
-                    </div>
-                </div>
-
-                <div style={grid2ColumnsStyle}>
-                    <div>
-                        <label style={labelStyle}>Número de Camas</label>
-                        <input
-                            type="number"
-                            name="beds"
-                            value={formData.beds}
-                            onChange={handleChange}
-                            min="1"
-                            placeholder="1"
-                            style={inputStyle}
-                            onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                        />
-                    </div>
-
-                    <div>
-                        <label style={labelStyle}>Área (m²)</label>
-                        <input
-                            type="number"
-                            name="area"
-                            value={formData.area}
-                            onChange={handleChange}
-                            min="0"
-                            placeholder="0"
-                            style={inputStyle}
-                            onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label style={labelStyle}>URL de Imagen</label>
+                    <label className={labelStyle}>
+                        Capacidad <span className="text-red-500">*</span>
+                    </label>
                     <input
-                        type="text"
-                        name="imageUrl"
-                        value={formData.imageUrl}
+                        type="number"
+                        name="maxCapacity"
+                        value={formData.maxCapacity}
                         onChange={handleChange}
-                        placeholder="https://example.com/image.jpg"
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        min="1"
+                        required
+                        className={inputStyle}
                     />
-                    <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                        URL de la imagen de referencia del tipo de habitación
-                    </p>
                 </div>
             </div>
 
-            <div style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '12px',
-                padding: '16px 24px',
-                borderTop: '1px solid #e5e7eb'
-            }}>
-                <button
-                    type="button"
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className={labelStyle}>Camas</label>
+                    <input
+                        type="number"
+                        name="beds"
+                        value={formData.beds}
+                        onChange={handleChange}
+                        min="1"
+                        className={inputStyle}
+                    />
+                </div>
+
+                <div>
+                    <label className={labelStyle}>Área (m²)</label>
+                    <input
+                        type="number"
+                        name="area"
+                        value={formData.area}
+                        onChange={handleChange}
+                        min="0"
+                        className={inputStyle}
+                    />
+                </div>
+            </div>
+
+            <div>
+                <label className={labelStyle}>URL de Imagen</label>
+                <input
+                    type="text"
+                    name="imageUrl"
+                    value={formData.imageUrl || ''}
+                    onChange={handleChange}
+                    placeholder="https://example.com/image.jpg"
+                    className={inputStyle}
+                />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <Button 
+                    type="button" 
+                    variant="ghost" 
                     onClick={onCancel}
                     disabled={loading}
-                    style={{
-                        padding: '8px 16px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '20px',
-                        backgroundColor: '#ffffff',
-                        color: '#6b7280',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.5 : 1,
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#f9fafb')}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
                 >
                     Cancelar
-                </button>
-                <button
-                    type="submit"
+                </Button>
+                <Button 
+                    type="submit" 
+                    variant="primary"
                     disabled={loading}
-                    style={{
-                        padding: '8px 24px',
-                        border: 'none',
-                        borderRadius: '20px',
-                        backgroundColor: '#51cbce',
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.5 : 1,
-                        boxShadow: '0 4px 6px rgba(81, 203, 206, 0.3)',
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#4bc2c5')}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#51cbce'}
+                    leftIcon={<Save size={16} />}
                 >
                     {loading ? 'Guardando...' : 'Guardar'}
-                </button>
+                </Button>
             </div>
         </form>
     );

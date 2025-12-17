@@ -5,7 +5,7 @@ import {
   Save, X, Lock, Shield, Bell,
   ArrowLeft, Key, Star,
   IdCard, Globe, Home, AlertCircle, CreditCard, Package,
-  Clock, CheckCircle, XCircle
+  Clock, CheckCircle, XCircle, Bed, Coffee
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
@@ -34,16 +34,7 @@ interface UserData {
   };
 }
 
-interface Booking {
-  id: string;
-  roomType: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  status: 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
-  totalPrice: number;
-  roomNumber?: string;
-}
+
 
 interface ServiceRequest {
   id: string;
@@ -89,6 +80,13 @@ const UserProfilePage: React.FC = () => {
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [selectedBookingForService, setSelectedBookingForService] = useState<{id: number, roomTypeName: string} | null>(null);
+
+  // Estados para servicios
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
+
+  const handleCloseBookingsModal = () => setShowBookingsModal(false);
+  const handleCloseServicesModal = () => setShowServicesModal(false);
 
   useEffect(() => {
     // Verificar autenticación
@@ -160,6 +158,33 @@ const UserProfilePage: React.FC = () => {
       setLoadingBookings(false);
     }
   };
+
+  const loadServiceRequests = async () => {
+    try {
+      setIsLoadingServices(true);
+      const { getMyServiceRequests } = await import('../services/client/serviceRequestService');
+      const response = await getMyServiceRequests();
+      // Map DTO to local interface if needed, or just use response.data
+      // Assuming response.data matches ServiceRequest interface or is close enough
+      const requests = response.data.map((req: any) => ({
+        id: req.id,
+        serviceType: req.service?.name || 'Servicio',
+        requestedDate: req.requestDate,
+        status: req.status,
+        notes: req.details,
+        price: req.service?.cost
+      }));
+      setServiceRequests(requests);
+    } catch (error) {
+      console.error('[UserProfile] Failed to load service requests', error);
+    } finally {
+      setIsLoadingServices(false);
+    }
+  };
+
+  useEffect(() => {
+    loadServiceRequests();
+  }, [showServicesModal]);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -325,7 +350,7 @@ const UserProfilePage: React.FC = () => {
               </button>
             </div>
             <div className="modal-content">
-              {isLoadingBookings ? (
+              {loadingBookings ? (
                 <div className="loading-state">
                   <div className="loading-spinner"></div>
                   <p>Cargando reservas...</p>
@@ -344,7 +369,7 @@ const UserProfilePage: React.FC = () => {
                   {bookings.map(booking => (
                     <div key={booking.id} className="booking-card">
                       <div className="booking-header">
-                        <h3>{booking.roomType}</h3>
+                        <h3>{booking.roomTypeName}</h3>
                         <span className={`status-badge ${getStatusColor(booking.status)}`}>
                           {getStatusText(booking.status)}
                         </span>
@@ -352,20 +377,20 @@ const UserProfilePage: React.FC = () => {
                       <div className="booking-details">
                         <div className="detail">
                           <span className="detail-label">Check-in:</span>
-                          <span className="detail-value">{formatDate(booking.checkIn)}</span>
+                          <span className="detail-value">{formatDate(booking.checkInDate)}</span>
                         </div>
                         <div className="detail">
                           <span className="detail-label">Check-out:</span>
-                          <span className="detail-value">{formatDate(booking.checkOut)}</span>
+                          <span className="detail-value">{formatDate(booking.checkOutDate)}</span>
                         </div>
                         <div className="detail">
                           <span className="detail-label">Huéspedes:</span>
-                          <span className="detail-value">{booking.guests}</span>
+                          <span className="detail-value">{booking.guestCount}</span>
                         </div>
-                        {booking.roomNumber && (
+                        {booking.assignedRoomNumber && (
                           <div className="detail">
                             <span className="detail-label">Habitación:</span>
-                            <span className="detail-value">{booking.roomNumber}</span>
+                            <span className="detail-value">{booking.assignedRoomNumber}</span>
                           </div>
                         )}
                         <div className="detail">
