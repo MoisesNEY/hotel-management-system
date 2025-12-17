@@ -62,7 +62,26 @@ const RoomTypes: React.FC = () => {
   });
 
   // Abrir modal de reserva
-  const handleReservation = (room: RoomType) => {
+
+
+  // Importar hook de auth para validación
+  // NOTA: Para este componente funcional, necesitamos mover el hook al inicio
+  // Pero como ya existe el componente, lo usaremos a través de una verificación simple o props si fuera necesario.
+  // Mejor opción: Importar keycloak directamente para check rápido si no queremos cambiar todo el componente a usar useAuth
+  // o refactorizar para usar useAuth al principio.
+  
+  // Asumiendo que podemos usar keycloak service directamente
+  const handleReservation = async (room: RoomType) => {
+    // Verificar auth dinámicamente
+    const { default: keycloak } = await import('../services/keycloak');
+    
+    if (!keycloak.authenticated) {
+        // Redirigir a login o mostrar mensaje
+        alert('Debes iniciar sesión para realizar una reserva.');
+        keycloak.login();
+        return;
+    }
+
     console.log('Abriendo modal para:', room.name);
     setSelectedRoom(room);
     setShowModal(true);
@@ -195,11 +214,11 @@ const RoomTypes: React.FC = () => {
       setIsSubmitting(true);
       
       await createBooking({
-        roomTypeId: selectedRoom!.id, 
-        checkInDate: new Date(formData.checkInDate).toISOString().split('T')[0],
-        checkOutDate: new Date(formData.checkOutDate).toISOString().split('T')[0],
+        roomTypeId: selectedRoom!.id,
+        checkInDate: formData.checkInDate, // Ya es YYYY-MM-DD del input type="date"
+        checkOutDate: formData.checkOutDate, // Ya es YYYY-MM-DD del input type="date"
         guestCount: formData.guestCount,
-        notes: formData.notes || undefined
+        notes: formData.notes
       });
 
       alert(`¡Reserva enviada con éxito!
@@ -210,7 +229,7 @@ Detalles:
 - Huéspedes: ${formData.guestCount}
 - Noches: ${nights}
 - Total: $${finalTotalPrice}
-- Estado: ${formData.status}
+- Total: $${finalTotalPrice}
 
 Te contactaremos para confirmar.`);
       closeModal();
@@ -436,22 +455,6 @@ Te contactaremos para confirmar.`);
                         ))}
                       </select>
                       <small className="form-hint">Máximo: {selectedRoom.maxCapacity} personas</small>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="status">Estado de reserva *</label>
-                      <select
-                        id="status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value={BookingStatus.PENDING}>Pendiente</option>
-                        <option value={BookingStatus.CONFIRMED}>Confirmada</option>
-                        <option value={BookingStatus.CANCELLED}>Cancelada</option>
-                        <option value={BookingStatus.COMPLETED}>Completada</option>
-                      </select>
-                      <small className="form-hint">Selecciona el estado inicial</small>
                     </div>
                   </div>
                 </div>

@@ -1,15 +1,18 @@
-// apps/web/src/pages/UserProfilePage.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Calendar, Edit,
   Save, X, Lock, Shield, Bell,
   ArrowLeft, Key, Star,
-  IdCard, Globe, Home, AlertCircle, CreditCard, Package
+  IdCard, Globe, Home, AlertCircle, CreditCard, Package,
+  Clock, CheckCircle, XCircle
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
-import type { CustomerDetailsUpdateRequest, Gender } from '../types/clientTypes';
+import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
 import '../styles/user-profile.css';
+import { getMyBookings } from '../services/client/bookingService';
+import ServiceRequestModal from '../components/ServiceRequestModal';
+import { ConciergeBell } from 'lucide-react';
 
 interface UserData {
   firstName: string;
@@ -32,6 +35,7 @@ interface UserData {
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
@@ -56,6 +60,10 @@ const UserProfilePage: React.FC = () => {
     }
   });
 
+  const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [selectedBookingForService, setSelectedBookingForService] = useState<{id: number, roomTypeName: string} | null>(null);
+
   useEffect(() => {
     // Verificar autenticación
     if (!keycloak.authenticated) {
@@ -65,6 +73,9 @@ const UserProfilePage: React.FC = () => {
 
     // Cargar datos del usuario
     loadUserData();
+    
+    // Cargar reservas
+    loadBookings();
   }, [navigate]);
 
   const loadUserData = async () => {
@@ -112,6 +123,18 @@ const UserProfilePage: React.FC = () => {
       console.warn('[UserProfile] Failed to load profile from backend (might be incomplete)', error);
       // Fallback: Si falla, asumimos que no tiene perfil completo
       setHasCompletedExtraInfo(false);
+    }
+  };
+
+  const loadBookings = async () => {
+    try {
+      setLoadingBookings(true);
+      const response = await getMyBookings({ page: 0, size: 50, sort: 'checkInDate,desc' });
+      setBookings(response.data);
+    } catch (error) {
+      console.error('[UserProfile] Failed to load bookings', error);
+    } finally {
+      setLoadingBookings(false);
     }
   };
 
@@ -224,6 +247,19 @@ const UserProfilePage: React.FC = () => {
     return !hasCompletedExtraInfo;
   };
 
+  const renderBookingStatus = (status: string) => {
+    switch(status) {
+      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12}/> Confirmada</span>;
+      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12}/> Pendiente</span>;
+      case 'CANCELLED': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12}/> Cancelada</span>;
+      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12}/> Completada</span>;
+      default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{status}</span>;
+    }
+  };
+
+  const activeBookings = bookings.filter(b => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(b.status));
+  const pastBookings = bookings.filter(b => ['CHECKED_OUT', 'CANCELLED', 'COMPLETED'].includes(b.status));
+
   return (
     <div className="user-profile-container">
       <div className="profile-header">
@@ -253,39 +289,58 @@ const UserProfilePage: React.FC = () => {
           </div>
 
           <div className="header-actions">
-            {!isEditing ? (
-              <>
-                <button className="btn btn-edit" onClick={handleEditToggle}>
-                  <Edit size={18} />
-                  Editar Perfil
-                </button>
-                {!hasCompletedExtraInfo && (
-                  <button
-                    className="btn btn-warning"
-                    onClick={handleCompleteInfo}
-                  >
-                    <AlertCircle size={18} />
-                    Completar Información
+            {activeTab === 'profile' && (
+              !isEditing ? (
+                <>
+                  <button className="btn btn-edit" onClick={handleEditToggle}>
+                    <Edit size={18} />
+                    Editar Perfil
                   </button>
-                )}
-              </>
-            ) : (
-              <div className="edit-actions">
-                <button className="btn btn-save" onClick={handleSave}>
-                  <Save size={18} />
-                  Guardar
-                </button>
-                <button className="btn btn-cancel" onClick={handleCancel}>
-                  <X size={18} />
-                  Cancelar
-                </button>
-              </div>
+                  {!hasCompletedExtraInfo && (
+                    <button
+                      className="btn btn-warning"
+                      onClick={handleCompleteInfo}
+                    >
+                      <AlertCircle size={18} />
+                      Completar Información
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="edit-actions">
+                  <button className="btn btn-save" onClick={handleSave}>
+                    <Save size={18} />
+                    Guardar
+                  </button>
+                  <button className="btn btn-cancel" onClick={handleCancel}>
+                    <X size={18} />
+                    Cancelar
+                  </button>
+                </div>
+              )
             )}
           </div>
+        </div>
+        
+        {/* Navigation Tabs */}
+        <div className="profile-tabs">
+          <button 
+            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveTab('profile')}
+          >
+            Mi Perfil
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bookings')}
+          >
+            Mis Reservas
+          </button>
         </div>
       </div>
 
       <div className="profile-content">
+        {activeTab === 'profile' && (
         <div className="content-grid">
           {/* Columna izquierda - Información personal */}
           <div className="personal-info">
@@ -452,7 +507,7 @@ const UserProfilePage: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="info-item">
+                     <div className="info-item">
                       <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
                       {isEditing ? (
                         <input
@@ -647,7 +702,116 @@ const UserProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {activeTab === 'bookings' && (
+          <div className="bookings-container">
+            {loadingBookings ? (
+              <div className="flex justify-center py-20">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+              </div>
+            ) : bookings.length === 0 ? (
+              <div className="empty-bookings">
+                <Calendar className="mx-auto h-20 w-20 text-gray-300 mb-6" />
+                <h3>No tienes reservas activas</h3>
+                <p>Parece que aún no has reservado tu estadía perfecta con nosotros.</p>
+                <button onClick={() => navigate('/')} className="btn btn-warning" style={{margin: '0 auto', display: 'inline-flex'}}>
+                   Explorar Habitaciones
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {activeBookings.length > 0 && (
+                  <section>
+                    <div className="bookings-section-title">
+                       <Clock className="text-[#d4af37]" /> Reservas Activas
+                    </div>
+                    <div className="bookings-grid">
+                      {activeBookings.map(booking => (
+                        <div key={booking.id} className="booking-card">
+                          <div className="booking-header">
+                             <div className="booking-title">
+                               <h4>{booking.roomTypeName}</h4>
+                               <span className="booking-id">Reserva #{booking.id}</span>
+                             </div>
+                             {renderBookingStatus(booking.status)}
+                          </div>
+                                                    <div className="space-y-3 mb-6">
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <Calendar size={18} className="text-[#d4af37]" />
+                                <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <CreditCard size={18} className="text-[#d4af37]" />
+                                <span className="font-bold">${booking.totalPrice}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <User size={18} className="text-[#d4af37]" />
+                                <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
+                              </div>
+                            </div>
+                          
+                          <div className="space-y-2">
+                             <button
+                                onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })}
+                                className="w-full py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 rounded-lg hover:bg-[#d4af37]/20 transition-colors text-sm font-bold flex items-center justify-center gap-2"
+                              >
+                                <ConciergeBell size={16} />
+                                Solicitar Servicio
+                              </button>
+                              <button className="w-full py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
+                                Ver Detalles
+                              </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {pastBookings.length > 0 && (
+                  <section>
+                    <div className="bookings-section-title">
+                       <CheckCircle className="text-gray-400" /> Historial
+                    </div>
+                    <div className="bookings-grid">
+                      {pastBookings.map(booking => (
+                        <div key={booking.id} className="booking-card past">
+                            <div className="booking-header">
+                               <div className="booking-title">
+                                 <h4>{booking.roomTypeName}</h4>
+                                 <span className="booking-id">#{booking.id}</span>
+                               </div>
+                               {renderBookingStatus(booking.status)}
+                            </div>
+                             <div className="booking-detail-row">
+                                <Calendar size={16} />
+                                <span className="text-sm">{formatDate(booking.checkInDate)}</span>
+                              </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
+
+      {selectedBookingForService && (
+        <ServiceRequestModal
+          bookingId={selectedBookingForService.id}
+          roomTypeName={selectedBookingForService.roomTypeName}
+          onClose={() => setSelectedBookingForService(null)}
+          onSuccess={() => {
+            // Optional: Show success message or toast
+            // Maybe refresh bookings or fetch service requests history
+             alert('Solicitud enviada con éxito');
+          }}
+        />
+      )}
     </div>
   );
 };
