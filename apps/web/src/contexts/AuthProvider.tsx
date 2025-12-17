@@ -52,6 +52,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setUserProfile(profile);
                 if (keycloak.realmAccess?.roles) setRoles(keycloak.realmAccess.roles);
                 else if (keycloak.resourceAccess?.['hotel-app']?.roles) setRoles(keycloak.resourceAccess['hotel-app'].roles);
+
+                // Sincronizar usuario con backend
+                try {
+                  const { getAccount } = await import('../services/accountService');
+                  await getAccount();
+                  console.log('[AuthProvider] User synced with backend (init)');
+                } catch (syncError) {
+                   console.error('[AuthProvider] Failed to sync user with backend (init)', syncError);
+                }
                 
                 // Verificar perfil inicial
                 checkProfileStatus();
@@ -71,6 +80,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           try {
             const profile = await keycloak.loadUserProfile();
             setUserProfile(profile);
+            
+            // Sincronizar usuario con backend
+            try {
+              const { getAccount } = await import('../services/accountService');
+              await getAccount();
+              console.log('[AuthProvider] User synced with backend');
+            } catch (syncError) {
+              console.error('[AuthProvider] Failed to sync user with backend', syncError);
+            }
             
             // Extraer roles del token
             if (keycloak.realmAccess?.roles) {
