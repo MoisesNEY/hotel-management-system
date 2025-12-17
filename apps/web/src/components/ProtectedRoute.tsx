@@ -7,20 +7,21 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isInitialized } = useAuth();
+  const { isAuthenticated, isInitialized, login } = useAuth();
   const location = useLocation();
+
+  React.useEffect(() => {
+    if (isInitialized && !isAuthenticated) {
+      login();
+    }
+  }, [isInitialized, isAuthenticated, login]);
 
   if (!isInitialized) {
     return <div className="loading-screen">Cargando...</div>;
   }
 
   if (!isAuthenticated) {
-    // Opción A: Guardar location e ir a login
-    // login(); 
-    // return null;
-    
-    // Opción B: Redirigir a LandingPage (comportamiento actual)
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <div className="loading-screen">Redirigiendo al login...</div>;
   }
 
   return children ? <>{children}</> : <Outlet />;
