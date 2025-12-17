@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Calendar, Edit,
-  Save, X, Lock, Shield, Bell,
-  ArrowLeft, Key, Star,
+  Save, X, Lock, Shield,
+  ArrowLeft, Key,  Info,
   IdCard, Globe, Home, AlertCircle, CreditCard, Package,
   Clock, CheckCircle, XCircle
 } from 'lucide-react';
@@ -34,26 +34,6 @@ interface UserData {
   };
 }
 
-interface Booking {
-  id: string;
-  roomType: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  status: 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
-  totalPrice: number;
-  roomNumber?: string;
-}
-
-interface ServiceRequest {
-  id: string;
-  serviceType: string;
-  requestedDate: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  price?: number;
-}
-
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
@@ -61,11 +41,6 @@ const UserProfilePage: React.FC = () => {
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
-
-  // Estados para los modales
-  const [showBookingsModal, setShowBookingsModal] = useState(false);
-  const [showServicesModal, setShowServicesModal] = useState(false);
-
   // Estados para los datos
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
@@ -88,7 +63,7 @@ const UserProfilePage: React.FC = () => {
 
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
-  const [selectedBookingForService, setSelectedBookingForService] = useState<{id: number, roomTypeName: string} | null>(null);
+  const [selectedBookingForService, setSelectedBookingForService] = useState<{ id: number, roomTypeName: string } | null>(null);
 
   useEffect(() => {
     // Verificar autenticación
@@ -99,7 +74,7 @@ const UserProfilePage: React.FC = () => {
 
     // Cargar datos del usuario
     loadUserData();
-    
+
     // Cargar reservas
     loadBookings();
   }, [navigate]);
@@ -248,19 +223,6 @@ const UserProfilePage: React.FC = () => {
       day: 'numeric'
     });
   };
-
-  const formatDateTime = (dateTimeString: string) => {
-    if (!dateTimeString) return 'No especificada';
-    const date = new Date(dateTimeString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const getGenderText = (gender: string) => {
     switch (gender) {
       case 'Male': return 'Masculino';
@@ -269,39 +231,16 @@ const UserProfilePage: React.FC = () => {
       default: return 'No especificado';
     }
   };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'Confirmada';
-      case 'PENDING': return 'Pendiente';
-      case 'CANCELLED': return 'Cancelada';
-      case 'COMPLETED': return 'Completada';
-      case 'IN_PROGRESS': return 'En Progreso';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-green-100 text-green-800';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const isNewUser = () => {
     return !hasCompletedExtraInfo;
   };
 
   const renderBookingStatus = (status: string) => {
-    switch(status) {
-      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12}/> Confirmada</span>;
-      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12}/> Pendiente</span>;
-      case 'CANCELLED': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12}/> Cancelada</span>;
-      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12}/> Completada</span>;
+    switch (status) {
+      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Confirmada</span>;
+      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
+      case 'CANCELLED': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
+      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Completada</span>;
       default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{status}</span>;
     }
   };
@@ -311,148 +250,6 @@ const UserProfilePage: React.FC = () => {
 
   return (
     <div className="user-profile-container">
-      {/* Modales */}
-      {showBookingsModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
-                <Bed size={24} />
-                Mis Reservas
-              </h2>
-              <button className="modal-close" onClick={handleCloseBookingsModal}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-content">
-              {isLoadingBookings ? (
-                <div className="loading-state">
-                  <div className="loading-spinner"></div>
-                  <p>Cargando reservas...</p>
-                </div>
-              ) : bookings.length === 0 ? (
-                <div className="empty-state">
-                  <Bed size={48} className="empty-icon" />
-                  <h3>No has realizado ninguna reserva</h3>
-                  <p>Cuando hagas una reserva en nuestro hotel, aparecerá aquí.</p>
-                  <button className="btn btn-primary" onClick={() => navigate('/')}>
-                    Explorar Habitaciones
-                  </button>
-                </div>
-              ) : (
-                <div className="bookings-list">
-                  {bookings.map(booking => (
-                    <div key={booking.id} className="booking-card">
-                      <div className="booking-header">
-                        <h3>{booking.roomType}</h3>
-                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
-                          {getStatusText(booking.status)}
-                        </span>
-                      </div>
-                      <div className="booking-details">
-                        <div className="detail">
-                          <span className="detail-label">Check-in:</span>
-                          <span className="detail-value">{formatDate(booking.checkIn)}</span>
-                        </div>
-                        <div className="detail">
-                          <span className="detail-label">Check-out:</span>
-                          <span className="detail-value">{formatDate(booking.checkOut)}</span>
-                        </div>
-                        <div className="detail">
-                          <span className="detail-label">Huéspedes:</span>
-                          <span className="detail-value">{booking.guests}</span>
-                        </div>
-                        {booking.roomNumber && (
-                          <div className="detail">
-                            <span className="detail-label">Habitación:</span>
-                            <span className="detail-value">{booking.roomNumber}</span>
-                          </div>
-                        )}
-                        <div className="detail">
-                          <span className="detail-label">Total:</span>
-                          <span className="detail-value font-bold">${booking.totalPrice}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={handleCloseBookingsModal}>
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showServicesModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
-                <Coffee size={24} />
-                Mis Servicios Solicitados
-              </h2>
-              <button className="modal-close" onClick={handleCloseServicesModal}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-content">
-              {isLoadingServices ? (
-                <div className="loading-state">
-                  <div className="loading-spinner"></div>
-                  <p>Cargando servicios...</p>
-                </div>
-              ) : serviceRequests.length === 0 ? (
-                <div className="empty-state">
-                  <Coffee size={48} className="empty-icon" />
-                  <h3>No has solicitado ningún servicio</h3>
-                  <p>Cuando solicites un servicio durante tu estancia, aparecerá aquí.</p>
-                </div>
-              ) : (
-                <div className="services-list">
-                  {serviceRequests.map(service => (
-                    <div key={service.id} className="service-card">
-                      <div className="service-header">
-                        <h3>{service.serviceType}</h3>
-                        <span className={`status-badge ${getStatusColor(service.status)}`}>
-                          {getStatusText(service.status)}
-                        </span>
-                      </div>
-                      <div className="service-details">
-                        <div className="detail">
-                          <span className="detail-label">Solicitado:</span>
-                          <span className="detail-value">{formatDateTime(service.requestedDate)}</span>
-                        </div>
-                        {service.notes && (
-                          <div className="detail">
-                            <span className="detail-label">Notas:</span>
-                            <span className="detail-value">{service.notes}</span>
-                          </div>
-                        )}
-                        {service.price && (
-                          <div className="detail">
-                            <span className="detail-label">Precio:</span>
-                            <span className="detail-value">${service.price}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={handleCloseServicesModal}>
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Contenido principal */}
       <div className="profile-header">
         <button className="back-button" onClick={() => navigate('/')}>
@@ -462,23 +259,40 @@ const UserProfilePage: React.FC = () => {
 
         <div className="header-content">
           <div className="profile-avatar">
-            <div className="avatar-circle">
-              <User size={48} />
-              {isNewUser() && (
-                <div className="new-user-badge">Nuevo</div>
-              )}
-            </div>
-            <div className="avatar-info">
-              <h1>{userData.firstName} {userData.lastName}</h1>
-              <p className="member-since">Miembro desde Enero 2024</p>
-              {!hasCompletedExtraInfo && (
-                <div className="incomplete-info-alert">
-                  <AlertCircle size={16} />
-                  <span><strong>¡Atención!</strong> Debes completar tu información de perfil. Los campos marcados son obligatorios.</span>
+            <div className="profile-card">
+              <div className="profile-card-container">
+                <div className="profile-card-avatar">
+                  <span className="profile-card-initials">
+                    {userData.firstName.charAt(0)}
+                    {userData.lastName.charAt(0)}
+                  </span>
+
+                  {!hasCompletedExtraInfo && <span className="profile-card-pulse"></span>}
+
+                  {isNewUser() && (
+                    <div className="profile-card-badge">Nuevo</div>
+                  )}
                 </div>
-              )}
+
+                <div className="profile-card-info">
+                  <h1>{userData.firstName} {userData.lastName}</h1>
+                  <p className="profile-card-member">
+                    Miembro desde Diciembre 2025
+                  </p>
+
+                  {!hasCompletedExtraInfo && (
+                    <div className="profile-card-alert">
+                      <AlertCircle size={16} />
+                      <span>
+                        <strong>¡Atención!</strong> Debes completar tu información de perfil.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
+
 
           <div className="header-actions">
             {activeTab === 'profile' && (
@@ -500,29 +314,30 @@ const UserProfilePage: React.FC = () => {
                 </>
               ) : (
                 <div className="edit-actions">
-                  <button className="btn btn-save" onClick={handleSave}>
-                    <Save size={18} />
-                    Guardar
-                  </button>
-                  <button className="btn btn-cancel" onClick={handleCancel}>
-                    <X size={18} />
-                    Cancelar
-                  </button>
-                </div>
+  <button className="btn btn-save" onClick={handleSave}>
+    <Save size={18} />
+    Guardar
+  </button>
+  <button className="btn btn-cancel-red" onClick={handleCancel}>
+    <X size={18} />
+    Cancelar
+  </button>
+</div>
+
               )
             )}
           </div>
         </div>
-        
+
         {/* Navigation Tabs */}
         <div className="profile-tabs">
-          <button 
+          <button
             className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
             Mi Perfil
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
             onClick={() => setActiveTab('bookings')}
           >
@@ -533,382 +348,312 @@ const UserProfilePage: React.FC = () => {
 
       <div className="profile-content">
         {activeTab === 'profile' && (
-        <div className="content-grid">
-          {/* Columna izquierda - Información personal */}
-          <div className="personal-info">
-            <div className="section-card">
-              <div className="section-header">
-                <User size={20} />
-                <h2>Información Personal</h2>
-                {!hasCompletedExtraInfo && (
-                  <span className="section-warning">
-                    ⚠️ Obligatorio completar
-                  </span>
-                )}
-              </div>
-
-              <div className="info-grid">
-                <div className="info-item">
-                  <label><User size={16} /> Nombre</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={userData.firstName}
-                      disabled
-                      className="edit-input"
-                    />
-                  ) : (
-                    <p>{userData.firstName || 'No especificado'}</p>
+          <div className="content-grid">
+            {/* Columna izquierda - Información personal */}
+            <div className="personal-info">
+              <div className="section-card">
+                <div className="section-header">
+                  <User size={20} />
+                  <h2>Información Personal</h2>
+                  {!hasCompletedExtraInfo && (
+                    <span className="section-warning">
+                      ⚠️ Obligatorio completar
+                    </span>
                   )}
                 </div>
 
-                <div className="info-item">
-                  <label><User size={16} /> Apellido</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={userData.lastName}
-                      disabled
-                      className="edit-input"
-                    />
-                  ) : (
-                    <p>{userData.lastName || 'No especificado'}</p>
-                  )}
-                </div>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <label><User size={16} /> Nombre</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={userData.firstName}
+                        disabled
+                        className="edit-input"
+                      />
+                    ) : (
+                      <p>{userData.firstName || 'No especificado'}</p>
+                    )}
+                  </div>
 
-                <div className="info-item">
-                  <label><Mail size={16} /> Email</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={userData.email}
-                      disabled
-                      className="edit-input"
-                    />
-                  ) : (
+                  <div className="info-item">
+                    <label><User size={16} /> Apellido</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={userData.lastName}
+                        disabled
+                        className="edit-input"
+                      />
+                    ) : (
+                      <p>{userData.lastName || 'No especificado'}</p>
+                    )}
+                  </div>
+
+                  <div className="info-item">
+                    <label><Mail size={16} /> Email</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={userData.email}
+                        disabled
+                        className="edit-input"
+                      />
+                    ) : (
+                      <>
+                        <p>{userData.email || 'No especificado'}</p>
+                        <small className="email-note"><Shield size={12} /> Verificado</small>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="info-item">
+                    <label><Phone size={16} /> Teléfono <span className="required">*</span></label>
+                    {isEditing ? (
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={userData.phone}
+                        onChange={handleInputChange}
+                        className="edit-input"
+                        placeholder="+505 1234 5678"
+                        required
+                      />
+                    ) : (
+                      <p className={!userData.phone ? 'required-field' : ''}>
+                        {userData.phone || 'Requerido - No especificado'}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="info-item">
+                    <label><Calendar size={16} /> Fecha de Nacimiento</label>
+                    {isEditing ? (
+                      <input
+                        type="date"
+                        value={userData.birthDate}
+                        disabled
+                        className="edit-input"
+                      />
+                    ) : (
+                      <p>{formatDate(userData.birthDate)}</p>
+                    )}
+                  </div>
+
+                  {hasCompletedExtraInfo && (
                     <>
-                      <p>{userData.email || 'No especificado'}</p>
-                      <small className="email-note"><Shield size={12} /> Verificado</small>
+                      <div className="info-item">
+                        <label><User size={16} /> Género</label>
+                        {isEditing ? (
+                          <select
+                            name="gender"
+                            value={userData.gender}
+                            onChange={handleInputChange}
+                            className="edit-input"
+                          >
+                            <option value="">Seleccionar...</option>
+                            <option value="Male">Masculino</option>
+                            <option value="Female">Femenino</option>
+                            <option value="Other">Otro</option>
+                          </select>
+                        ) : (
+                          <p>{getGenderText(userData.gender)}</p>
+                        )}
+                      </div>
+
+                      <div className="info-item">
+                        <label><IdCard size={16} /> DNI/Pasaporte</label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={userData.licenseId}
+                            disabled
+                            className="edit-input"
+                          />
+                        ) : (
+                          <p>{userData.licenseId || 'No especificado'}</p>
+                        )}
+                      </div>
+
+                      <div className="info-item full-width">
+                        <label><Home size={16} /> Dirección <span className="required">*</span></label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            name="address"
+                            value={userData.address}
+                            onChange={handleInputChange}
+                            className="edit-input"
+                            placeholder="Dirección completa"
+                            required
+                          />
+                        ) : (
+                          <p className={!userData.address ? 'required-field' : ''}>
+                            {userData.address || 'Requerido - No especificada'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="info-item">
+                        <label><Globe size={16} /> Ciudad <span className="required">*</span></label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            name="city"
+                            value={userData.city}
+                            onChange={handleInputChange}
+                            className="edit-input"
+                            placeholder="Ciudad"
+                            required
+                          />
+                        ) : (
+                          <p className={!userData.city ? 'required-field' : ''}>
+                            {userData.city || 'Requerido - No especificada'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="info-item">
+                        <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            name="country"
+                            value={userData.country}
+                            onChange={handleInputChange}
+                            className="edit-input"
+                            placeholder="País"
+                            required
+                          />
+                        ) : (
+                          <p className={!userData.country ? 'required-field' : ''}>
+                            {userData.country || 'Requerido - No especificado'}
+                          </p>
+                        )}
+                      </div>
                     </>
                   )}
                 </div>
-
-                <div className="info-item">
-                  <label><Phone size={16} /> Teléfono <span className="required">*</span></label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={userData.phone}
-                      onChange={handleInputChange}
-                      className="edit-input"
-                      placeholder="+505 1234 5678"
-                      required
-                    />
-                  ) : (
-                    <p className={!userData.phone ? 'required-field' : ''}>
-                      {userData.phone || 'Requerido - No especificado'}
-                    </p>
-                  )}
-                </div>
-
-                <div className="info-item">
-                  <label><Calendar size={16} /> Fecha de Nacimiento</label>
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      value={userData.birthDate}
-                      disabled
-                      className="edit-input"
-                    />
-                  ) : (
-                    <p>{formatDate(userData.birthDate)}</p>
-                  )}
-                </div>
-
-                {hasCompletedExtraInfo && (
-                  <>
-                    <div className="info-item">
-                      <label><User size={16} /> Género</label>
-                      {isEditing ? (
-                        <select
-                          name="gender"
-                          value={userData.gender}
-                          onChange={handleInputChange}
-                          className="edit-input"
-                        >
-                          <option value="">Seleccionar...</option>
-                          <option value="Male">Masculino</option>
-                          <option value="Female">Femenino</option>
-                          <option value="Other">Otro</option>
-                        </select>
-                      ) : (
-                        <p>{getGenderText(userData.gender)}</p>
-                      )}
-                    </div>
-
-                    <div className="info-item">
-                      <label><IdCard size={16} /> DNI/Pasaporte</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={userData.licenseId}
-                          disabled
-                          className="edit-input"
-                        />
-                      ) : (
-                        <p>{userData.licenseId || 'No especificado'}</p>
-                      )}
-                    </div>
-
-                    <div className="info-item full-width">
-                      <label><Home size={16} /> Dirección <span className="required">*</span></label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="address"
-                          value={userData.address}
-                          onChange={handleInputChange}
-                          className="edit-input"
-                          placeholder="Dirección completa"
-                          required
-                        />
-                      ) : (
-                        <p className={!userData.address ? 'required-field' : ''}>
-                          {userData.address || 'Requerido - No especificada'}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="info-item">
-                      <label><Globe size={16} /> Ciudad <span className="required">*</span></label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="city"
-                          value={userData.city}
-                          onChange={handleInputChange}
-                          className="edit-input"
-                          placeholder="Ciudad"
-                          required
-                        />
-                      ) : (
-                        <p className={!userData.city ? 'required-field' : ''}>
-                          {userData.city || 'Requerido - No especificada'}
-                        </p>
-                      )}
-                    </div>
-
-                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="country"
-                          value={userData.country}
-                          onChange={handleInputChange}
-                          className="edit-input"
-                          placeholder="País"
-                          required
-                        />
-                      ) : (
-                        <p className={!userData.country ? 'required-field' : ''}>
-                          {userData.country || 'Requerido - No especificado'}
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+              </div>          
             </div>
 
-            {/* Sección de seguridad */}
-            <div className="section-card">
-              <div className="section-header">
-                <Shield size={20} />
-                <h2>Seguridad</h2>
-              </div>
-
-              <div className="security-actions">
-                <button className="security-btn" onClick={handleChangePassword}>
-                  <Key size={18} />
-                  <div>
-                    <h4>Cambiar Contraseña</h4>
-                    <p>Actualiza tu contraseña regularmente</p>
-                  </div>
-                </button>
-
-                <button className="security-btn">
-                  <Lock size={18} />
-                  <div>
-                    <h4>Autenticación de Dos Factores</h4>
-                    <p>Activar para mayor seguridad</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Columna derecha */}
-          <div className="right-column">
-            {/* Preferencias */}
-            <div className="section-card">
-              <div className="section-header">
-                <Star size={20} />
-                <h2>Preferencias</h2>
-              </div>
-
-              <div className="preferences-grid">
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <Bell size={18} />
-                    <div>
-                      <h4>Notificaciones</h4>
-                      <p>Recibir notificaciones por email</p>
-                    </div>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      name="preferences.notifications"
-                      checked={userData.preferences.notifications}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
+            {/* Columna derecha */}
+            <div className="right-column">
+              <div className="section-card">
+                <div className="section-header">
+                  <Info size={20} />
+                  <h2>Informacion</h2>
                 </div>
 
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <Mail size={18} />
-                    <div>
-                      <h4>Newsletter</h4>
-                      <p>Recibir ofertas y novedades</p>
+                <div className="preferences-grid">
+                  <div className="preference-item">
+                    <div className="preference-info">
+                      <Package size={18} />
+                      <div>
+                        <h4>Idioma</h4>
+                        <p>Idioma preferido</p>
+                      </div>
                     </div>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      name="preferences.newsletter"
-                      checked={userData.preferences.newsletter}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
 
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <Package size={18} />
-                    <div>
-                      <h4>Idioma</h4>
-                      <p>Idioma preferido</p>
-                    </div>
-                  </div>
-                  {isEditing ? (
-                    <select
-                      name="preferences.language"
-                      value={userData.preferences.language}
-                      onChange={handleInputChange}
-                      className="preference-select"
-                    >
-                      <option value="es">Español</option>
-                      <option value="en">English</option>
-                      <option value="fr">Français</option>
-                    </select>
-                  ) : (
                     <span className="preference-value">
-                      {userData.preferences.language === 'es' ? 'Español' :
-                        userData.preferences.language === 'en' ? 'English' : 'Français'}
+                      Español
                     </span>
-                  )}
-                </div>
-
-                <div className="preference-item">
-                  <div className="preference-info">
-                    <CreditCard size={18} />
-                    <div>
-                      <h4>Moneda</h4>
-                      <p>Moneda preferida</p>
-                    </div>
                   </div>
-                  {isEditing ? (
-                    <select
-                      name="preferences.currency"
-                      value={userData.preferences.currency}
-                      onChange={handleInputChange}
-                      className="preference-select"
-                    >
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
-                  ) : (
+                  <div className="preference-item">
+                    <div className="preference-info">
+                      <CreditCard size={18} />
+                      <div>
+                        <h4>Moneda</h4>
+                        <p>Moneda preferida</p>
+                      </div>
+                    </div>
                     <span className="preference-value">
-                      {userData.preferences.currency}
+                      USD ($)
                     </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información del sistema */}
+              <div className="section-card">
+                <div className="section-header">
+                  <Shield size={20} />
+                  <h2>Información del Sistema</h2>
+                </div>
+
+                <div className="system-info">
+                  <div className="system-item">
+                    <span className="system-label">Estado de la cuenta:</span>
+                    <span className={`system-value ${hasCompletedExtraInfo ? 'active' : 'incomplete'}`}>
+                      {hasCompletedExtraInfo ? 'Completa' : 'Incompleta'}
+                    </span>
+                  </div>
+
+                  <div className="system-item">
+                    <span className="system-label">Autenticación:</span>
+                    <span className="system-value active">Keycloak</span>
+                  </div>
+
+                  <div className="system-item">
+                    <span className="system-label">Última actualización:</span>
+                    <span className="system-value">
+                      {new Date().toLocaleDateString('es-ES')}
+                    </span>
+                  </div>
+
+                  {!hasCompletedExtraInfo && (
+                    <button
+                      className="btn-complete-info"
+                      onClick={handleCompleteInfo}
+                    >
+                      <AlertCircle size={16} />
+                      Completar información ahora
+                    </button>
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Información del sistema */}
-            <div className="section-card">
-              <div className="section-header">
-                <Shield size={20} />
-                <h2>Información del Sistema</h2>
-              </div>
-
-              <div className="system-info">
-                <div className="system-item">
-                  <span className="system-label">Estado de la cuenta:</span>
-                  <span className={`system-value ${hasCompletedExtraInfo ? 'active' : 'incomplete'}`}>
-                    {hasCompletedExtraInfo ? 'Completa' : 'Incompleta'}
-                  </span>
+              <div className="section-card">
+                <div className="section-header">
+                  <Shield size={20} />
+                  <h2>Seguridad</h2>
                 </div>
 
-                <div className="system-item">
-                  <span className="system-label">Autenticación:</span>
-                  <span className="system-value active">Keycloak</span>
-                </div>
-
-                <div className="system-item">
-                  <span className="system-label">Última actualización:</span>
-                  <span className="system-value">
-                    {new Date().toLocaleDateString('es-ES')}
-                  </span>
-                </div>
-
-                {!hasCompletedExtraInfo && (
-                  <button
-                    className="btn-complete-info"
-                    onClick={handleCompleteInfo}
-                  >
-                    <AlertCircle size={16} />
-                    Completar información ahora
+                <div className="security-actions">
+                  <button className="security-btn" onClick={handleChangePassword}>
+                    <Key size={18} />
+                    <div>
+                      <h4>Cambiar Contraseña</h4>
+                      <p>Actualiza tu contraseña regularmente</p>
+                    </div>
                   </button>
-                )}
+
+                  <button className="security-btn">
+                    <Lock size={18} />
+                    <div>
+                      <h4>Autenticación de Dos Factores</h4>
+                      <p>Activar para mayor seguridad</p>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         )}
 
         {activeTab === 'bookings' && (
           <div className="bookings-container">
             {loadingBookings ? (
               <div className="flex justify-center py-20">
-                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
               </div>
             ) : bookings.length === 0 ? (
               <div className="empty-bookings">
                 <Calendar className="mx-auto h-20 w-20 text-gray-300 mb-6" />
                 <h3>No tienes reservas activas</h3>
                 <p>Parece que aún no has reservado tu estadía perfecta con nosotros.</p>
-                <button onClick={() => navigate('/')} className="btn btn-warning" style={{margin: '0 auto', display: 'inline-flex'}}>
-                   Explorar Habitaciones
+                <button onClick={() => navigate('/')} className="btn btn-warning" style={{ margin: '0 auto', display: 'inline-flex' }}>
+                  Explorar Habitaciones
                 </button>
               </div>
             ) : (
@@ -916,44 +661,44 @@ const UserProfilePage: React.FC = () => {
                 {activeBookings.length > 0 && (
                   <section>
                     <div className="bookings-section-title">
-                       <Clock className="text-[#d4af37]" /> Reservas Activas
+                      <Clock className="text-[#d4af37]" /> Reservas Activas
                     </div>
                     <div className="bookings-grid">
                       {activeBookings.map(booking => (
                         <div key={booking.id} className="booking-card">
                           <div className="booking-header">
-                             <div className="booking-title">
-                               <h4>{booking.roomTypeName}</h4>
-                               <span className="booking-id">Reserva #{booking.id}</span>
-                             </div>
-                             {renderBookingStatus(booking.status)}
-                          </div>
-                                                    <div className="space-y-3 mb-6">
-                              <div className="flex items-center gap-3 text-gray-700">
-                                <Calendar size={18} className="text-[#d4af37]" />
-                                <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
-                              </div>
-                              <div className="flex items-center gap-3 text-gray-700">
-                                <CreditCard size={18} className="text-[#d4af37]" />
-                                <span className="font-bold">${booking.totalPrice}</span>
-                              </div>
-                              <div className="flex items-center gap-3 text-gray-700">
-                                <User size={18} className="text-[#d4af37]" />
-                                <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
-                              </div>
+                            <div className="booking-title">
+                              <h4>{booking.roomTypeName}</h4>
+                              <span className="booking-id">Reserva #{booking.id}</span>
                             </div>
-                          
+                            {renderBookingStatus(booking.status)}
+                          </div>
+                          <div className="space-y-3 mb-6">
+                            <div className="flex items-center gap-3 text-gray-700">
+                              <Calendar size={18} className="text-[#d4af37]" />
+                              <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-700">
+                              <CreditCard size={18} className="text-[#d4af37]" />
+                              <span className="font-bold">${booking.totalPrice}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-700">
+                              <User size={18} className="text-[#d4af37]" />
+                              <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
+                            </div>
+                          </div>
+
                           <div className="space-y-2">
-                             <button
-                                onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })}
-                                className="w-full py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 rounded-lg hover:bg-[#d4af37]/20 transition-colors text-sm font-bold flex items-center justify-center gap-2"
-                              >
-                                <ConciergeBell size={16} />
-                                Solicitar Servicio
-                              </button>
-                              <button className="w-full py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
-                                Ver Detalles
-                              </button>
+                            <button
+                              onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })}
+                              className="w-full py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 rounded-lg hover:bg-[#d4af37]/20 transition-colors text-sm font-bold flex items-center justify-center gap-2"
+                            >
+                              <ConciergeBell size={16} />
+                              Solicitar Servicio
+                            </button>
+                            <button className="w-full py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
+                              Ver Detalles
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -964,22 +709,22 @@ const UserProfilePage: React.FC = () => {
                 {pastBookings.length > 0 && (
                   <section>
                     <div className="bookings-section-title">
-                       <CheckCircle className="text-gray-400" /> Historial
+                      <CheckCircle className="text-gray-400" /> Historial
                     </div>
                     <div className="bookings-grid">
                       {pastBookings.map(booking => (
                         <div key={booking.id} className="booking-card past">
-                            <div className="booking-header">
-                               <div className="booking-title">
-                                 <h4>{booking.roomTypeName}</h4>
-                                 <span className="booking-id">#{booking.id}</span>
-                               </div>
-                               {renderBookingStatus(booking.status)}
+                          <div className="booking-header">
+                            <div className="booking-title">
+                              <h4>{booking.roomTypeName}</h4>
+                              <span className="booking-id">#{booking.id}</span>
                             </div>
-                             <div className="booking-detail-row">
-                                <Calendar size={16} />
-                                <span className="text-sm">{formatDate(booking.checkInDate)}</span>
-                              </div>
+                            {renderBookingStatus(booking.status)}
+                          </div>
+                          <div className="booking-detail-row">
+                            <Calendar size={16} />
+                            <span className="text-sm">{formatDate(booking.checkInDate)}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1000,7 +745,7 @@ const UserProfilePage: React.FC = () => {
           onSuccess={() => {
             // Optional: Show success message or toast
             // Maybe refresh bookings or fetch service requests history
-             alert('Solicitud enviada con éxito');
+            alert('Solicitud enviada con éxito');
           }}
         />
       )}

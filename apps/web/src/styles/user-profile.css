@@ -579,6 +579,7 @@ input:disabled+.toggle-slider {
     }
 }
 
+
 /* Pestañas de Navegación */
 
 .profile-tabs {
@@ -751,8 +752,14 @@ input:disabled+.toggle-slider {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 768px) {
@@ -760,13 +767,214 @@ input:disabled+.toggle-slider {
         gap: 15px;
         overflow-x: auto;
     }
-    
     .tab-btn {
         white-space: nowrap;
         font-size: 14px;
     }
-    
     .bookings-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.profile-card-container {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: white;
+    border: none;
+    padding: 24px;
+    border-radius: 16px;
+}
+
+
+/* Avatar grande */
+
+.profile-card-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5c542, #d4af37);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+}
+
+
+/* Iniciales */
+
+.profile-card-initials {
+    font-size: 32px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+}
+
+
+/* Badge nuevo */
+
+.profile-card-badge {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    background: #22c55e;
+    color: white;
+    font-size: 11px;
+    padding: 5px 7px;
+    border-radius: 999px;
+    font-weight: bold;
+}
+
+
+/* Punto pulsante */
+
+.profile-card-pulse {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    background: #d4af37;
+    border-radius: 50%;
+    animation: profileCardPulse 1.5s infinite;
+}
+
+@keyframes profileCardPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+
+/* Info */
+
+.profile-card-info h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #111;
+}
+
+.profile-card-member {
+    font-size: 15px;
+    color: #6b7280;
+}
+
+
+/* Alerta */
+
+.profile-card-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    color: #d4af37;
+    font-size: 14px;
+}
+
+
+/* Avatar grande con borde dorado */
+
+.profile-card-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    /* fondo blanco */
+    border: 3px solid #d4af37;
+    /* borde dorado */
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.25);
+}
+
+
+/* Iniciales */
+
+.profile-card-initials {
+    font-size: 32px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    /* texto negro */
+}
+
+
+/* Avatar grande con borde dorado */
+
+.profile-card-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    /* fondo blanco */
+    border: 3px solid #d4af37;
+}
+
+
+/* Iniciales */
+
+.profile-card-initials {
+    font-size: 32px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    /* texto negro */
+}
+
+.edit-actions {
+    display: flex;
+    gap: 12px;
+    /* espacio entre los botones */
+}
+
+.btn-save {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #10b981;
+    /* verde */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-save:hover {
+    background-color: #059669;
+    /* verde más oscuro al pasar el mouse */
+}
+
+.btn-cancel-red {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #ef4444;
+    /* rojo */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-cancel-red:hover {
+    background-color: #dc2626;
+    /* rojo más oscuro al pasar el mouse */
 }
