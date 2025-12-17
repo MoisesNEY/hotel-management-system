@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Calendar, Edit,
   Save, X, Lock, Shield,
-  ArrowLeft, Key,  Info,
+  ArrowLeft, Key, Info,
   IdCard, Globe, Home, AlertCircle, CreditCard, Package,
   Clock, CheckCircle, XCircle
 } from 'lucide-react';
@@ -314,15 +314,15 @@ const UserProfilePage: React.FC = () => {
                 </>
               ) : (
                 <div className="edit-actions">
-  <button className="btn btn-save" onClick={handleSave}>
-    <Save size={18} />
-    Guardar
-  </button>
-  <button className="btn btn-cancel-red" onClick={handleCancel}>
-    <X size={18} />
-    Cancelar
-  </button>
-</div>
+                  <button className="btn btn-save" onClick={handleSave}>
+                    <Save size={18} />
+                    Guardar
+                  </button>
+                  <button className="btn btn-cancel-red" onClick={handleCancel}>
+                    <X size={18} />
+                    Cancelar
+                  </button>
+                </div>
 
               )
             )}
@@ -535,7 +535,7 @@ const UserProfilePage: React.FC = () => {
                     </>
                   )}
                 </div>
-              </div>          
+              </div>
             </div>
 
             {/* Columna derecha */}
