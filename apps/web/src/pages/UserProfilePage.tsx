@@ -573,72 +573,20 @@ const UserProfilePage: React.FC = () => {
                 </div>
 
                 <div className="preferences-grid">
-                  <div className="preference-item">
-                    <div className="preference-info">
-                      <Bell size={18} />
-                      <div>
-                        <h4>Notificaciones</h4>
-                        <p>Recibir notificaciones por email</p>
-                      </div>
-                    </div>
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        name="preferences.notifications"
-                        checked={userData.preferences.notifications}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
+                 <div className="preference-item">
+  <div className="preference-info">
+    <Package size={18} />
+    <div>
+      <h4>Idioma</h4>
+      <p>Idioma preferido</p>
+    </div>
+  </div>
 
-                  <div className="preference-item">
-                    <div className="preference-info">
-                      <Mail size={18} />
-                      <div>
-                        <h4>Newsletter</h4>
-                        <p>Recibir ofertas y novedades</p>
-                      </div>
-                    </div>
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        name="preferences.newsletter"
-                        checked={userData.preferences.newsletter}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
+  <span className="preference-value">
+    Español
+  </span>
+</div>
 
-                  <div className="preference-item">
-                    <div className="preference-info">
-                      <Package size={18} />
-                      <div>
-                        <h4>Idioma</h4>
-                        <p>Idioma preferido</p>
-                      </div>
-                    </div>
-                    {isEditing ? (
-                      <select
-                        name="preferences.language"
-                        value={userData.preferences.language}
-                        onChange={handleInputChange}
-                        className="preference-select"
-                      >
-                        <option value="es">Español</option>
-                        <option value="en">English</option>
-                        <option value="fr">Français</option>
-                      </select>
-                    ) : (
-                      <span className="preference-value">
-                        {userData.preferences.language === 'es' ? 'Español' :
-                          userData.preferences.language === 'en' ? 'English' : 'Français'}
-                      </span>
-                    )}
-                  </div>
 
                   <div className="preference-item">
                     <div className="preference-info">
