@@ -1,15 +1,20 @@
-// apps/web/src/pages/UserProfilePage.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, Mail, Phone, Calendar, MapPin, Edit, 
-  Save, X, Lock, Shield, CreditCard, Bell,
-  ArrowLeft, Key, Package, History, Star,
-  IdCard, Globe, Home, AlertCircle
+import {
+  User, Mail, Phone, Calendar, Edit,
+  Save, X, Lock, Shield, Bell,
+  ArrowLeft, Key, Star,
+  IdCard, Globe, Home, AlertCircle, CreditCard, Package,
+  Clock, CheckCircle, XCircle
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
+import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
 import '../styles/user-profile.css';
+import { getMyBookings } from '../services/client/bookingService';
+import ServiceRequestModal from '../components/ServiceRequestModal';
+import { ConciergeBell } from 'lucide-react';
 
+// Interfaces para los datos
 interface UserData {
   firstName: string;
   lastName: string;
@@ -29,13 +34,39 @@ interface UserData {
   };
 }
 
+interface Booking {
+  id: string;
+  roomType: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  status: 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
+  totalPrice: number;
+  roomNumber?: string;
+}
+
+interface ServiceRequest {
+  id: string;
+  serviceType: string;
+  requestedDate: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  notes?: string;
+  price?: number;
+}
+
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
-  
+
+  // Estados para los modales
+  const [showBookingsModal, setShowBookingsModal] = useState(false);
+  const [showServicesModal, setShowServicesModal] = useState(false);
+
+  // Estados para los datos
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
     lastName: '',
@@ -55,6 +86,10 @@ const UserProfilePage: React.FC = () => {
     }
   });
 
+  const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [selectedBookingForService, setSelectedBookingForService] = useState<{id: number, roomTypeName: string} | null>(null);
+
   useEffect(() => {
     // Verificar autenticación
     if (!keycloak.authenticated) {
@@ -62,49 +97,67 @@ const UserProfilePage: React.FC = () => {
       return;
     }
 
-    // Verificar si tiene información extra completada
-    const hasInfo = localStorage.getItem('hasCompletedExtraInfo') === 'true';
-    setHasCompletedExtraInfo(hasInfo);
-
-    // Si no tiene información completada, redirigir
-    if (!hasInfo) {
-      const confirmComplete = window.confirm(
-        '¡Atención! Necesitas completar tu información personal para acceder al perfil completo.\n\n¿Deseas completarla ahora?'
-      );
-      if (confirmComplete) {
-        navigate('/customer');
-      } else {
-        navigate('/');
-      }
-      return;
-    }
-
     // Cargar datos del usuario
     loadUserData();
+    
+    // Cargar reservas
+    loadBookings();
   }, [navigate]);
 
-  const loadUserData = () => {
-    // Cargar datos desde Keycloak
-    if (keycloak.tokenParsed) {
-      const token = keycloak.tokenParsed;
-      const firstName = token.given_name || '';
-      const lastName = token.family_name || '';
-      const email = token.email || '';
-      
-      // Cargar datos extras desde localStorage
-      const savedData = localStorage.getItem('userData');
-      let extraData = {};
-      if (savedData) {
-        extraData = JSON.parse(savedData);
-      }
+  const loadUserData = async () => {
+    try {
+      if (!keycloak.tokenParsed) return;
 
+      // 1. Datos base del token
+      const token = keycloak.tokenParsed;
+      const baseData = {
+        firstName: token.given_name || '',
+        lastName: token.family_name || '',
+        email: token.email || ''
+      };
+
+      setUserData(prev => ({ ...prev, ...baseData }));
+
+      // 2. Intentar cargar perfil completo del backend
+      const { getMyProfile } = await import('../services/client/customerDetailsService');
+      const profileResponse = await getMyProfile();
+
+      console.log('[UserProfile] Profile loaded:', profileResponse);
+
+      // Actualizar estado con datos del backend
       setUserData(prev => ({
         ...prev,
-        firstName,
-        lastName,
-        email,
-        ...extraData
+        ...baseData,
+        phone: profileResponse.phone || '',
+        address: profileResponse.addressLine1 || '',
+        city: profileResponse.city || '',
+        country: profileResponse.country || '',
+        licenseId: profileResponse.licenseId || '',
+        birthDate: profileResponse.birthDate || '',
+        gender: profileResponse.gender
+          ? profileResponse.gender.charAt(0) + profileResponse.gender.slice(1).toLowerCase()
+          : '',
       }));
+
+      // Confirmar que tenemos info
+      setHasCompletedExtraInfo(true);
+      localStorage.setItem('hasCompletedExtraInfo', 'true');
+
+    } catch (error) {
+      console.warn('[UserProfile] Failed to load profile from backend (might be incomplete)', error);
+      setHasCompletedExtraInfo(false);
+    }
+  };
+
+  const loadBookings = async () => {
+    try {
+      setLoadingBookings(true);
+      const response = await getMyBookings({ page: 0, size: 50, sort: 'checkInDate,desc' });
+      setBookings(response.data);
+    } catch (error) {
+      console.error('[UserProfile] Failed to load bookings', error);
+    } finally {
+      setLoadingBookings(false);
     }
   };
 
@@ -112,28 +165,48 @@ const UserProfilePage: React.FC = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    // Guardar cambios en localStorage
-    localStorage.setItem('userData', JSON.stringify({
-      gender: userData.gender,
-      phone: userData.phone,
-      address: userData.address,
-      city: userData.city,
-      country: userData.country,
-      licenseId: userData.licenseId,
-      birthDate: userData.birthDate
-    }));
-    
-    // También guardar preferencias
-    localStorage.setItem('userPreferences', JSON.stringify(userData.preferences));
-    
-    setIsEditing(false);
-    alert('¡Cambios guardados exitosamente!');
+  const handleSave = async () => {
+    try {
+      const { updateProfile } = await import('../services/client/customerDetailsService');
+
+      let apiGender: Gender = 'OTHER';
+      if (userData.gender === 'Male' || userData.gender === 'Masculino') apiGender = 'MALE';
+      else if (userData.gender === 'Female' || userData.gender === 'Femenino') apiGender = 'FEMALE';
+
+      const updateRequest: CustomerDetailsUpdateRequest = {
+        gender: apiGender,
+        phone: userData.phone,
+        addressLine1: userData.address,
+        city: userData.city,
+        country: userData.country
+      };
+
+      console.log('[UserProfile] Updating profile:', updateRequest);
+      await updateProfile(updateRequest);
+
+      localStorage.setItem('userData', JSON.stringify({
+        gender: userData.gender,
+        phone: userData.phone,
+        address: userData.address,
+        city: userData.city,
+        country: userData.country,
+        licenseId: userData.licenseId,
+        birthDate: userData.birthDate
+      }));
+
+      localStorage.setItem('userPreferences', JSON.stringify(userData.preferences));
+
+      setIsEditing(false);
+      alert('¡Perfil actualizado exitosamente!');
+    } catch (error) {
+      console.error('[UserProfile] Failed to update profile', error);
+      alert('Error al actualizar el perfil. Por favor verifica los datos.');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setUserData(prev => ({
@@ -152,13 +225,11 @@ const UserProfilePage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // Recargar datos originales
     loadUserData();
     setIsEditing(false);
   };
 
   const handleChangePassword = () => {
-    // Redirigir a cambio de contraseña de Keycloak
     if (keycloak.accountManagement) {
       keycloak.accountManagement();
     }
@@ -178,8 +249,20 @@ const UserProfilePage: React.FC = () => {
     });
   };
 
+  const formatDateTime = (dateTimeString: string) => {
+    if (!dateTimeString) return 'No especificada';
+    const date = new Date(dateTimeString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const getGenderText = (gender: string) => {
-    switch(gender) {
+    switch (gender) {
       case 'Male': return 'Masculino';
       case 'Female': return 'Femenino';
       case 'Other': return 'Otro';
@@ -187,19 +270,196 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  // Determinar si el usuario es nuevo (menos de 7 días)
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'Confirmada';
+      case 'PENDING': return 'Pendiente';
+      case 'CANCELLED': return 'Cancelada';
+      case 'COMPLETED': return 'Completada';
+      case 'IN_PROGRESS': return 'En Progreso';
+      default: return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'bg-green-100 text-green-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
+      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const isNewUser = () => {
     return !hasCompletedExtraInfo;
   };
 
+  const renderBookingStatus = (status: string) => {
+    switch(status) {
+      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12}/> Confirmada</span>;
+      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12}/> Pendiente</span>;
+      case 'CANCELLED': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12}/> Cancelada</span>;
+      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12}/> Completada</span>;
+      default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{status}</span>;
+    }
+  };
+
+  const activeBookings = bookings.filter(b => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(b.status));
+  const pastBookings = bookings.filter(b => ['CHECKED_OUT', 'CANCELLED', 'COMPLETED'].includes(b.status));
+
   return (
     <div className="user-profile-container">
+      {/* Modales */}
+      {showBookingsModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <Bed size={24} />
+                Mis Reservas
+              </h2>
+              <button className="modal-close" onClick={handleCloseBookingsModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-content">
+              {isLoadingBookings ? (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando reservas...</p>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="empty-state">
+                  <Bed size={48} className="empty-icon" />
+                  <h3>No has realizado ninguna reserva</h3>
+                  <p>Cuando hagas una reserva en nuestro hotel, aparecerá aquí.</p>
+                  <button className="btn btn-primary" onClick={() => navigate('/')}>
+                    Explorar Habitaciones
+                  </button>
+                </div>
+              ) : (
+                <div className="bookings-list">
+                  {bookings.map(booking => (
+                    <div key={booking.id} className="booking-card">
+                      <div className="booking-header">
+                        <h3>{booking.roomType}</h3>
+                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
+                          {getStatusText(booking.status)}
+                        </span>
+                      </div>
+                      <div className="booking-details">
+                        <div className="detail">
+                          <span className="detail-label">Check-in:</span>
+                          <span className="detail-value">{formatDate(booking.checkIn)}</span>
+                        </div>
+                        <div className="detail">
+                          <span className="detail-label">Check-out:</span>
+                          <span className="detail-value">{formatDate(booking.checkOut)}</span>
+                        </div>
+                        <div className="detail">
+                          <span className="detail-label">Huéspedes:</span>
+                          <span className="detail-value">{booking.guests}</span>
+                        </div>
+                        {booking.roomNumber && (
+                          <div className="detail">
+                            <span className="detail-label">Habitación:</span>
+                            <span className="detail-value">{booking.roomNumber}</span>
+                          </div>
+                        )}
+                        <div className="detail">
+                          <span className="detail-label">Total:</span>
+                          <span className="detail-value font-bold">${booking.totalPrice}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseBookingsModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showServicesModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <Coffee size={24} />
+                Mis Servicios Solicitados
+              </h2>
+              <button className="modal-close" onClick={handleCloseServicesModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-content">
+              {isLoadingServices ? (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando servicios...</p>
+                </div>
+              ) : serviceRequests.length === 0 ? (
+                <div className="empty-state">
+                  <Coffee size={48} className="empty-icon" />
+                  <h3>No has solicitado ningún servicio</h3>
+                  <p>Cuando solicites un servicio durante tu estancia, aparecerá aquí.</p>
+                </div>
+              ) : (
+                <div className="services-list">
+                  {serviceRequests.map(service => (
+                    <div key={service.id} className="service-card">
+                      <div className="service-header">
+                        <h3>{service.serviceType}</h3>
+                        <span className={`status-badge ${getStatusColor(service.status)}`}>
+                          {getStatusText(service.status)}
+                        </span>
+                      </div>
+                      <div className="service-details">
+                        <div className="detail">
+                          <span className="detail-label">Solicitado:</span>
+                          <span className="detail-value">{formatDateTime(service.requestedDate)}</span>
+                        </div>
+                        {service.notes && (
+                          <div className="detail">
+                            <span className="detail-label">Notas:</span>
+                            <span className="detail-value">{service.notes}</span>
+                          </div>
+                        )}
+                        {service.price && (
+                          <div className="detail">
+                            <span className="detail-label">Precio:</span>
+                            <span className="detail-value">${service.price}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseServicesModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contenido principal */}
       <div className="profile-header">
         <button className="back-button" onClick={() => navigate('/')}>
           <ArrowLeft size={24} />
           Volver al inicio
         </button>
-        
+
         <div className="header-content">
           <div className="profile-avatar">
             <div className="avatar-circle">
@@ -214,46 +474,65 @@ const UserProfilePage: React.FC = () => {
               {!hasCompletedExtraInfo && (
                 <div className="incomplete-info-alert">
                   <AlertCircle size={16} />
-                  <span>Información incompleta. Completa tus datos para una mejor experiencia.</span>
+                  <span><strong>¡Atención!</strong> Debes completar tu información de perfil. Los campos marcados son obligatorios.</span>
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="header-actions">
-            {!isEditing ? (
-              <>
-                <button className="btn btn-edit" onClick={handleEditToggle}>
-                  <Edit size={18} />
-                  Editar Perfil
-                </button>
-                {!hasCompletedExtraInfo && (
-                  <button 
-                    className="btn btn-warning" 
-                    onClick={handleCompleteInfo}
-                  >
-                    <AlertCircle size={18} />
-                    Completar Información
+            {activeTab === 'profile' && (
+              !isEditing ? (
+                <>
+                  <button className="btn btn-edit" onClick={handleEditToggle}>
+                    <Edit size={18} />
+                    Editar Perfil
                   </button>
-                )}
-              </>
-            ) : (
-              <div className="edit-actions">
-                <button className="btn btn-save" onClick={handleSave}>
-                  <Save size={18} />
-                  Guardar
-                </button>
-                <button className="btn btn-cancel" onClick={handleCancel}>
-                  <X size={18} />
-                  Cancelar
-                </button>
-              </div>
+                  {!hasCompletedExtraInfo && (
+                    <button
+                      className="btn btn-warning"
+                      onClick={handleCompleteInfo}
+                    >
+                      <AlertCircle size={18} />
+                      Completar Información
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="edit-actions">
+                  <button className="btn btn-save" onClick={handleSave}>
+                    <Save size={18} />
+                    Guardar
+                  </button>
+                  <button className="btn btn-cancel" onClick={handleCancel}>
+                    <X size={18} />
+                    Cancelar
+                  </button>
+                </div>
+              )
             )}
           </div>
+        </div>
+        
+        {/* Navigation Tabs */}
+        <div className="profile-tabs">
+          <button 
+            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveTab('profile')}
+          >
+            Mi Perfil
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bookings')}
+          >
+            Mis Reservas
+          </button>
         </div>
       </div>
 
       <div className="profile-content">
+        {activeTab === 'profile' && (
         <div className="content-grid">
           {/* Columna izquierda - Información personal */}
           <div className="personal-info">
@@ -262,51 +541,60 @@ const UserProfilePage: React.FC = () => {
                 <User size={20} />
                 <h2>Información Personal</h2>
                 {!hasCompletedExtraInfo && (
-                  <span className="section-warning">⚠️ Incompleta</span>
+                  <span className="section-warning">
+                    ⚠️ Obligatorio completar
+                  </span>
                 )}
               </div>
-              
+
               <div className="info-grid">
                 <div className="info-item">
                   <label><User size={16} /> Nombre</label>
                   {isEditing ? (
                     <input
                       type="text"
-                      name="firstName"
                       value={userData.firstName}
-                      onChange={handleInputChange}
+                      disabled
                       className="edit-input"
-                      placeholder="Nombre"
                     />
                   ) : (
                     <p>{userData.firstName || 'No especificado'}</p>
                   )}
                 </div>
-                
+
                 <div className="info-item">
                   <label><User size={16} /> Apellido</label>
                   {isEditing ? (
                     <input
                       type="text"
-                      name="lastName"
                       value={userData.lastName}
-                      onChange={handleInputChange}
+                      disabled
                       className="edit-input"
-                      placeholder="Apellido"
                     />
                   ) : (
                     <p>{userData.lastName || 'No especificado'}</p>
                   )}
                 </div>
-                
+
                 <div className="info-item">
                   <label><Mail size={16} /> Email</label>
-                  <p className="email-display">{userData.email || 'No especificado'}</p>
-                  <small className="email-note">Email verificado con Keycloak</small>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={userData.email}
+                      disabled
+                      className="edit-input"
+                    />
+                  ) : (
+                    <>
+                      <p>{userData.email || 'No especificado'}</p>
+                      <small className="email-note"><Shield size={12} /> Verificado</small>
+                    </>
+                  )}
                 </div>
-                
+
                 <div className="info-item">
-                  <label><Phone size={16} /> Teléfono</label>
+                  <label><Phone size={16} /> Teléfono <span className="required">*</span></label>
                   {isEditing ? (
                     <input
                       type="tel"
@@ -315,27 +603,29 @@ const UserProfilePage: React.FC = () => {
                       onChange={handleInputChange}
                       className="edit-input"
                       placeholder="+505 1234 5678"
+                      required
                     />
                   ) : (
-                    <p>{userData.phone || 'No especificado'}</p>
+                    <p className={!userData.phone ? 'required-field' : ''}>
+                      {userData.phone || 'Requerido - No especificado'}
+                    </p>
                   )}
                 </div>
-                
+
                 <div className="info-item">
                   <label><Calendar size={16} /> Fecha de Nacimiento</label>
                   {isEditing ? (
                     <input
                       type="date"
-                      name="birthDate"
                       value={userData.birthDate}
-                      onChange={handleInputChange}
+                      disabled
                       className="edit-input"
                     />
                   ) : (
                     <p>{formatDate(userData.birthDate)}</p>
                   )}
                 </div>
-                
+
                 {hasCompletedExtraInfo && (
                   <>
                     <div className="info-item">
@@ -356,25 +646,23 @@ const UserProfilePage: React.FC = () => {
                         <p>{getGenderText(userData.gender)}</p>
                       )}
                     </div>
-                    
+
                     <div className="info-item">
                       <label><IdCard size={16} /> DNI/Pasaporte</label>
                       {isEditing ? (
                         <input
                           type="text"
-                          name="licenseId"
                           value={userData.licenseId}
-                          onChange={handleInputChange}
+                          disabled
                           className="edit-input"
-                          placeholder="Número de documento"
                         />
                       ) : (
                         <p>{userData.licenseId || 'No especificado'}</p>
                       )}
                     </div>
-                    
+
                     <div className="info-item full-width">
-                      <label><Home size={16} /> Dirección</label>
+                      <label><Home size={16} /> Dirección <span className="required">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
@@ -383,14 +671,17 @@ const UserProfilePage: React.FC = () => {
                           onChange={handleInputChange}
                           className="edit-input"
                           placeholder="Dirección completa"
+                          required
                         />
                       ) : (
-                        <p>{userData.address || 'No especificada'}</p>
+                        <p className={!userData.address ? 'required-field' : ''}>
+                          {userData.address || 'Requerido - No especificada'}
+                        </p>
                       )}
                     </div>
-                    
+
                     <div className="info-item">
-                      <label><Globe size={16} /> Ciudad</label>
+                      <label><Globe size={16} /> Ciudad <span className="required">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
@@ -399,14 +690,17 @@ const UserProfilePage: React.FC = () => {
                           onChange={handleInputChange}
                           className="edit-input"
                           placeholder="Ciudad"
+                          required
                         />
                       ) : (
-                        <p>{userData.city || 'No especificada'}</p>
+                        <p className={!userData.city ? 'required-field' : ''}>
+                          {userData.city || 'Requerido - No especificada'}
+                        </p>
                       )}
                     </div>
-                    
-                    <div className="info-item">
-                      <label><Globe size={16} /> País</label>
+
+                     <div className="info-item">
+                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
@@ -415,9 +709,12 @@ const UserProfilePage: React.FC = () => {
                           onChange={handleInputChange}
                           className="edit-input"
                           placeholder="País"
+                          required
                         />
                       ) : (
-                        <p>{userData.country || 'No especificado'}</p>
+                        <p className={!userData.country ? 'required-field' : ''}>
+                          {userData.country || 'Requerido - No especificado'}
+                        </p>
                       )}
                     </div>
                   </>
@@ -431,7 +728,7 @@ const UserProfilePage: React.FC = () => {
                 <Shield size={20} />
                 <h2>Seguridad</h2>
               </div>
-              
+
               <div className="security-actions">
                 <button className="security-btn" onClick={handleChangePassword}>
                   <Key size={18} />
@@ -440,7 +737,7 @@ const UserProfilePage: React.FC = () => {
                     <p>Actualiza tu contraseña regularmente</p>
                   </div>
                 </button>
-                
+
                 <button className="security-btn">
                   <Lock size={18} />
                   <div>
@@ -452,7 +749,7 @@ const UserProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Columna derecha - Preferencias */}
+          {/* Columna derecha */}
           <div className="right-column">
             {/* Preferencias */}
             <div className="section-card">
@@ -460,7 +757,7 @@ const UserProfilePage: React.FC = () => {
                 <Star size={20} />
                 <h2>Preferencias</h2>
               </div>
-              
+
               <div className="preferences-grid">
                 <div className="preference-item">
                   <div className="preference-info">
@@ -481,7 +778,7 @@ const UserProfilePage: React.FC = () => {
                     <span className="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div className="preference-item">
                   <div className="preference-info">
                     <Mail size={18} />
@@ -501,7 +798,7 @@ const UserProfilePage: React.FC = () => {
                     <span className="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div className="preference-item">
                   <div className="preference-info">
                     <Package size={18} />
@@ -523,12 +820,12 @@ const UserProfilePage: React.FC = () => {
                     </select>
                   ) : (
                     <span className="preference-value">
-                      {userData.preferences.language === 'es' ? 'Español' : 
-                       userData.preferences.language === 'en' ? 'English' : 'Français'}
+                      {userData.preferences.language === 'es' ? 'Español' :
+                        userData.preferences.language === 'en' ? 'English' : 'Français'}
                     </span>
                   )}
                 </div>
-                
+
                 <div className="preference-item">
                   <div className="preference-info">
                     <CreditCard size={18} />
@@ -563,7 +860,7 @@ const UserProfilePage: React.FC = () => {
                 <Shield size={20} />
                 <h2>Información del Sistema</h2>
               </div>
-              
+
               <div className="system-info">
                 <div className="system-item">
                   <span className="system-label">Estado de la cuenta:</span>
@@ -571,21 +868,21 @@ const UserProfilePage: React.FC = () => {
                     {hasCompletedExtraInfo ? 'Completa' : 'Incompleta'}
                   </span>
                 </div>
-                
+
                 <div className="system-item">
                   <span className="system-label">Autenticación:</span>
                   <span className="system-value active">Keycloak</span>
                 </div>
-                
+
                 <div className="system-item">
                   <span className="system-label">Última actualización:</span>
                   <span className="system-value">
                     {new Date().toLocaleDateString('es-ES')}
                   </span>
                 </div>
-                
+
                 {!hasCompletedExtraInfo && (
-                  <button 
+                  <button
                     className="btn-complete-info"
                     onClick={handleCompleteInfo}
                   >
@@ -597,7 +894,116 @@ const UserProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {activeTab === 'bookings' && (
+          <div className="bookings-container">
+            {loadingBookings ? (
+              <div className="flex justify-center py-20">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+              </div>
+            ) : bookings.length === 0 ? (
+              <div className="empty-bookings">
+                <Calendar className="mx-auto h-20 w-20 text-gray-300 mb-6" />
+                <h3>No tienes reservas activas</h3>
+                <p>Parece que aún no has reservado tu estadía perfecta con nosotros.</p>
+                <button onClick={() => navigate('/')} className="btn btn-warning" style={{margin: '0 auto', display: 'inline-flex'}}>
+                   Explorar Habitaciones
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {activeBookings.length > 0 && (
+                  <section>
+                    <div className="bookings-section-title">
+                       <Clock className="text-[#d4af37]" /> Reservas Activas
+                    </div>
+                    <div className="bookings-grid">
+                      {activeBookings.map(booking => (
+                        <div key={booking.id} className="booking-card">
+                          <div className="booking-header">
+                             <div className="booking-title">
+                               <h4>{booking.roomTypeName}</h4>
+                               <span className="booking-id">Reserva #{booking.id}</span>
+                             </div>
+                             {renderBookingStatus(booking.status)}
+                          </div>
+                                                    <div className="space-y-3 mb-6">
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <Calendar size={18} className="text-[#d4af37]" />
+                                <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <CreditCard size={18} className="text-[#d4af37]" />
+                                <span className="font-bold">${booking.totalPrice}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <User size={18} className="text-[#d4af37]" />
+                                <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
+                              </div>
+                            </div>
+                          
+                          <div className="space-y-2">
+                             <button
+                                onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })}
+                                className="w-full py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 rounded-lg hover:bg-[#d4af37]/20 transition-colors text-sm font-bold flex items-center justify-center gap-2"
+                              >
+                                <ConciergeBell size={16} />
+                                Solicitar Servicio
+                              </button>
+                              <button className="w-full py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
+                                Ver Detalles
+                              </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {pastBookings.length > 0 && (
+                  <section>
+                    <div className="bookings-section-title">
+                       <CheckCircle className="text-gray-400" /> Historial
+                    </div>
+                    <div className="bookings-grid">
+                      {pastBookings.map(booking => (
+                        <div key={booking.id} className="booking-card past">
+                            <div className="booking-header">
+                               <div className="booking-title">
+                                 <h4>{booking.roomTypeName}</h4>
+                                 <span className="booking-id">#{booking.id}</span>
+                               </div>
+                               {renderBookingStatus(booking.status)}
+                            </div>
+                             <div className="booking-detail-row">
+                                <Calendar size={16} />
+                                <span className="text-sm">{formatDate(booking.checkInDate)}</span>
+                              </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
+
+      {selectedBookingForService && (
+        <ServiceRequestModal
+          bookingId={selectedBookingForService.id}
+          roomTypeName={selectedBookingForService.roomTypeName}
+          onClose={() => setSelectedBookingForService(null)}
+          onSuccess={() => {
+            // Optional: Show success message or toast
+            // Maybe refresh bookings or fetch service requests history
+             alert('Solicitud enviada con éxito');
+          }}
+        />
+      )}
     </div>
   );
 };

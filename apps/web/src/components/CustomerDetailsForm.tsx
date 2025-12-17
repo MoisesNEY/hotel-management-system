@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/customer-details.css';
 import { useNavigate } from 'react-router-dom';
-import { apiPost } from '../services/api';
+import { createProfile } from '../services/client/customerDetailsService';
+import { type CustomerDetailsCreateRequest } from '../types/clientTypes';
 
 interface CustomerDetails {
   gender: 'MALE' | 'FEMALE' | 'OTHER';
@@ -113,7 +114,7 @@ const CustomerDetailsForm: React.FC = () => {
         return;
       }
 
-      const customerDetailsPayload = {
+      const customerDetailsPayload: CustomerDetailsCreateRequest = {
         gender: formData.gender,
         phone: formData.phone,
         addressLine1: formData.addressLine1,
@@ -123,7 +124,7 @@ const CustomerDetailsForm: React.FC = () => {
         birthDate: formData.birthDate
       };
 
-      await apiPost('/api/client/customer-details', customerDetailsPayload);
+      await createProfile(customerDetailsPayload);
 
       localStorage.setItem('userData', JSON.stringify(customerDetailsPayload));
       localStorage.setItem('hasCompletedExtraInfo', 'true');
@@ -168,6 +169,7 @@ const CustomerDetailsForm: React.FC = () => {
 
   const handleSkipConfirm = () => {
     setShowSkipModal(false);
+    sessionStorage.setItem('skip_customer_details', 'true');
     navigate('/');
   };
 

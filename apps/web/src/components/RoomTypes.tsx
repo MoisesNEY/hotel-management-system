@@ -1,20 +1,14 @@
 // apps/web/src/components/RoomTypes.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import '../styles/room-pricing-minimal.css';
-import { apiPost } from '../services/api';
+import { createBooking } from '../services/client/bookingService';
 
-// Definición de tipos según las entidades
-interface RoomType {
-  id: number; 
-  name: string;
-  description: string;
-  basePrice: number;
-  maxCapacity: number;
-  imageUrl: string;
-  area: string;
-  beds: number;
-}
+import { getAllRoomTypes } from '../services/admin/roomTypeService';
+import type { RoomTypeDTO } from '../types/sharedTypes';
+
+// Usaremos RoomTypeDTO directamente, pero mantenemos el alias por compatibilidad interna si es necesario
+type RoomType = RoomTypeDTO;
 
 export const BookingStatus = {
   PENDING: 'PENDING',
@@ -27,38 +21,30 @@ export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 
 
 const RoomTypes: React.FC = () => {
-  const rooms: RoomType[] = [
-    {
-       id: 1,
-      name: 'Habitación Estándar',
-      description: 'Perfecta para viajeros individuales o parejas. Incluye todas las comodidades básicas para una estancia confortable.',
-      basePrice: 120,
-      maxCapacity: 2,
-      imageUrl: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600',
-      area: '25',
-      beds: 1
-    },
-    {
-      id: 2,
-      name: 'Suite Ejecutiva',
-      description: 'Espacio amplio con área de trabajo separada. Ideal para viajes de negocios o estancias prolongadas.',
-      basePrice: 220,
-      maxCapacity: 3,
-      imageUrl: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600',
-      area: '45',
-      beds: 2
-    },
-    {
-      id: 3, 
-      name: 'Suite Presidencial',
-      description: 'La máxima experiencia de lujo y confort. Incluye servicios exclusivos y amenities premium.',
-      basePrice: 450,
-      maxCapacity: 4,
-      imageUrl: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600',
-      area: '80',
-      beds: 2
-    }
-  ];
+  // Estado para los datos de la API
+  const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Cargar datos al montar
+  useEffect(() => {
+    const fetchRoomTypes = async () => {
+      try {
+        setLoading(true);
+        // Traemos más resultados para mostrar todos (size: 100)
+        const response = await getAllRoomTypes(0, 100);
+        console.log('[RoomTypes] Loaded:', response);
+        setRoomTypes(response.data);
+      } catch (err) {
+        console.error('[RoomTypes] Error fetching room types:', err);
+        setError('No se pudieron cargar los tipos de habitación.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoomTypes();
+  }, []);
 
   // Estado para el modal
   const [showModal, setShowModal] = useState(false);
@@ -76,7 +62,26 @@ const RoomTypes: React.FC = () => {
   });
 
   // Abrir modal de reserva
-  const handleReservation = (room: RoomType) => {
+
+
+  // Importar hook de auth para validación
+  // NOTA: Para este componente funcional, necesitamos mover el hook al inicio
+  // Pero como ya existe el componente, lo usaremos a través de una verificación simple o props si fuera necesario.
+  // Mejor opción: Importar keycloak directamente para check rápido si no queremos cambiar todo el componente a usar useAuth
+  // o refactorizar para usar useAuth al principio.
+  
+  // Asumiendo que podemos usar keycloak service directamente
+  const handleReservation = async (room: RoomType) => {
+    // Verificar auth dinámicamente
+    const { default: keycloak } = await import('../services/keycloak');
+    
+    if (!keycloak.authenticated) {
+        // Redirigir a login o mostrar mensaje
+        alert('Debes iniciar sesión para realizar una reserva.');
+        keycloak.login();
+        return;
+    }
+
     console.log('Abriendo modal para:', room.name);
     setSelectedRoom(room);
     setShowModal(true);
@@ -205,25 +210,16 @@ const RoomTypes: React.FC = () => {
     const finalTotalPrice = selectedRoom ? 
       calculateTotalPrice(selectedRoom.basePrice, formData.guestCount, nights) : 0;
 
-    const bookingPayload = {
-      roomTypeId: selectedRoom!.id, 
-      checkInDate: new Date(formData.checkInDate).toISOString(),
-      checkOutDate: new Date(formData.checkOutDate).toISOString(),
-      guestCount: formData.guestCount,
-      status: formData.status,
-      totalPrice: finalTotalPrice,
-      notes: formData.notes || undefined,
-      roomName: selectedRoom?.name,
-      roomDescription: selectedRoom?.description,
-      roomBasePrice: selectedRoom?.basePrice,
-      roomMaxCapacity: selectedRoom?.maxCapacity,
-      roomArea: selectedRoom?.area,
-      roomBeds: selectedRoom?.beds
-    };
-
     try {
       setIsSubmitting(true);
-      await apiPost('/api/client/bookings', bookingPayload);
+      
+      await createBooking({
+        roomTypeId: selectedRoom!.id,
+        checkInDate: formData.checkInDate, // Ya es YYYY-MM-DD del input type="date"
+        checkOutDate: formData.checkOutDate, // Ya es YYYY-MM-DD del input type="date"
+        guestCount: formData.guestCount,
+        notes: formData.notes
+      });
 
       alert(`¡Reserva enviada con éxito!
     
@@ -233,7 +229,7 @@ Detalles:
 - Huéspedes: ${formData.guestCount}
 - Noches: ${nights}
 - Total: $${finalTotalPrice}
-- Estado: ${formData.status}
+- Total: $${finalTotalPrice}
 
 Te contactaremos para confirmar.`);
       closeModal();
@@ -250,79 +246,99 @@ Te contactaremos para confirmar.`);
       <section className="section rooms" id="habitaciones">
         <div className="container">
           <h2 className="section-title">Tipos de Habitación</h2>
-          <div className="rooms-grid">
-            {rooms.map((room, index) => (
-              <div key={index} className="room-card">
-                <div className="room-image">
-                  <img src={room.imageUrl} alt={room.name} />
-                  <div className="room-badge">Disponible</div>
-                </div>
-                <div className="room-content">
-                  <h3 className="room-name">{room.name}</h3>
-                  <p className="room-description">{room.description}</p>
-                  
-                  <div className="room-details">
-                    <div className="detail">
-                      <Maximize size={18} />
-                      <span>{room.area} m²</span>
+          
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+            </div>
+          ) : error ? (
+             <div className="text-center py-10 text-red-500 bg-red-50 rounded-xl p-4">
+               {error}
+             </div>
+          ) : roomTypes.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-xl">
+               <Bed className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+               <h3 className="text-xl text-gray-600 font-medium">No hay tipos de habitación disponibles</h3>
+               <p className="text-gray-500 mt-2">Por favor, vuelve a consultar más tarde.</p>
+            </div>
+          ) : (
+            <div className="rooms-grid">
+              {roomTypes.map((room) => (
+                <div key={room.id} className="room-card">
+                  <div className="room-image">
+                    <img 
+                      src={room.imageUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600'} 
+                      alt={room.name} 
+                    />
+                    <div className="room-badge">Disponible</div>
+                  </div>
+                  <div className="room-content">
+                    <h3 className="room-name">{room.name}</h3>
+                    <p className="room-description">{room.description || 'Sin descripción disponible.'}</p>
+                    
+                    <div className="room-details">
+                      <div className="detail">
+                        <Maximize size={18} />
+                        <span>{room.area || 0} m²</span>
+                      </div>
+                      <div className="detail">
+                        <Users size={18} />
+                        <span>{room.maxCapacity} personas</span>
+                      </div>
+                      <div className="detail">
+                        <Bed size={18} />
+                        <span>{room.beds || 1} {(!room.beds || room.beds === 1) ? 'cama' : 'camas'}</span>
+                      </div>
                     </div>
-                    <div className="detail">
-                      <Users size={18} />
-                      <span>{room.maxCapacity} personas</span>
-                    </div>
-                    <div className="detail">
-                      <Bed size={18} />
-                      <span>{room.beds} {room.beds === 1 ? 'cama' : 'camas'}</span>
+                    
+                    <div className="room-pricing-section">
+                      <div className="pricing-container">
+                        <div className="price-display">
+                          <div className="price-main">
+                            <span className="price-currency">$</span>
+                            <span className="price-amount">{room.basePrice}</span>
+                            <span className="price-period">/noche</span>
+                          </div>
+                          <div className="price-note">Impuestos incluidos</div>
+                        </div>
+                        
+                        <button 
+                          className="book-btn"
+                          onClick={() => handleReservation(room)}
+                          type="button"
+                        >
+                          RESERVAR AHORA
+                        </button>
+                        
+                        <div className="price-features">
+                          <div className="price-feature">
+                            <div className="feature-icon">
+                              <Check size={16} />
+                            </div>
+                            <div className="feature-text">
+                              Cancelación gratuita
+                            </div>
+                          </div>
+                          <div className="price-feature">
+                            <div className="feature-icon">
+                              <Check size={16} />
+                            </div>
+                            <div className="feature-text">
+                              Desayuno incluido
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="quality-badge">
+                          Calidad Garantizada
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="room-pricing-section">
-                    <div className="pricing-container">
-                      <div className="price-display">
-                        <div className="price-main">
-                          <span className="price-currency">$</span>
-                          <span className="price-amount">{room.basePrice}</span>
-                          <span className="price-period">/noche</span>
-                        </div>
-                        <div className="price-note">Impuestos incluidos</div>
-                      </div>
-                      
-                      <button 
-                        className="book-btn"
-                        onClick={() => handleReservation(room)}
-                        type="button"
-                      >
-                        RESERVAR AHORA
-                      </button>
-                      
-                      <div className="price-features">
-                        <div className="price-feature">
-                          <div className="feature-icon">
-                            <Check size={16} />
-                          </div>
-                          <div className="feature-text">
-                            Cancelación gratuita
-                          </div>
-                        </div>
-                        <div className="price-feature">
-                          <div className="feature-icon">
-                            <Check size={16} />
-                          </div>
-                          <div className="feature-text">
-                            Desayuno incluido
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="quality-badge">
-                        Calidad Garantizada
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -440,22 +456,6 @@ Te contactaremos para confirmar.`);
                       </select>
                       <small className="form-hint">Máximo: {selectedRoom.maxCapacity} personas</small>
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="status">Estado de reserva *</label>
-                      <select
-                        id="status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value={BookingStatus.PENDING}>Pendiente</option>
-                        <option value={BookingStatus.CONFIRMED}>Confirmada</option>
-                        <option value={BookingStatus.CANCELLED}>Cancelada</option>
-                        <option value={BookingStatus.COMPLETED}>Completada</option>
-                      </select>
-                      <small className="form-hint">Selecciona el estado inicial</small>
-                    </div>
                   </div>
                 </div>
                 
@@ -491,7 +491,7 @@ Te contactaremos para confirmar.`);
                     </div>
                     {formData.guestCount > 1 && (
                       <div className="payment-row">
-                        <span>Recargo por huéspedes extra ({formData.guestCount - 1} × $30/noche):</span>
+                      <span>Recargo por huéspedes extra ({formData.guestCount - 1} × $30/noche):</span>
                         <span>${Math.max(0, formData.guestCount - 1) * 30 * calculateNights()}</span>
                       </div>
                     )}

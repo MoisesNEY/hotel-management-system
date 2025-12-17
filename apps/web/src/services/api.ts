@@ -1,47 +1,74 @@
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import keycloak from './keycloak';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
-const buildHeaders = async (): Promise<Record<string, string>> => {
-  const headers: Record<string, string> = {
+// Create Axios instance
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
     'Content-Type': 'application/json'
+  }
+});
+
+// Request interceptor for API calls
+apiClient.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    if (keycloak.authenticated) {
+      try {
+        await keycloak.updateToken(30);
+      } catch (error) {
+        console.warn('Failed to refresh Keycloak token', error);
+      }
+
+      if (keycloak.token) {
+        config.headers.Authorization = `Bearer ${keycloak.token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor (optional, for global error handling or data extraction)
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  async (error) => {
+    // Add logic here if you want to handle 401s specifically or other errors globally
+    // For now we just reject
+    return Promise.reject(error);
+  }
+);
+
+export interface PaginationInfo {
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+/**
+ * Extracts pagination information from Axios response headers
+ */
+export const extractPaginationInfo = (response: AxiosResponse): PaginationInfo | null => {
+  const totalElements = response.headers['x-total-count'];
+  const totalPages = response.headers['x-total-pages'];
+  const currentPage = response.headers['x-current-page'];
+  const pageSize = response.headers['x-page-size'];
+
+  if (!totalElements) return null;
+
+  return {
+    totalElements: parseInt(String(totalElements), 10),
+    totalPages: totalPages ? parseInt(String(totalPages), 10) : 0,
+    currentPage: currentPage ? parseInt(String(currentPage), 10) : 0,
+    pageSize: pageSize ? parseInt(String(pageSize), 10) : 20
   };
-
-  if (keycloak.authenticated) {
-    try {
-      await keycloak.updateToken(30);
-    } catch (err) {
-      console.warn('No se pudo refrescar el token de Keycloak', err);
-    }
-
-    if (keycloak.token) {
-      headers.Authorization = `Bearer ${keycloak.token}`;
-    }
-  }
-
-  return headers;
 };
 
-export const apiPost = async <TResponse = unknown>(
-  path: string,
-  body: unknown
-): Promise<TResponse> => {
-  const headers = await buildHeaders();
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body)
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `Error ${response.status} al llamar ${path}`);
-  }
-
-  const text = await response.text();
-  return text ? (JSON.parse(text) as TResponse) : (undefined as TResponse);
-};
-
-export { API_BASE_URL };
-
+export { apiClient };
+export default apiClient;
