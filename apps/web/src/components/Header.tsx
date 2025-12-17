@@ -1,4 +1,3 @@
-// apps/web/src/components/Header.tsx
 import React, { useState, useEffect } from 'react';
 import { Hotel, Menu, X, LogOut, User, AlertCircle } from 'lucide-react';
 import '../styles/header.css';
@@ -23,19 +22,26 @@ const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      const sections = ['home', 'habitaciones', 'servicios', 'caracteristicas', 'testimonios', 'contacto'];
-      const currentSection = sections.find(section => {
-        const element = document.getElementById(section);
+      // Actualizar el orden de las secciones según el nuevo orden del menú
+      const sections = ['home', 'caracteristicas', 'habitaciones', 'servicios', 'galeria', 'contacto'];
+
+      let closestSection = sections[0];
+      let minDistance = Infinity;
+
+      sections.forEach(sectionId => {
+        const element = document.getElementById(sectionId);
         if (element) {
           const rect = element.getBoundingClientRect();
-          return rect.top <= 100 && rect.bottom >= 100;
+          // Distancia desde top + offset de navbar
+          const distance = Math.abs(rect.top - 80);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestSection = sectionId;
+          }
         }
-        return false;
       });
 
-      if (currentSection) {
-        setActiveLink(currentSection);
-      }
+      setActiveLink(closestSection);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -111,10 +117,10 @@ const Header: React.FC = () => {
   };
 
   // Extraer datos de perfil de forma segura
- const username =
-  `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || 
-  userProfile?.username || 
-  'Usuario';
+  const username =
+    `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() ||
+    userProfile?.username ||
+    'Usuario';
 
   const email = userProfile?.email || '';
   const getInitials = (name?: string) => {
@@ -128,8 +134,6 @@ const Header: React.FC = () => {
       .slice(0, 2)
       .toUpperCase();
   };
-
-
 
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
@@ -148,10 +152,12 @@ const Header: React.FC = () => {
             </button>
 
             <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+              {/* MENÚ DE NAVEGACIÓN ORGANIZADO SEGÚN LO SOLICITADO */}
               <a href="#home" className={`nav-link ${activeLink === 'home' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('home'); }}>Inicio</a>
+              <a href="#caracteristicas" className={`nav-link ${activeLink === 'caracteristicas' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}>Características</a>
               <a href="#habitaciones" className={`nav-link ${activeLink === 'habitaciones' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('habitaciones'); }}>Habitaciones</a>
               <a href="#servicios" className={`nav-link ${activeLink === 'servicios' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('servicios'); }}>Servicios</a>
-              <a href="#caracteristicas" className={`nav-link ${activeLink === 'caracteristicas' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}>Características</a>
+              <a href="#galeria" className={`nav-link ${activeLink === 'galeria' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('galeria'); }}>Galeria</a>
               <a href="#contacto" className={`nav-link ${activeLink === 'contacto' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); handleLinkClick('contacto'); }}>Contacto</a>
 
               <div className="nav-buttons">
@@ -184,8 +190,6 @@ const Header: React.FC = () => {
                         </div>
                       )}
                     </button>
-
-
 
                     {showUserMenu && (
                       <div className="user-dropdown-menu">

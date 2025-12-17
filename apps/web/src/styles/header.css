@@ -266,9 +266,6 @@
     letter-spacing: 1px;
 }
 
-
-/* Agrega estos estilos al final de tu archivo header.css */
-
 .user-menu-container {
     position: relative;
 }
@@ -436,9 +433,6 @@
 }
 
 
-/* apps/web/src/styles/header.css - Agregar estos estilos */
-
-
 /* Badge animado en el avatar */
 
 .info-required-badge {
@@ -573,16 +567,13 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    /* 🔑 reduce el alto */
     line-height: 1;
 }
 
 .user-avatar {
     width: 40px;
-    /* 🔽 más pequeño */
     height: 40px;
     min-width: 40px;
-    /* 🔒 evita estiramiento */
     min-height: 40px;
     max-width: 40px;
     max-height: 40px;

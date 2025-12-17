@@ -23,17 +23,19 @@ const LandingPage: React.FC = () => {
     }
   }, [isInitialized, isAuthenticated, hasProfile, navigate]);
 
-  return (
-    <div className="landing-page">
-      <Header />
-      <Hero />
-      <Features />
-      <RoomTypes />
-      <Services />
+ return (
+  <div className="landing-page">
+    <Header />
+    <Hero />
+    <Features />
+    <RoomTypes />
+    <Services />  
+    <section id="galeria">
       <Testimonials />
-      <Footer />
-    </div>
-  );
-};
+    </section>
+    <Footer />
+  </div>
+);
+}
 
 export default LandingPage;
