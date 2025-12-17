@@ -579,588 +579,194 @@ input:disabled+.toggle-slider {
     }
 }
 
+/* Pestañas de Navegación */
 
-/* Botón de cancelar - ESTILOS ESPECÍFICOS */
-
-.edit-actions .btn-cancel {
-    background-color: #dc2626 !important;
-    /* rojo intenso */
-    color: white !important;
-    border: none !important;
-    padding: 12px 24px !important;
-    border-radius: 12px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    min-width: 120px !important;
-    justify-content: center !important;
-}
-
-.edit-actions .btn-cancel:hover {
-    background-color: #b91c1c !important;
-    /* rojo más oscuro al pasar el mouse */
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.3) !important;
-}
-
-
-/* Asegurar que no haya conflictos con otros botones */
-
-.edit-actions {
+.profile-tabs {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    gap: 30px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 30px;
+    padding-top: 0;
 }
 
-.btn {
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: none;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.btn-save {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    min-width: 120px;
-    justify-content: center;
-}
-
-.btn-save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-
-/* Mejorar la apariencia en modo responsive */
-
-@media (max-width: 768px) {
-    .edit-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-    }
-    .edit-actions .btn-cancel,
-    .edit-actions .btn-save {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-}
-
-
-/* Estilos para los nuevos botones */
-
-.header-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.btn {
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: none;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    min-width: 140px;
-    justify-content: center;
-    white-space: nowrap;
-}
-
-.btn-edit {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-}
-
-.btn-edit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-}
-
-
-/* Botón de reservas - Color naranja/dorado */
-
-.btn-reservations {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
-.btn-reservations:hover {
-    background: linear-gradient(135deg, #d97706, #b45309);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
-}
-
-
-/* Botón de servicios - Color verde */
-
-.btn-services {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-}
-
-.btn-services:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
-.btn-warning:hover {
-    background: linear-gradient(135deg, #d97706, #b45309);
-    transform: translateY(-2px);
-}
-
-.btn-save {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    min-width: 120px;
-}
-
-.btn-save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-}
-
-.btn-cancel {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
-    color: white;
-    min-width: 120px;
-}
-
-.btn-cancel:hover {
-    background: linear-gradient(135deg, #b91c1c, #991b1b);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
-}
-
-
-/* Grupo de botones de edición */
-
-.edit-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-
-/* Modales */
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-}
-
-.modal-container {
-    background: white;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 80vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-    padding: 24px 30px;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
-
-.modal-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0;
-}
-
-.modal-close {
+.tab-btn {
+    padding: 15px 5px;
     background: none;
     border: none;
+    font-size: 15px;
+    font-weight: 500;
     color: #64748b;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
+    position: relative;
     transition: all 0.3s ease;
 }
 
-.modal-close:hover {
-    background: #f1f5f9;
+.tab-btn:hover {
     color: #1e293b;
 }
 
-.modal-content {
-    padding: 30px;
-    overflow-y: auto;
-    flex: 1;
+.tab-btn.active {
+    color: #d4af37;
+    font-weight: 700;
 }
 
-.modal-footer {
-    padding: 20px 30px;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: flex-end;
-    background: #f8fafc;
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #d4af37;
+    border-radius: 3px 3px 0 0;
 }
 
 
-/* Estados de carga y vacío */
+/* Estilos de Reservas */
 
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 0;
+.bookings-container {
+    animation: fadeIn 0.5s ease;
 }
 
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid #e2e8f0;
-    border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.empty-state {
+.empty-bookings {
     text-align: center;
-    padding: 60px 0;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    margin-top: 20px;
+    border: 1px solid #e2e8f0;
 }
 
-.empty-icon {
-    color: #cbd5e1;
-    margin-bottom: 20px;
-}
-
-.empty-state h3 {
-    font-size: 24px;
+.empty-bookings h3 {
     color: #1e293b;
-    margin-bottom: 12px;
+    font-size: 24px;
+    margin: 15px 0;
 }
 
-.empty-state p {
+.empty-bookings p {
     color: #64748b;
-    margin-bottom: 24px;
+    margin-bottom: 30px;
 }
 
+.bookings-section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-/* Listas de reservas y servicios */
+.bookings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
 
-.bookings-list,
-.services-list {
+.booking-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 5px solid #d4af37;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    justify-content: space-between;
 }
 
-.booking-card,
-.service-card {
+.booking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.booking-card.past {
     background: #f8fafc;
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s ease;
+    border-left-color: #cbd5e1;
+    opacity: 0.9;
 }
 
-.booking-card:hover,
-.service-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.booking-header,
-.service-header {
+.booking-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    align-items: flex-start;
+    margin-bottom: 20px;
 }
 
-.booking-header h3,
-.service-header h3 {
+.booking-title h4 {
     margin: 0;
     font-size: 18px;
-    color: #1e293b;
-    font-weight: 600;
-}
-
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-
-/* Colores específicos para badges */
-
-.bg-green-100 {
-    background-color: #d1fae5;
-}
-
-.text-green-800 {
-    color: #065f46;
-}
-
-.bg-blue-100 {
-    background-color: #dbeafe;
-}
-
-.text-blue-800 {
-    color: #1e40af;
-}
-
-.bg-yellow-100 {
-    background-color: #fef3c7;
-}
-
-.text-yellow-800 {
-    color: #92400e;
-}
-
-.bg-red-100 {
-    background-color: #fee2e2;
-}
-
-.text-red-800 {
-    color: #991b1b;
-}
-
-.bg-purple-100 {
-    background-color: #f3e8ff;
-}
-
-.text-purple-800 {
-    color: #6b21a8;
-}
-
-.bg-gray-100 {
-    background-color: #f3f4f6;
-}
-
-.text-gray-800 {
-    color: #1f2937;
-}
-
-.booking-details,
-.service-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-}
-
-.detail {
-    display: flex;
-    flex-direction: column;
-}
-
-.detail-label {
-    font-size: 12px;
-    color: #64748b;
-    margin-bottom: 4px;
-}
-
-.detail-value {
-    font-size: 14px;
+    font-weight: 700;
     color: #1e293b;
 }
 
-
-/* Responsive */
-
-@media (max-width: 1024px) {
-    .header-actions {
-        gap: 10px;
-    }
-    .btn {
-        padding: 10px 20px;
-        font-size: 13px;
-        min-width: 130px;
-    }
+.booking-id {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: block;
 }
 
-@media (max-width: 768px) {
-    .modal-container {
-        width: 95%;
-        max-height: 90vh;
-    }
-    .booking-details,
-    .service-details {
-        grid-template-columns: 1fr;
-    }
-    .booking-header,
-    .service-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    .header-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-    }
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-    .edit-actions {
-        flex-direction: column;
-        width: 100%;
-    }
-    .edit-actions .btn {
-        width: 100%;
-    }
+.booking-details {
+    margin-bottom: 20px;
 }
 
-@media (max-width: 480px) {
-    .modal-title {
-        font-size: 20px;
-    }
-    .modal-content {
-        padding: 20px;
-    }
-    .btn {
-        padding: 10px 16px;
-        font-size: 12px;
-    }
-}
-
-
-/* Campos requeridos */
-
-.required {
-    color: #dc2626;
-}
-
-.required-field {
-    color: #dc2626;
-    font-weight: 500;
-}
-
-.section-warning {
-    color: #dc2626;
-    background: #fee2e2;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid #fca5a5;
-}
-
-
-/* Mejoras para los botones del modal */
-
-.modal-footer .btn-secondary {
-    background: #64748b;
-    color: white;
-    padding: 10px 24px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.modal-footer .btn-secondary:hover {
-    background: #475569;
-}
-
-.modal-footer .btn-primary {
-    background: #3b82f6;
-    color: white;
-    padding: 10px 24px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.modal-footer .btn-primary:hover {
-    background: #2563eb;
-}
-
-
-/* Estilos para botones en estado de edición */
-
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-
-/* Efectos de hover consistentes */
-
-.btn:hover {
-    transform: translateY(-2px);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
-
-/* Mejor espaciado en los botones del header */
-
-.header-content .header-actions {
-    margin-left: auto;
+.booking-detail-row {
     display: flex;
+    align-items: center;
     gap: 12px;
+    margin-bottom: 12px;
+    color: #475569;
+}
+
+.booking-detail-row svg {
+    color: #d4af37;
+}
+
+.booking-price {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 18px;
+}
+
+.btn-details {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-details:hover {
+    background: #f8fafc;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        gap: 20px;
+    .profile-tabs {
+        gap: 15px;
+        overflow-x: auto;
     }
-    .header-content .header-actions {
-        margin-left: 0;
-        width: 100%;
+    
+    .tab-btn {
+        white-space: nowrap;
+        font-size: 14px;
+    }
+    
+    .bookings-grid {
+        grid-template-columns: 1fr;
     }
 }
