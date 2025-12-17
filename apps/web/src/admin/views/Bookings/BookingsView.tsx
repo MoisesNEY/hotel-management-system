@@ -30,66 +30,12 @@ const BookingsView = () => {
     const loadBookings = async () => {
         try {
             setLoading(true);
-            const response = await getAllBookings(0, 50); // Fetching first 50 for now
+            const response = await getAllBookings();
             setBookings(response.data);
         } catch (error) {
             console.error("Error loading bookings", error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleCheckIn = async (id: number) => {
-        if (!confirm('¿Confirmar Check-In?')) return;
-        try {
-            await checkIn(id);
-            loadBookings();
-        } catch (e) {
-            console.error("Check-in failed", e);
-            alert("Error al realizar Check-in");
-        }
-    };
-
-    const handleCheckOut = async (id: number) => {
-        if (!confirm('¿Confirmar Check-Out?')) return;
-        try {
-            await checkOut(id);
-            loadBookings();
-        } catch (e) {
-            console.error("Check-out failed", e);
-            alert("Error al realizar Check-out");
-        }
-    };
-
-    const openAssignModal = async (bookingId: number) => {
-        setAssigningBookingId(bookingId);
-        setAssignLoading(true);
-        setShowAssignModal(true);
-        try {
-            const response = await getAllRooms(0, 100);
-            // Filter only available rooms? For now showing all.
-            setAvailableRooms(response.data.filter(r => r.status === 'AVAILABLE'));
-        } catch (e) {
-            console.error("Error loading rooms", e);
-        } finally {
-            setAssignLoading(false);
-        }
-    };
-
-    const handleAssignRoom = async () => {
-        if (!assigningBookingId || !selectedRoomId) return;
-        try {
-            setAssignLoading(true);
-            await assignRoom(assigningBookingId, Number(selectedRoomId));
-            setShowAssignModal(false);
-            setAssigningBookingId(null);
-            setSelectedRoomId('');
-            loadBookings();
-        } catch (e) {
-            console.error("Assign room failed", e);
-            alert("Error al asignar habitación");
-        } finally {
-            setAssignLoading(false);
         }
     };
 

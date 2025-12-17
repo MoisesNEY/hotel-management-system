@@ -5,7 +5,7 @@ import {
   Save, X, Lock, Shield,
   ArrowLeft, Key,  Info,
   IdCard, Globe, Home, AlertCircle, CreditCard, Package,
-  Clock, CheckCircle, XCircle
+  Clock, CheckCircle, XCircle, Bed, Coffee
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
@@ -32,6 +32,17 @@ interface UserData {
     language: string;
     currency: string;
   };
+}
+
+
+
+interface ServiceRequest {
+  id: string;
+  serviceType: string;
+  requestedDate: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  notes?: string;
+  price?: number;
 }
 
 const UserProfilePage: React.FC = () => {
@@ -64,6 +75,13 @@ const UserProfilePage: React.FC = () => {
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [selectedBookingForService, setSelectedBookingForService] = useState<{ id: number, roomTypeName: string } | null>(null);
+
+  // Estados para servicios
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
+
+  const handleCloseBookingsModal = () => setShowBookingsModal(false);
+  const handleCloseServicesModal = () => setShowServicesModal(false);
 
   useEffect(() => {
     // Verificar autenticación
@@ -135,6 +153,33 @@ const UserProfilePage: React.FC = () => {
       setLoadingBookings(false);
     }
   };
+
+  const loadServiceRequests = async () => {
+    try {
+      setIsLoadingServices(true);
+      const { getMyServiceRequests } = await import('../services/client/serviceRequestService');
+      const response = await getMyServiceRequests();
+      // Map DTO to local interface if needed, or just use response.data
+      // Assuming response.data matches ServiceRequest interface or is close enough
+      const requests = response.data.map((req: any) => ({
+        id: req.id,
+        serviceType: req.service?.name || 'Servicio',
+        requestedDate: req.requestDate,
+        status: req.status,
+        notes: req.details,
+        price: req.service?.cost
+      }));
+      setServiceRequests(requests);
+    } catch (error) {
+      console.error('[UserProfile] Failed to load service requests', error);
+    } finally {
+      setIsLoadingServices(false);
+    }
+  };
+
+  useEffect(() => {
+    loadServiceRequests();
+  }, [showServicesModal]);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -250,6 +295,148 @@ const UserProfilePage: React.FC = () => {
 
   return (
     <div className="user-profile-container">
+      {/* Modales */}
+      {showBookingsModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <Bed size={24} />
+                Mis Reservas
+              </h2>
+              <button className="modal-close" onClick={handleCloseBookingsModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-content">
+              {loadingBookings ? (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando reservas...</p>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="empty-state">
+                  <Bed size={48} className="empty-icon" />
+                  <h3>No has realizado ninguna reserva</h3>
+                  <p>Cuando hagas una reserva en nuestro hotel, aparecerá aquí.</p>
+                  <button className="btn btn-primary" onClick={() => navigate('/')}>
+                    Explorar Habitaciones
+                  </button>
+                </div>
+              ) : (
+                <div className="bookings-list">
+                  {bookings.map(booking => (
+                    <div key={booking.id} className="booking-card">
+                      <div className="booking-header">
+                        <h3>{booking.roomTypeName}</h3>
+                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
+                          {getStatusText(booking.status)}
+                        </span>
+                      </div>
+                      <div className="booking-details">
+                        <div className="detail">
+                          <span className="detail-label">Check-in:</span>
+                          <span className="detail-value">{formatDate(booking.checkInDate)}</span>
+                        </div>
+                        <div className="detail">
+                          <span className="detail-label">Check-out:</span>
+                          <span className="detail-value">{formatDate(booking.checkOutDate)}</span>
+                        </div>
+                        <div className="detail">
+                          <span className="detail-label">Huéspedes:</span>
+                          <span className="detail-value">{booking.guestCount}</span>
+                        </div>
+                        {booking.assignedRoomNumber && (
+                          <div className="detail">
+                            <span className="detail-label">Habitación:</span>
+                            <span className="detail-value">{booking.assignedRoomNumber}</span>
+                          </div>
+                        )}
+                        <div className="detail">
+                          <span className="detail-label">Total:</span>
+                          <span className="detail-value font-bold">${booking.totalPrice}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseBookingsModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showServicesModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <Coffee size={24} />
+                Mis Servicios Solicitados
+              </h2>
+              <button className="modal-close" onClick={handleCloseServicesModal}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-content">
+              {isLoadingServices ? (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando servicios...</p>
+                </div>
+              ) : serviceRequests.length === 0 ? (
+                <div className="empty-state">
+                  <Coffee size={48} className="empty-icon" />
+                  <h3>No has solicitado ningún servicio</h3>
+                  <p>Cuando solicites un servicio durante tu estancia, aparecerá aquí.</p>
+                </div>
+              ) : (
+                <div className="services-list">
+                  {serviceRequests.map(service => (
+                    <div key={service.id} className="service-card">
+                      <div className="service-header">
+                        <h3>{service.serviceType}</h3>
+                        <span className={`status-badge ${getStatusColor(service.status)}`}>
+                          {getStatusText(service.status)}
+                        </span>
+                      </div>
+                      <div className="service-details">
+                        <div className="detail">
+                          <span className="detail-label">Solicitado:</span>
+                          <span className="detail-value">{formatDateTime(service.requestedDate)}</span>
+                        </div>
+                        {service.notes && (
+                          <div className="detail">
+                            <span className="detail-label">Notas:</span>
+                            <span className="detail-value">{service.notes}</span>
+                          </div>
+                        )}
+                        {service.price && (
+                          <div className="detail">
+                            <span className="detail-label">Precio:</span>
+                            <span className="detail-value">${service.price}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseServicesModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Contenido principal */}
       <div className="profile-header">
         <button className="back-button" onClick={() => navigate('/')}>

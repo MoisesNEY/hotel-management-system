@@ -7,6 +7,7 @@ import Modal from '../../components/shared/Modal';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import type { CustomerDetailsDTO } from '../../../types/sharedTypes';
 import CustomerForm from './CustomerForm';
+import { formatDate } from '../../utils/helpers';
 
 const CustomersView = () => {
     const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
@@ -21,7 +22,7 @@ const CustomersView = () => {
     const loadCustomers = async () => {
         try {
             setLoading(true);
-            const response = await getAllCustomerDetails(0, 100);
+            const response = await getAllCustomerDetails();
             setCustomers(response.data);
         } catch (error) {
             console.error("Error loading customers", error);
@@ -87,8 +88,8 @@ const CustomersView = () => {
             )
         },
         {
-            header: 'Fecha Nacimiento',
-            accessor: (row) => row.birthDate
+            header: 'Fecha de Nacimiento',
+            accessor: (row) => formatDate(row.birthDate)
         },
         {
             header: 'Acciones',

@@ -37,79 +37,72 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [roles, setRoles] = useState<string[]>([]);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
 
+  const initLock = React.useRef(false);
+
   useEffect(() => {
-    // Evitar doble inicialización (React StrictMode)
-    if (isInitialized) return;
+    if (isInitialized || initLock.current) return;
+    initLock.current = true;
 
     const initKeycloak = async () => {
       try {
-        // Verificar si ya está inicializado (propiedad interna de keycloak-js)
+        console.log('[AuthProvider] Initializing Keycloak...');
+        // Check if already initialized (shouldn't happen with lock but good for HMR)
         if (keycloak.didInitialize) {
-             setIsInitialized(true);
-             setIsAuthenticated(keycloak.authenticated || false);
-             if (keycloak.authenticated) {
-                const profile = await keycloak.loadUserProfile();
-                setUserProfile(profile);
-                if (keycloak.realmAccess?.roles) setRoles(keycloak.realmAccess.roles);
-                else if (keycloak.resourceAccess?.['hotel-app']?.roles) setRoles(keycloak.resourceAccess['hotel-app'].roles);
-
-                // Sincronizar usuario con backend
-                try {
-                  const { getAccount } = await import('../services/accountService');
-                  await getAccount();
-                  console.log('[AuthProvider] User synced with backend (init)');
-                } catch (syncError) {
-                   console.error('[AuthProvider] Failed to sync user with backend (init)', syncError);
-                }
-                
-                // Verificar perfil inicial
-                checkProfileStatus();
-             }
-             return;
+           console.log('[AuthProvider] Keycloak already initialized');
+           // Just update state
+           setIsAuthenticated(keycloak.authenticated || false);
+           if (keycloak.authenticated) {
+              await loadUserData();
+           }
+           setIsInitialized(true);
+           return;
         }
 
         const authenticated = await keycloak.init({
-          onLoad: 'check-sso',
+          onLoad: 'check-sso', // We use check-sso to silently check, if we are in a protected route RoleGuard will force login
           silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
           checkLoginIframe: false,
           pkceMethod: 'S256'
         });
 
+        console.log('[AuthProvider] Keycloak init result:', authenticated);
         setIsAuthenticated(authenticated);
 
         if (authenticated) {
-          try {
-            const profile = await keycloak.loadUserProfile();
-            setUserProfile(profile);
-            
-            // Sincronizar usuario con backend
-            try {
-              const { getAccount } = await import('../services/accountService');
-              await getAccount();
-              console.log('[AuthProvider] User synced with backend');
-            } catch (syncError) {
-              console.error('[AuthProvider] Failed to sync user with backend', syncError);
-            }
-            
-            // Extraer roles del token
-            if (keycloak.realmAccess?.roles) {
-              setRoles(keycloak.realmAccess.roles);
-            } else if (keycloak.resourceAccess?.['hotel-app']?.roles) {
-               setRoles(keycloak.resourceAccess['hotel-app'].roles);
-            }
-
-            // Verificar perfil inicial
-            checkProfileStatus();
-            
-          } catch (error) {
-            console.error('Failed to load user profile', error);
-          }
+            await loadUserData();
         }
       } catch (error) {
-        console.error('Failed to initialize Keycloak', error);
+        console.error('[AuthProvider] Failed to initialize Keycloak', error);
       } finally {
         setIsInitialized(true);
       }
+    };
+
+    const loadUserData = async () => {
+        try {
+            const profile = await keycloak.loadUserProfile();
+            setUserProfile(profile);
+            
+            if (keycloak.realmAccess?.roles) {
+                console.log('[AuthProvider] Realm Roles:', keycloak.realmAccess.roles);
+                setRoles(keycloak.realmAccess.roles);
+            } else if (keycloak.resourceAccess?.['hotel-app']?.roles) {
+                setRoles(keycloak.resourceAccess['hotel-app'].roles);
+            }
+
+            // Sync with backend
+            try {
+                const { getAccount } = await import('../services/accountService');
+                await getAccount();
+                console.log('[AuthProvider] User synced with backend');
+            } catch (syncError) {
+                console.error('[AuthProvider] Failed to sync user with backend', syncError);
+            }
+
+            checkProfileStatus();
+        } catch (error) {
+            console.error('[AuthProvider] Failed to load user profile or data', error);
+        }
     };
 
     initKeycloak();
