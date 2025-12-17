@@ -246,7 +246,7 @@ const UserProfilePage: React.FC = () => {
               {!hasCompletedExtraInfo && (
                 <div className="incomplete-info-alert">
                   <AlertCircle size={16} />
-                  <span>Información incompleta. Completa tus datos para una mejor experiencia.</span>
+                  <span><strong>¡Atención!</strong> Debes completar tu información de perfil. Los campos marcados son obligatorios.</span>
                 </div>
               )}
             </div>
@@ -294,7 +294,9 @@ const UserProfilePage: React.FC = () => {
                 <User size={20} />
                 <h2>Información Personal</h2>
                 {!hasCompletedExtraInfo && (
-                  <span className="section-warning">⚠️ Incompleta</span>
+                  <span className="section-warning text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold border border-red-200">
+                    ⚠️ Obligatorio completar
+                  </span>
                 )}
               </div>
 
@@ -345,7 +347,7 @@ const UserProfilePage: React.FC = () => {
                 </div>
 
                 <div className="info-item">
-                  <label className="text-gray-700 font-medium mb-1 block"><Phone size={16} className="inline mr-2" /> Teléfono</label>
+                  <label className="text-gray-700 font-medium mb-1 block"><Phone size={16} className="inline mr-2" /> Teléfono <span className="text-red-500">*</span></label>
                   {isEditing ? (
                     <input
                       type="tel"
@@ -354,9 +356,12 @@ const UserProfilePage: React.FC = () => {
                       onChange={handleInputChange}
                       className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
                       placeholder="+505 1234 5678"
+                      required
                     />
                   ) : (
-                    <p className="py-2 text-gray-800">{userData.phone || 'No especificado'}</p>
+                    <p className={`py-2 ${!userData.phone ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                      {userData.phone || 'Requerido - No especificado'}
+                    </p>
                   )}
                 </div>
 
@@ -410,7 +415,7 @@ const UserProfilePage: React.FC = () => {
                     </div>
 
                     <div className="info-item full-width col-span-1 md:col-span-2">
-                      <label className="text-gray-700 font-medium mb-1 block"><Home size={16} className="inline mr-2" /> Dirección</label>
+                      <label className="text-gray-700 font-medium mb-1 block"><Home size={16} className="inline mr-2" /> Dirección <span className="text-red-500">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
@@ -419,14 +424,17 @@ const UserProfilePage: React.FC = () => {
                           onChange={handleInputChange}
                           className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
                           placeholder="Dirección completa"
+                          required
                         />
                       ) : (
-                        <p className="py-2 text-gray-800">{userData.address || 'No especificada'}</p>
+                        <p className={`py-2 ${!userData.address ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                          {userData.address || 'Requerido - No especificada'}
+                        </p>
                       )}
                     </div>
 
                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> Ciudad</label>
+                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> Ciudad <span className="text-red-500">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
@@ -435,14 +443,17 @@ const UserProfilePage: React.FC = () => {
                           onChange={handleInputChange}
                           className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
                           placeholder="Ciudad"
+                          required
                         />
                       ) : (
-                        <p className="py-2 text-gray-800">{userData.city || 'No especificada'}</p>
+                        <p className={`py-2 ${!userData.city ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                          {userData.city || 'Requerido - No especificada'}
+                        </p>
                       )}
                     </div>
 
                     <div className="info-item">
-                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País</label>
+                      <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
                       {isEditing ? (
                         <input
                           type="text"
@@ -451,9 +462,12 @@ const UserProfilePage: React.FC = () => {
                           onChange={handleInputChange}
                           className="edit-input focus:!border-[#d4af37] focus:!ring-4 focus:!ring-[#d4af37]/10"
                           placeholder="País"
+                          required
                         />
                       ) : (
-                        <p className="py-2 text-gray-800">{userData.country || 'No especificado'}</p>
+                        <p className={`py-2 ${!userData.country ? 'text-red-500 font-medium' : 'text-gray-800'}`}>
+                          {userData.country || 'Requerido - No especificado'}
+                        </p>
                       )}
                     </div>
                   </>
