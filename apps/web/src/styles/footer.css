@@ -1,0 +1,21 @@
+.footer {
+    background-color: #0B1D2A;
+    color: #ffffff;
+    padding: 40px 0;
+    text-align: center;
+    font-family: 'Poppins', 'Georgia', serif;
+}
+
+.footer-quote {
+    color: #D4AF37;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.footer-bottom p {
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin: 0;
+}
