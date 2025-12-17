@@ -932,3 +932,49 @@ input:disabled+.toggle-slider {
     color: #000;
     /* texto negro */
 }
+
+.edit-actions {
+    display: flex;
+    gap: 12px;
+    /* espacio entre los botones */
+}
+
+.btn-save {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #10b981;
+    /* verde */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-save:hover {
+    background-color: #059669;
+    /* verde más oscuro al pasar el mouse */
+}
+
+.btn-cancel-red {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #ef4444;
+    /* rojo */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-cancel-red:hover {
+    background-color: #dc2626;
+    /* rojo más oscuro al pasar el mouse */
+}

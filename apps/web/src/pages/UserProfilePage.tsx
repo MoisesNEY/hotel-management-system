@@ -314,15 +314,16 @@ const UserProfilePage: React.FC = () => {
                 </>
               ) : (
                 <div className="edit-actions">
-                  <button className="btn btn-save" onClick={handleSave}>
-                    <Save size={18} />
-                    Guardar
-                  </button>
-                  <button className="btn btn-cancel" onClick={handleCancel}>
-                    <X size={18} />
-                    Cancelar
-                  </button>
-                </div>
+  <button className="btn btn-save" onClick={handleSave}>
+    <Save size={18} />
+    Guardar
+  </button>
+  <button className="btn btn-cancel-red" onClick={handleCancel}>
+    <X size={18} />
+    Cancelar
+  </button>
+</div>
+
               )
             )}
           </div>
