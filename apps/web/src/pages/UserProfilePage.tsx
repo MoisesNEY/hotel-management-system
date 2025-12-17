@@ -534,33 +534,7 @@ const UserProfilePage: React.FC = () => {
                     </>
                   )}
                 </div>
-              </div>
-
-              {/* Sección de seguridad */}
-              <div className="section-card">
-                <div className="section-header">
-                  <Shield size={20} />
-                  <h2>Seguridad</h2>
-                </div>
-
-                <div className="security-actions">
-                  <button className="security-btn" onClick={handleChangePassword}>
-                    <Key size={18} />
-                    <div>
-                      <h4>Cambiar Contraseña</h4>
-                      <p>Actualiza tu contraseña regularmente</p>
-                    </div>
-                  </button>
-
-                  <button className="security-btn">
-                    <Lock size={18} />
-                    <div>
-                      <h4>Autenticación de Dos Factores</h4>
-                      <p>Activar para mayor seguridad</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
+              </div>          
             </div>
 
             {/* Columna derecha */}
@@ -636,6 +610,30 @@ const UserProfilePage: React.FC = () => {
                       Completar información ahora
                     </button>
                   )}
+                </div>
+              </div>
+              <div className="section-card">
+                <div className="section-header">
+                  <Shield size={20} />
+                  <h2>Seguridad</h2>
+                </div>
+
+                <div className="security-actions">
+                  <button className="security-btn" onClick={handleChangePassword}>
+                    <Key size={18} />
+                    <div>
+                      <h4>Cambiar Contraseña</h4>
+                      <p>Actualiza tu contraseña regularmente</p>
+                    </div>
+                  </button>
+
+                  <button className="security-btn">
+                    <Lock size={18} />
+                    <div>
+                      <h4>Autenticación de Dos Factores</h4>
+                      <p>Activar para mayor seguridad</p>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
