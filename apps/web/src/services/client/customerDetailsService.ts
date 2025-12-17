@@ -31,6 +31,6 @@ export const updateProfile = async (
  * Get the customer profile for the authenticated client
  */
 export const getMyProfile = async (): Promise<CustomerDetailsResponse> => {
-  const response = await apiClient.get<CustomerDetailsResponse>(CUSTOMER_DETAILS_PATH);
+  const response = await apiClient.get<CustomerDetailsResponse>(CUSTOMER_DETAILS_PATH + '/profile');
   return response.data;
 };

@@ -1,30 +1,31 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 :root {
-    --primary: #2c3e50;
-    --secondary: #3498db;
-    --accent: #e74c3c;
-    --light: #ecf0f1;
-    --dark: #2c3e50;
-    --text: #333333;
-    --text-light: #666666;
-    --white: #ffffff;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
+  --primary: #2c3e50;
+  --secondary: #3498db;
+  --accent: #e74c3c;
+  --light: #ecf0f1;
+  --dark: #2c3e50;
+  --text: #333333;
+  --text-light: #666666;
+  --white: #ffffff;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    color: var(--text);
-    line-height: 1.6;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
+  color: var(--text);
+  line-height: 1.6;
 }
 
 h1,
@@ -33,175 +34,168 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
-    color: var(--dark);
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  color: var(--dark);
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .btn {
-    display: inline-block;
-    padding: 12px 32px;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
+  display: inline-block;
+  padding: 12px 32px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
 }
 
 .btn-primary {
-    background-color: var(--secondary);
-    color: var(--white);
+  background-color: var(--secondary);
+  color: var(--white);
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 .btn-secondary {
-    background-color: transparent;
-    color: var(--secondary);
-    border: 2px solid var(--secondary);
+  background-color: transparent;
+  color: var(--secondary);
+  border: 2px solid var(--secondary);
 }
 
 .btn-secondary:hover {
-    background-color: var(--secondary);
-    color: var(--white);
+  background-color: var(--secondary);
+  color: var(--white);
 }
 
 .btn-accent {
-    background-color: var(--accent);
-    color: var(--white);
+  background-color: var(--accent);
+  color: var(--white);
 }
 
 .btn-accent:hover {
-    background-color: #c0392b;
+  background-color: #c0392b;
 }
 
 .section {
-    padding: 80px 0;
+  padding: 80px 0;
 }
 
 .section-title {
-    text-align: center;
-    margin-bottom: 50px;
-    font-size: 2.5rem;
-    position: relative;
-    padding-bottom: 15px;
+  text-align: center;
+  margin-bottom: 50px;
+  font-size: 2.5rem;
+  position: relative;
+  padding-bottom: 15px;
 }
 
 .section-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 3px;
-    background-color: var(--secondary);
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background-color: var(--secondary);
 }
 
 .footer {
-    background: #0a143c;
-    padding: 40px 20px;
-    color: #fff;
+  background: #0a143c;
+  padding: 40px 20px;
+  color: #fff;
 }
 
 .footer .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
 }
-
 
 /* Redes sociales */
 
 .footer-socials {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  gap: 20px;
 }
 
 .footer-socials img {
-    width: 36px;
-    height: 36px;
-    transition: transform 0.3s ease, filter 0.3s ease;
-    cursor: pointer;
+  width: 36px;
+  height: 36px;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  cursor: pointer;
 }
 
 .footer-socials img:hover {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
-
 
 /* Icono extra */
 
 .footer-extra-icon img {
-    width: 50px;
-    height: 50px;
-    opacity: 0.9;
+  width: 50px;
+  height: 50px;
+  opacity: 0.9;
 }
-
 
 /* Texto final */
 
 .footer-bottom p {
-    font-size: 14px;
-    color: rgba(220, 230, 255, 0.8);
-    margin: 0;
+  font-size: 14px;
+  color: rgba(220, 230, 255, 0.8);
+  margin: 0;
 }
-
 
 /* Tamaño uniforme para TODOS los iconos */
 
 .footer-socials img,
 .footer-extra-icon img {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
 }
-
 
 /* Hover animado en redes sociales */
 
 .footer-socials img:hover {
-    transform: translateY(-6px) scale(1.15) rotate(3deg);
-    filter: drop-shadow(0 8px 15px rgba(255, 255, 255, 0.45));
+  transform: translateY(-6px) scale(1.15) rotate(3deg);
+  filter: drop-shadow(0 8px 15px rgba(255, 255, 255, 0.45));
 }
-
 
 /* Animación especial para el icono inferior */
 
 .footer-extra-icon img:hover {
-    transform: scale(1.2) rotate(-6deg);
-    filter: drop-shadow(0 6px 12px rgba(255, 215, 0, 0.6));
+  transform: scale(1.2) rotate(-6deg);
+  filter: drop-shadow(0 6px 12px rgba(255, 215, 0, 0.6));
 }
-
 
 /* Suaviza el movimiento */
 
 .footer-socials img,
 .footer-extra-icon img {
-    will-change: transform;
+  will-change: transform;
 }
 
 .footer-title {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: #e6ebff;
-    margin-bottom: 10px;
-    text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #e6ebff;
+  margin-bottom: 10px;
+  text-align: center;
 }

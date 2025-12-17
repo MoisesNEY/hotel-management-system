@@ -62,49 +62,55 @@ const UserProfilePage: React.FC = () => {
       return;
     }
 
-    // Verificar si tiene información extra completada
-    const hasInfo = localStorage.getItem('hasCompletedExtraInfo') === 'true';
-    setHasCompletedExtraInfo(hasInfo);
-
-    // Si no tiene información completada, redirigir
-    if (!hasInfo) {
-      const confirmComplete = window.confirm(
-        '¡Atención! Necesitas completar tu información personal para acceder al perfil completo.\n\n¿Deseas completarla ahora?'
-      );
-      if (confirmComplete) {
-        navigate('/customer');
-      } else {
-        navigate('/');
-      }
-      return;
-    }
-
     // Cargar datos del usuario
     loadUserData();
   }, [navigate]);
 
-  const loadUserData = () => {
-    // Cargar datos desde Keycloak
-    if (keycloak.tokenParsed) {
+  const loadUserData = async () => {
+    try {
+      if (!keycloak.tokenParsed) return;
+
+      // 1. Datos base del token
       const token = keycloak.tokenParsed;
-      const firstName = token.given_name || '';
-      const lastName = token.family_name || '';
-      const email = token.email || '';
+      const baseData = {
+        firstName: token.given_name || '',
+        lastName: token.family_name || '',
+        email: token.email || ''
+      };
 
-      // Cargar datos extras desde localStorage
-      const savedData = localStorage.getItem('userData');
-      let extraData = {};
-      if (savedData) {
-        extraData = JSON.parse(savedData);
-      }
+      setUserData(prev => ({ ...prev, ...baseData }));
 
+      // 2. Intentar cargar perfil completo del backend
+      // Import dinámico para evitar ciclos
+      const { getMyProfile } = await import('../services/client/customerDetailsService');
+      const profileResponse = await getMyProfile();
+      
+      console.log('[UserProfile] Profile loaded:', profileResponse);
+      
+      // Actualizar estado con datos del backend
       setUserData(prev => ({
         ...prev,
-        firstName,
-        lastName,
-        email,
-        ...extraData
+        ...baseData,
+        phone: profileResponse.phone || '',
+        address: profileResponse.addressLine1 || '',
+        city: profileResponse.city || '',
+        country: profileResponse.country || '',
+        licenseId: profileResponse.licenseId || '',
+        birthDate: profileResponse.birthDate || '',
+        // Normalizar Gender de API (MALE) a UI (Male)
+        gender: profileResponse.gender 
+          ? profileResponse.gender.charAt(0) + profileResponse.gender.slice(1).toLowerCase() 
+          : '',
       }));
+      
+      // Confirmar que tenemos info
+      setHasCompletedExtraInfo(true);
+      localStorage.setItem('hasCompletedExtraInfo', 'true');
+
+    } catch (error) {
+      console.warn('[UserProfile] Failed to load profile from backend (might be incomplete)', error);
+      // Fallback: Si falla, asumimos que no tiene perfil completo
+      setHasCompletedExtraInfo(false);
     }
   };
 

@@ -169,6 +169,7 @@ const CustomerDetailsForm: React.FC = () => {
 
   const handleSkipConfirm = () => {
     setShowSkipModal(false);
+    sessionStorage.setItem('skip_customer_details', 'true');
     navigate('/');
   };
 
