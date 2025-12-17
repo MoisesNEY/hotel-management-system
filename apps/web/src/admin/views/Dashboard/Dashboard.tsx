@@ -25,8 +25,8 @@ import {
 
 import StatsCard from '../../components/shared/StatsCard';
 import Card from '../../components/shared/Card';
-import { dashboardService } from '../../services/api';
-import type { DashboardStats, ChartData } from '../../types';
+import * as dashboardService from '../../../services/admin/dashboardService';
+import type { DashboardStats, ChartData } from '../../../services/admin/dashboardService';
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
 

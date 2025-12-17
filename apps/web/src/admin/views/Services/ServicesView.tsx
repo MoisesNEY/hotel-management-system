@@ -4,35 +4,69 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { servicesService } from '../../services/api';
-import type { HotelService, ServiceRequest } from '../../types';
+import { getAllHotelServices } from '../../../services/admin/hotelServiceService';
+import { getAllServiceRequests, updateServiceRequest } from '../../../services/admin/serviceRequestService';
+import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/sharedTypes';
 import { formatCurrency, formatDateTime, getStatusColor } from '../../utils/helpers';
+import ServiceForm from './ServiceForm';
+import Modal from '../../components/shared/Modal';
 
 const ServicesView = () => {
-    const [services, setServices] = useState<HotelService[]>([]);
-    const [requests, setRequests] = useState<ServiceRequest[]>([]);
+    const [services, setServices] = useState<HotelServiceDTO[]>([]);
+    const [requests, setRequests] = useState<ServiceRequestDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Form State
+    const [showForm, setShowForm] = useState(false);
+    const [editingService, setEditingService] = useState<HotelServiceDTO | null>(null);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const [servicesResponse, requestsResponse] = await Promise.all([
+                getAllHotelServices(0, 50),
+                getAllServiceRequests(0, 50)
+            ]);
+            setServices(servicesResponse.data);
+            setRequests(requestsResponse.data);
+        } catch (error) {
+            console.error("Error loading services", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const [servicesData, requestsData] = await Promise.all([
-                    servicesService.getAllServices(),
-                    servicesService.getAllRequests()
-                ]);
-                setServices(servicesData);
-                setRequests(requestsData);
-            } catch (error) {
-                console.error("Error loading services", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadData();
     }, []);
 
-    const requestColumns: Column<ServiceRequest>[] = [
+
+    // Handlers
+    const handleCreateClick = () => {
+        setEditingService(null);
+        setShowForm(true);
+    };
+
+    const handleEditClick = (service: HotelServiceDTO) => {
+        setEditingService(service);
+        setShowForm(true);
+    };
+
+    const handleUpdateStatus = async (request: ServiceRequestDTO) => {
+        if (!window.confirm('¿Marcar solicitud como completada?')) return;
+        
+        try {
+            // Assuming we change status to COMPLETED directly for "Atender" which means "Attend/Solve"
+            // Or maybe IN_PROGRESS if we want intermediate state. For now COMPLETED is safe simple action.
+            await updateServiceRequest(request.id, { ...request, status: 'COMPLETED' });
+            loadData();
+        } catch (error) {
+            console.error("Error updating request status", error);
+            alert("No se pudo actualizar el estado de la solicitud.");
+        }
+    };
+
+    const requestColumns: Column<ServiceRequestDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -42,12 +76,8 @@ const ServicesView = () => {
             accessor: (row) => row.service.name
         },
         {
-            header: 'Costo Servicio',
-            accessor: (row) => formatCurrency(row.service.cost)
-        },
-        {
             header: 'Cliente',
-            accessor: (row) => `${row.booking.customer.firstName} ${row.booking.customer.lastName}`
+            accessor: (row) => `${row.booking.customer.firstName || 'Sin'} ${row.booking.customer.lastName || 'Nombre'}`
         },
         {
             header: 'Reserva ID',
@@ -60,7 +90,7 @@ const ServicesView = () => {
         {
             header: 'Detalles',
             accessor: (row) => (
-                <div className="text-xs text-gray-600 max-w-xs truncate">
+                <div className="text-xs text-gray-600 max-w-xs truncate" title={row.details}>
                     {row.details || '-'}
                 </div>
             )
@@ -72,14 +102,21 @@ const ServicesView = () => {
         {
             header: 'Acciones',
             accessor: (row) => (
-                row.status === 'OPEN' ?
-                    <Button size="sm" variant="success" leftIcon={<Check size={14} />}>Atender</Button>
+                row.status === 'OPEN' || row.status === 'IN_PROGRESS' ?
+                    <Button 
+                        size="sm" 
+                        variant="success" 
+                        onClick={() => handleUpdateStatus(row)}
+                        leftIcon={<Check size={14} />}
+                    >
+                        Completar
+                    </Button>
                     : null
             )
         }
     ];
 
-    const serviceColumns: Column<HotelService>[] = [
+    const serviceColumns: Column<HotelServiceDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -118,8 +155,10 @@ const ServicesView = () => {
         },
         {
             header: 'Acciones',
-            accessor: () => (
-                <Button size="sm" variant="outline">Editar</Button>
+            accessor: (row) => (
+                <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
+                    Editar
+                </Button>
             )
         }
     ];
@@ -131,7 +170,9 @@ const ServicesView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
                     <p className="text-gray-600">Gestión de servicios y solicitudes</p>
                 </div>
-                <Button>Nuevo Servicio</Button>
+                {!showForm && (
+                    <Button onClick={handleCreateClick}>Nuevo Servicio</Button>
+                )}
             </div>
 
             <Card className="card-plain">
@@ -141,7 +182,7 @@ const ServicesView = () => {
                     isLoading={loading}
                     title="Solicitudes de Servicio"
                     emptyMessage="No hay solicitudes pendientes"
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item: ServiceRequestDTO) => item.id}
                 />
             </Card>
 
@@ -152,9 +193,24 @@ const ServicesView = () => {
                     isLoading={loading}
                     title="Catálogo de Servicios"
                     emptyMessage="No hay servicios disponibles"
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item: HotelServiceDTO) => item.id}
                 />
             </Card>
+
+            <Modal
+                isOpen={showForm}
+                onClose={() => setShowForm(false)}
+                title={editingService ? 'Editar Servicio' : 'Nuevo Servicio'}
+            >
+                <ServiceForm
+                    initialData={editingService || undefined}
+                    onSuccess={() => {
+                        setShowForm(false);
+                        loadData();
+                    }}
+                    onCancel={() => setShowForm(false)}
+                />
+            </Modal>
         </div>
     );
 };

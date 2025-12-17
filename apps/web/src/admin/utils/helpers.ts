@@ -38,6 +38,16 @@ export const getStatusColor = (status: string, type: 'booking' | 'room' = 'booki
     return color || 'primary';
 };
 
+export const getRoomStatusConfig = (status: string) => {
+    switch (status) {
+        case 'AVAILABLE': return { label: 'Disponible', className: 'bg-green-100 text-green-800', style: {} };
+        case 'OCCUPIED': return { label: 'Ocupada', className: 'bg-red-100 text-red-800', style: {} };
+        case 'MAINTENANCE': return { label: 'Mantenimiento', className: 'bg-yellow-100 text-yellow-800', style: {} };
+        case 'CLEANING': return { label: 'Limpieza', className: 'bg-blue-100 text-blue-800', style: {} };
+        default: return { label: status, className: 'bg-gray-100 text-gray-800', style: {} };
+    }
+};
+
 export const truncateText = (text: string, maxLength: number): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
