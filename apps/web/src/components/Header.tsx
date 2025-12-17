@@ -1,6 +1,6 @@
 // apps/web/src/components/Header.tsx
 import React, { useState, useEffect } from 'react';
-import { Hotel, Menu, X, UserCircle, LogOut, User, AlertCircle } from 'lucide-react';
+import { Hotel, Menu, X, LogOut, User, AlertCircle } from 'lucide-react';
 import '../styles/header.css';
 import { useAuth } from '../contexts/AuthProvider';
 import { useNavigate } from 'react-router-dom';
@@ -8,12 +8,12 @@ import { useNavigate } from 'react-router-dom';
 const Header: React.FC = () => {
   const { isAuthenticated, userProfile, login, logout, hasProfile } = useAuth();
   const navigate = useNavigate();
-  
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
   const [showUserMenu, setShowUserMenu] = useState(false);
-  
+
   // Usar el estado global para la UI. Si es null (cargando), asumimos true para no molestar.
   // Solo molestamos si es explícitamente false.
   const hasCompletedExtraInfo = hasProfile !== false;
@@ -39,7 +39,7 @@ const Header: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    
+
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.user-menu-container') && !target.closest('.user-profile-btn')) {
@@ -109,10 +109,27 @@ const Header: React.FC = () => {
     navigate('/customer');
     setShowUserMenu(false);
   };
-  
+
   // Extraer datos de perfil de forma segura
-  const username = userProfile?.username || userProfile?.firstName || 'Usuario';
+ const username =
+  `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || 
+  userProfile?.username || 
+  'Usuario';
+
   const email = userProfile?.email || '';
+  const getInitials = (name?: string) => {
+    if (!name) return '';
+    return name
+      .trim()
+      .split(' ')
+      .filter(Boolean)
+      .map(word => word[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+
 
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
@@ -146,17 +163,30 @@ const Header: React.FC = () => {
                   </>
                 ) : (
                   <div className="user-menu-container">
-                    <button className="user-profile-btn" onClick={toggleUserMenu} aria-label="User menu">
+                    <button
+                      className="user-profile-btn"
+                      onClick={toggleUserMenu}
+                      aria-label="User menu"
+                    >
                       <div className="user-avatar">
-                        <UserCircle size={32} />
+                        <span className="user-initials">
+                          {getInitials(username)} {/* Aquí usamos el mismo username del dropdown */}
+                        </span>
+
                         {!hasCompletedExtraInfo && <span className="pulse-dot"></span>}
                       </div>
+
                       <span className="user-name">{username}</span>
+
                       {!hasCompletedExtraInfo && (
-                        <div className="info-required-badge"><AlertCircle size={16} /></div>
+                        <div className="info-required-badge">
+                          <AlertCircle size={16} />
+                        </div>
                       )}
                     </button>
-                    
+
+
+
                     {showUserMenu && (
                       <div className="user-dropdown-menu">
                         <div className="user-info">
@@ -167,11 +197,11 @@ const Header: React.FC = () => {
                           )}
                         </div>
                         <div className="dropdown-divider"></div>
-                        
+
                         <button className="dropdown-item" onClick={handleViewProfile}>
                           <User size={16} /><span>Ver Perfil</span>
                         </button>
-                        
+
                         {!hasCompletedExtraInfo && (
                           <>
                             <div className="dropdown-divider"></div>
@@ -182,7 +212,7 @@ const Header: React.FC = () => {
                             </button>
                           </>
                         )}
-                        
+
                         <div className="dropdown-divider"></div>
                         <button className="dropdown-item logout-item" onClick={handleLogout}>
                           <LogOut size={16} /><span>Cerrar Sesión</span>
