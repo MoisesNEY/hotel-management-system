@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Coffee, Dumbbell, Heart, Car, Umbrella, Wind, X, Clock, FileText, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, X, Clock, FileText, AlertCircle } from 'lucide-react';
 import '../styles/services.css';
 import { createServiceRequest } from '../services/client/serviceRequestService';
 
@@ -14,58 +14,39 @@ export const RequestStatus = {
 export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
 
 
-// Tipo para los servicios
-interface Service {
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-  category: string;
-}
 
+import { getAllHotelServices } from '../services/admin/hotelServiceService';
+import type { HotelServiceDTO } from '../types/sharedTypes';
 
 const Services: React.FC = () => {
-  const services: Service[] = [
-    {
-      icon: <Coffee className="service-icon" />,
-      name: 'Restaurante & Bar',
-      description: 'Desayuno buffet premium y cenas gourmet con chefs internacionales',
-      category: 'GASTRONOMIA'
-    },
-    {
-      icon: <Dumbbell className="service-icon" />,
-      name: 'Gimnasio Ejecutivo',
-      description: 'Equipamiento moderno, entrenador personal y acceso 24 horas',
-      category: 'BIENESTAR'
-    },
-    {
-      icon: <Heart className="service-icon" />,
-      name: 'Spa & Wellness',
-      description: 'Masajes terapéuticos, tratamientos faciales y relajación total',
-      category: 'BIENESTAR'
-    },
-    {
-      icon: <Car className="service-icon" />,
-      name: 'Transporte Ejecutivo',
-      description: 'Shuttle al aeropuerto, servicio de limusina y valet parking VIP',
-      category: 'TRANSPORTE'
-    },
-    {
-      icon: <Umbrella className="service-icon" />,
-      name: 'Piscina Infinity',
-      description: 'Piscina climatizada con vista panorámica y bar de piscina',
-      category: 'RECREACION'
-    },
-    {
-      icon: <Wind className="service-icon" />,
-      name: 'Lavandería Express',
-      description: 'Servicio de lavandería y planchado premium en menos de 2 horas',
-      category: 'HOSPEDAJE'
-    }
-  ];
+  // Estado para los servicios
+  const [services, setServices] = useState<HotelServiceDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        // Traer todos los servicios
+        const response = await getAllHotelServices(0, 100);
+        // Filtrar: solo disponibles y con precio > 0
+        const premiumServices = response.data.filter(s => s.isAvailable && s.cost > 0);
+        setServices(premiumServices);
+      } catch (err) {
+        console.error('[Services] Error fetching services:', err);
+        setError('No se pudieron cargar los servicios.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   // Estado para el modal
   const [showModal, setShowModal] = useState(false);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<HotelServiceDTO | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Estado para los datos del formulario según entity ServiceRequest
@@ -76,7 +57,7 @@ const Services: React.FC = () => {
   });
 
   // Abrir modal de solicitud de servicio
-  const handleServiceRequest = (service: Service) => {
+  const handleServiceRequest = (service: HotelServiceDTO) => {
     console.log('Solicitando servicio:', service.name);
     setSelectedService(service);
     setShowModal(true);
@@ -153,7 +134,7 @@ const Services: React.FC = () => {
       setIsSubmitting(true);
       await createServiceRequest({
         details: `${formData.details.trim()} [Fecha: ${formData.requestDate}] [Servicio: ${selectedService?.name}]`,
-        serviceId: 1, // Placeholder Mock ID
+        serviceId: selectedService?.id || 1,
         bookingId: 1 // Placeholder Mock ID
       });
 
@@ -195,25 +176,47 @@ Recibirás una confirmación por correo electrónico.`);
           </div>
           
           <div className="services-grid">
-            {services.map((service, index) => (
-              <div key={index} className="service-card">
-                <div className="service-icon-container">
-                  {service.icon}
+            {loading ? (
+               <div className="flex justify-center items-center py-20 col-span-full">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+               </div>
+            ) : error ? (
+               <div className="col-span-full text-center py-10 text-red-500 bg-red-50 rounded-xl p-4">
+                 {error}
+               </div>
+            ) : services.length === 0 ? (
+               <div className="col-span-full text-center py-20 bg-gray-50 rounded-xl">
+                  <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-xl text-gray-600 font-medium">No hay servicios premium disponibles</h3>
+               </div>
+            ) : (
+              services.map((service) => (
+                <div key={service.id} className="service-card">
+                  <div className="service-icon-container">
+                    {service.imageUrl ? (
+                      <img src={service.imageUrl} alt={service.name} className="w-12 h-12 object-cover rounded-full" />
+                    ) : (
+                      <Heart className="service-icon" /> 
+                    )}
+                  </div>
+                  <h3 className="service-name">{service.name}</h3>
+                  <p className="service-description">{service.description || 'Sin descripción.'}</p>
+                  <div className="service-category">
+                    Premium
+                  </div>
+                  <div className="text-center mt-2 font-bold text-[#d4af37]">
+                    ${service.cost}
+                  </div>
+                  <button 
+                    className="service-btn"
+                    onClick={() => handleServiceRequest(service)}
+                    type="button"
+                  >
+                    Solicitar Servicio
+                  </button>
                 </div>
-                <h3 className="service-name">{service.name}</h3>
-                <p className="service-description">{service.description}</p>
-                <div className="service-category">
-                  {service.category}
-                </div>
-                <button 
-                  className="service-btn"
-                  onClick={() => handleServiceRequest(service)}
-                  type="button"
-                >
-                  Solicitar Servicio
-                </button>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           
           <div className="services-notice">
@@ -239,7 +242,11 @@ Recibirás una confirmación por correo electrónico.`);
             <div className="service-modal-header">
               <div className="service-modal-title">
                 <div className="selected-service-icon">
-                  {selectedService.icon}
+                  {selectedService.imageUrl ? (
+                      <img src={selectedService.imageUrl} alt={selectedService.name} className="w-10 h-10 object-cover rounded-full" />
+                    ) : (
+                      <Heart className="text-[#d4af37]" size={32} />
+                    )}
                 </div>
                 <div>
                   <h3>Solicitar: {selectedService.name}</h3>
@@ -271,7 +278,7 @@ Recibirás una confirmación por correo electrónico.`);
                     </div>
                     <div className="info-item">
                       <span className="info-label">Categoría:</span>
-                      <span className="info-value">{selectedService.category}</span>
+                      <span className="info-value">Premium</span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Disponibilidad:</span>
