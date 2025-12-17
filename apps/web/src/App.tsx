@@ -1,5 +1,5 @@
 // App.tsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import CustomerDetailsPage from './pages/CustomerDetailsPage';
 import AdminReservationPage from './pages/AdminReservationPage';
@@ -7,37 +7,33 @@ import UserProfilePage from './pages/UserProfilePage';
 
 import './App.css';
 import './styles/landing.css';
-import keycloak from './services/keycloak';
-import { useEffect, useState } from 'react';
-
-// ✅ Variable global para evitar múltiples inicializaciones
-let keycloakInitialized = false;
+import ProtectedRoute from './components/ProtectedRoute';
+import RequireProfile from './components/RequireProfile';
+import RoleGuard from './components/RoleGuard';
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(false);
-
-  useEffect(() => {
-    if (!keycloakInitialized) {
-      keycloakInitialized = true;
-
-      keycloak.init({
-        onLoad: 'check-sso',
-        checkLoginIframe: false
-      }).then(auth => {
-        setAuthenticated(auth);
-      }).catch(err => {
-        console.error('Error al inicializar Keycloak:', err);
-      });
-    }
-  }, []);
-
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/customer" element={<CustomerDetailsPage />} />
-      <Route path="/admin/reservations" element={<AdminReservationPage />} />
-      <Route path="/profile" element={<UserProfilePage />} />
-      <Route path="*" element={!authenticated ? <Navigate to="/" /> : null} />
+      
+      {/* Rutas protegidas que requieren autenticación */}
+      <Route element={<ProtectedRoute />}>
+        {/* Rutas que requieren perfil completo (o salto explícito) */}
+        <Route element={<RequireProfile />}>
+           
+           {/* Rutas de Cliente */}
+           <Route path="/profile" element={<UserProfilePage />} />
+           
+           {/* Rutas Administrativas (Requieren Rol) */}
+           <Route element={<RoleGuard requiredRole="ROLE_EMPLOYEE" />}>
+             <Route path="/admin/reservations" element={<AdminReservationPage />} />
+           </Route>
+
+        </Route>
+
+        {/* Ruta para llenar detalles (excluida de RequireProfile para evitar ciclo) */}
+        <Route path="/customer" element={<CustomerDetailsPage />} />
+      </Route>
     </Routes>
   );
 }
