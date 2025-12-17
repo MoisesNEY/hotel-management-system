@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Calendar, Edit,
-  Save, X, Lock, Shield, Bell,
-  ArrowLeft, Key, Star,
+  Save, X, Lock, Shield,
+  ArrowLeft, Key,  Info,
   IdCard, Globe, Home, AlertCircle, CreditCard, Package,
   Clock, CheckCircle, XCircle
 } from 'lucide-react';
@@ -565,29 +565,26 @@ const UserProfilePage: React.FC = () => {
 
             {/* Columna derecha */}
             <div className="right-column">
-              {/* Preferencias */}
               <div className="section-card">
                 <div className="section-header">
-                  <Star size={20} />
-                  <h2>Preferencias</h2>
+                  <Info size={20} />
+                  <h2>Informacion</h2>
                 </div>
 
                 <div className="preferences-grid">
-                 <div className="preference-item">
-  <div className="preference-info">
-    <Package size={18} />
-    <div>
-      <h4>Idioma</h4>
-      <p>Idioma preferido</p>
-    </div>
-  </div>
+                  <div className="preference-item">
+                    <div className="preference-info">
+                      <Package size={18} />
+                      <div>
+                        <h4>Idioma</h4>
+                        <p>Idioma preferido</p>
+                      </div>
+                    </div>
 
-  <span className="preference-value">
-    Español
-  </span>
-</div>
-
-
+                    <span className="preference-value">
+                      Español
+                    </span>
+                  </div>
                   <div className="preference-item">
                     <div className="preference-info">
                       <CreditCard size={18} />
@@ -596,22 +593,9 @@ const UserProfilePage: React.FC = () => {
                         <p>Moneda preferida</p>
                       </div>
                     </div>
-                    {isEditing ? (
-                      <select
-                        name="preferences.currency"
-                        value={userData.preferences.currency}
-                        onChange={handleInputChange}
-                        className="preference-select"
-                      >
-                        <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
-                      </select>
-                    ) : (
-                      <span className="preference-value">
-                        {userData.preferences.currency}
-                      </span>
-                    )}
+                    <span className="preference-value">
+                      USD ($)
+                    </span>
                   </div>
                 </div>
               </div>
