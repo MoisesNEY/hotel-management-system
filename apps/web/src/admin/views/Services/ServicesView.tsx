@@ -4,35 +4,73 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { servicesService } from '../../services/api';
-import type { HotelService, ServiceRequest } from '../../types';
+import { getAllHotelServices } from '../../../services/admin/hotelServiceService';
+import { getAllServiceRequests } from '../../../services/admin/serviceRequestService';
+import { updateServiceRequestStatus } from '../../../services/employee/employeeService';
+import type { HotelServiceDTO, ServiceRequestDTO, RequestStatus } from '../../../types/sharedTypes';
 import { formatCurrency, formatDateTime, getStatusColor } from '../../utils/helpers';
+import ServiceForm from './ServiceForm';
+import Modal from '../../components/shared/Modal';
 
 const ServicesView = () => {
-    const [services, setServices] = useState<HotelService[]>([]);
-    const [requests, setRequests] = useState<ServiceRequest[]>([]);
+    const [services, setServices] = useState<HotelServiceDTO[]>([]);
+    const [requests, setRequests] = useState<ServiceRequestDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Form State
+    const [showForm, setShowForm] = useState(false);
+    const [editingService, setEditingService] = useState<HotelServiceDTO | null>(null);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const [servicesResponse, requestsResponse] = await Promise.all([
+                getAllHotelServices(0, 50),
+                getAllServiceRequests(0, 50)
+            ]);
+            setServices(servicesResponse.data);
+            setRequests(requestsResponse.data);
+        } catch (error) {
+            console.error("Error loading services", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const [servicesData, requestsData] = await Promise.all([
-                    servicesService.getAllServices(),
-                    servicesService.getAllRequests()
-                ]);
-                setServices(servicesData);
-                setRequests(requestsData);
-            } catch (error) {
-                console.error("Error loading services", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadData();
     }, []);
 
-    const requestColumns: Column<ServiceRequest>[] = [
+    const handleCreateClick = () => {
+        setEditingService(null);
+        setShowForm(true);
+    };
+
+    const handleEditClick = (service: HotelServiceDTO) => {
+        setEditingService(service);
+        setShowForm(true);
+    };
+
+    const handleFormSuccess = () => {
+        setShowForm(false);
+        setEditingService(null);
+        loadData();
+    };
+
+    const handleStatusChange = async (id: number, newStatus: RequestStatus) => {
+        if (!confirm(`¿Cambiar estado a ${newStatus}?`)) return;
+        try {
+            await updateServiceRequestStatus(id, newStatus);
+            // Reload requests
+            const response = await getAllServiceRequests(0, 50);
+            setRequests(response.data);
+        } catch (e) {
+            console.error("Error updating status", e);
+            alert("No se pudo actualizar el estado");
+        }
+    };
+
+    const requestColumns: Column<ServiceRequestDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -40,10 +78,6 @@ const ServicesView = () => {
         {
             header: 'Servicio',
             accessor: (row) => row.service.name
-        },
-        {
-            header: 'Costo Servicio',
-            accessor: (row) => formatCurrency(row.service.cost)
         },
         {
             header: 'Cliente',
@@ -60,7 +94,7 @@ const ServicesView = () => {
         {
             header: 'Detalles',
             accessor: (row) => (
-                <div className="text-xs text-gray-600 max-w-xs truncate">
+                <div className="text-xs text-gray-600 max-w-xs truncate" title={row.details}>
                     {row.details || '-'}
                 </div>
             )
@@ -72,14 +106,28 @@ const ServicesView = () => {
         {
             header: 'Acciones',
             accessor: (row) => (
-                row.status === 'OPEN' ?
-                    <Button size="sm" variant="success" leftIcon={<Check size={14} />}>Atender</Button>
-                    : null
+                <div className="flex gap-2">
+                    {row.status === 'OPEN' && (
+                        <Button size="sm" variant="primary" onClick={() => handleStatusChange(row.id, 'IN_PROGRESS')}>
+                            Atender
+                        </Button>
+                    )}
+                    {row.status === 'IN_PROGRESS' && (
+                        <Button size="sm" variant="success" onClick={() => handleStatusChange(row.id, 'COMPLETED')}>
+                            Completar
+                        </Button>
+                    )}
+                    {(row.status === 'OPEN' || row.status === 'IN_PROGRESS') && (
+                        <Button size="sm" variant="danger" onClick={() => handleStatusChange(row.id, 'REJECTED')}>
+                            Rechazar
+                        </Button>
+                    )}
+                </div>
             )
         }
     ];
 
-    const serviceColumns: Column<HotelService>[] = [
+    const serviceColumns: Column<HotelServiceDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -118,8 +166,10 @@ const ServicesView = () => {
         },
         {
             header: 'Acciones',
-            accessor: () => (
-                <Button size="sm" variant="outline">Editar</Button>
+            accessor: (row) => (
+                <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
+                    Editar
+                </Button>
             )
         }
     ];
@@ -131,30 +181,47 @@ const ServicesView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
                     <p className="text-gray-600">Gestión de servicios y solicitudes</p>
                 </div>
-                <Button>Nuevo Servicio</Button>
+                {!showForm && (
+                    <Button onClick={handleCreateClick}>Nuevo Servicio</Button>
+                )}
             </div>
 
-            <Card className="card-plain">
-                <Table
-                    data={requests}
-                    columns={requestColumns}
-                    isLoading={loading}
-                    title="Solicitudes de Servicio"
-                    emptyMessage="No hay solicitudes pendientes"
-                    keyExtractor={(item) => item.id}
-                />
-            </Card>
+            <div className="space-y-6">
+                <Card className="card-plain">
+                    <Table
+                        data={requests}
+                        columns={requestColumns}
+                        isLoading={loading}
+                        title="Solicitudes de Servicio"
+                        emptyMessage="No hay solicitudes pendientes"
+                        keyExtractor={(item) => item.id}
+                    />
+                </Card>
 
-            <Card className="card-plain">
-                <Table
-                    data={services}
-                    columns={serviceColumns}
-                    isLoading={loading}
-                    title="Catálogo de Servicios"
-                    emptyMessage="No hay servicios disponibles"
-                    keyExtractor={(item) => item.id}
+                <Card className="card-plain">
+                    <Table
+                        data={services}
+                        columns={serviceColumns}
+                        isLoading={loading}
+                        title="Catálogo de Servicios"
+                        emptyMessage="No hay servicios disponibles"
+                        keyExtractor={(item) => item.id}
+                    />
+                </Card>
+            </div>
+
+            {/* Modal de Servicio */}
+            <Modal
+                isOpen={showForm}
+                onClose={() => setShowForm(false)}
+                title={editingService ? 'Editar Servicio' : 'Nuevo Servicio'}
+            >
+                <ServiceForm
+                    initialData={editingService}
+                    onSuccess={handleFormSuccess}
+                    onCancel={() => setShowForm(false)}
                 />
-            </Card>
+            </Modal>
         </div>
     );
 };
