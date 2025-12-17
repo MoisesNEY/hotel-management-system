@@ -34,26 +34,6 @@ interface UserData {
   };
 }
 
-interface Booking {
-  id: string;
-  roomType: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  status: 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
-  totalPrice: number;
-  roomNumber?: string;
-}
-
-interface ServiceRequest {
-  id: string;
-  serviceType: string;
-  requestedDate: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
-  price?: number;
-}
-
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
@@ -61,11 +41,6 @@ const UserProfilePage: React.FC = () => {
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
-
-  // Estados para los modales
-  const [showBookingsModal, setShowBookingsModal] = useState(false);
-  const [showServicesModal, setShowServicesModal] = useState(false);
-
   // Estados para los datos
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
@@ -248,19 +223,6 @@ const UserProfilePage: React.FC = () => {
       day: 'numeric'
     });
   };
-
-  const formatDateTime = (dateTimeString: string) => {
-    if (!dateTimeString) return 'No especificada';
-    const date = new Date(dateTimeString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const getGenderText = (gender: string) => {
     switch (gender) {
       case 'Male': return 'Masculino';
@@ -269,29 +231,6 @@ const UserProfilePage: React.FC = () => {
       default: return 'No especificado';
     }
   };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'Confirmada';
-      case 'PENDING': return 'Pendiente';
-      case 'CANCELLED': return 'Cancelada';
-      case 'COMPLETED': return 'Completada';
-      case 'IN_PROGRESS': return 'En Progreso';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-green-100 text-green-800';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const isNewUser = () => {
     return !hasCompletedExtraInfo;
   };
@@ -311,148 +250,6 @@ const UserProfilePage: React.FC = () => {
 
   return (
     <div className="user-profile-container">
-      {/* Modales */}
-      {showBookingsModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
-                <Bed size={24} />
-                Mis Reservas
-              </h2>
-              <button className="modal-close" onClick={handleCloseBookingsModal}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-content">
-              {isLoadingBookings ? (
-                <div className="loading-state">
-                  <div className="loading-spinner"></div>
-                  <p>Cargando reservas...</p>
-                </div>
-              ) : bookings.length === 0 ? (
-                <div className="empty-state">
-                  <Bed size={48} className="empty-icon" />
-                  <h3>No has realizado ninguna reserva</h3>
-                  <p>Cuando hagas una reserva en nuestro hotel, aparecerá aquí.</p>
-                  <button className="btn btn-primary" onClick={() => navigate('/')}>
-                    Explorar Habitaciones
-                  </button>
-                </div>
-              ) : (
-                <div className="bookings-list">
-                  {bookings.map(booking => (
-                    <div key={booking.id} className="booking-card">
-                      <div className="booking-header">
-                        <h3>{booking.roomType}</h3>
-                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
-                          {getStatusText(booking.status)}
-                        </span>
-                      </div>
-                      <div className="booking-details">
-                        <div className="detail">
-                          <span className="detail-label">Check-in:</span>
-                          <span className="detail-value">{formatDate(booking.checkIn)}</span>
-                        </div>
-                        <div className="detail">
-                          <span className="detail-label">Check-out:</span>
-                          <span className="detail-value">{formatDate(booking.checkOut)}</span>
-                        </div>
-                        <div className="detail">
-                          <span className="detail-label">Huéspedes:</span>
-                          <span className="detail-value">{booking.guests}</span>
-                        </div>
-                        {booking.roomNumber && (
-                          <div className="detail">
-                            <span className="detail-label">Habitación:</span>
-                            <span className="detail-value">{booking.roomNumber}</span>
-                          </div>
-                        )}
-                        <div className="detail">
-                          <span className="detail-label">Total:</span>
-                          <span className="detail-value font-bold">${booking.totalPrice}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={handleCloseBookingsModal}>
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showServicesModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
-                <Coffee size={24} />
-                Mis Servicios Solicitados
-              </h2>
-              <button className="modal-close" onClick={handleCloseServicesModal}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-content">
-              {isLoadingServices ? (
-                <div className="loading-state">
-                  <div className="loading-spinner"></div>
-                  <p>Cargando servicios...</p>
-                </div>
-              ) : serviceRequests.length === 0 ? (
-                <div className="empty-state">
-                  <Coffee size={48} className="empty-icon" />
-                  <h3>No has solicitado ningún servicio</h3>
-                  <p>Cuando solicites un servicio durante tu estancia, aparecerá aquí.</p>
-                </div>
-              ) : (
-                <div className="services-list">
-                  {serviceRequests.map(service => (
-                    <div key={service.id} className="service-card">
-                      <div className="service-header">
-                        <h3>{service.serviceType}</h3>
-                        <span className={`status-badge ${getStatusColor(service.status)}`}>
-                          {getStatusText(service.status)}
-                        </span>
-                      </div>
-                      <div className="service-details">
-                        <div className="detail">
-                          <span className="detail-label">Solicitado:</span>
-                          <span className="detail-value">{formatDateTime(service.requestedDate)}</span>
-                        </div>
-                        {service.notes && (
-                          <div className="detail">
-                            <span className="detail-label">Notas:</span>
-                            <span className="detail-value">{service.notes}</span>
-                          </div>
-                        )}
-                        {service.price && (
-                          <div className="detail">
-                            <span className="detail-label">Precio:</span>
-                            <span className="detail-value">${service.price}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={handleCloseServicesModal}>
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Contenido principal */}
       <div className="profile-header">
         <button className="back-button" onClick={() => navigate('/')}>
