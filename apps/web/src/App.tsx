@@ -11,21 +11,13 @@ import './styles/landing.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireProfile from './components/RequireProfile';
 import RoleGuard from './components/RoleGuard';
-import './admin/styles/admin.css';
-import keycloak from './services/keycloak';
-import { useEffect } from 'react';
+// import './admin/styles/admin.css'; // Removed: Imported in index.css
+// import keycloak from './services/keycloak'; // Removed: Handled by AuthProvider
+// import { useEffect } from 'react'; // Removed unused
 
 function App() {
-  // const [authenticated, setAuthenticated] = useState(false);
-
-  useEffect(() => {
-    keycloak.init({
-      onLoad: 'check-sso',  // Verifica si hay sesión sin forzar login
-      checkLoginIframe: false
-    }).then(() => {
-      // setAuthenticated(authenticated);
-    });
-  }, []);
+  // Keycloak initialization is handled by AuthProvider in main.tsx
+  // No need for local useEffect init here to avoid double-init issues.
 
   return (
     <Routes>
@@ -40,9 +32,10 @@ function App() {
           <Route path="/profile" element={<UserProfilePage />} />
 
           {/* Rutas Administrativas (Requieren Rol) */}
-          <Route element={<RoleGuard requiredRole="ROLE_EMPLOYEE" />}>
+          {/* Legacy route commented out in favor of new Admin Panel at /admin/* */}
+          {/* <Route element={<RoleGuard requiredRole="ROLE_EMPLOYEE" />}>
             <Route path="/admin/reservations" element={<AdminReservationPage />} />
-          </Route>
+          </Route> */}
 
         </Route>
 

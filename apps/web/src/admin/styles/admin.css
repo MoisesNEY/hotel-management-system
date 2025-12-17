@@ -138,8 +138,8 @@
     --admin-active-danger: #ef4444;
 }
 
-/* Smooth Transitions */
-* {
+/* Smooth Transitions - Scoped to avoid affecting Landing Page */
+.admin-layout * {
     transition-property: background-color, border-color, color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
