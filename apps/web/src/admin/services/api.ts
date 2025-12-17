@@ -1,9 +1,39 @@
 import axios from 'axios';
 import { API_BASE_URL, API_ENDPOINTS } from '../utils/constants';
 import type {
-    Customer, Room, Booking, ServiceRequest, HotelService,
-    DashboardStats, ChartData, RoomType
-} from '../types';
+    CustomerDetailsDTO, RoomDTO, BookingDTO, ServiceRequestDTO, HotelServiceDTO,
+    RoomTypeDTO
+} from '../../types/sharedTypes';
+
+// Type aliases for consistency with admin panel naming
+export type Customer = CustomerDetailsDTO;
+export type Room = RoomDTO;
+export type RoomType = RoomTypeDTO;
+export type Booking = BookingDTO;
+export type HotelService = HotelServiceDTO;
+export type ServiceRequest = ServiceRequestDTO;
+
+// Dashboard-specific types
+export interface DashboardStats {
+    totalBookings: number;
+    occupancyRate: number;
+    totalRevenue: number;
+    activeCustomers: number;
+}
+
+export interface ChartDataset {
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor: string;
+    tension?: number;
+    fill?: boolean;
+}
+
+export interface ChartData {
+    labels: string[];
+    datasets: ChartDataset[];
+}
 
 // Create axios instance without Keycloak interceptors
 const api = axios.create({
@@ -55,17 +85,33 @@ export const roomsService = {
     getTypes: async (): Promise<RoomType[]> => {
         return (await api.get(`${API_ENDPOINTS.ROOMS}/types`)).data;
     },
-    getById: async (id: string): Promise<Room> => {
+    getById: async (id: number): Promise<Room> => {
         return (await api.get(`${API_ENDPOINTS.ROOMS}/${id}`)).data;
     },
     create: async (room: Omit<Room, 'id'>): Promise<Room> => {
         return (await api.post(API_ENDPOINTS.ROOMS, room)).data;
     },
-    update: async (id: string, room: Partial<Room>): Promise<Room> => {
+    update: async (id: number, room: Partial<Room>): Promise<Room> => {
         return (await api.put(`${API_ENDPOINTS.ROOMS}/${id}`, room)).data;
     },
-    delete: async (id: string): Promise<void> => {
+    delete: async (id: number): Promise<void> => {
         await api.delete(`${API_ENDPOINTS.ROOMS}/${id}`);
+    }
+};
+
+// Room Types Service
+export const roomTypesService = {
+    getAll: async (): Promise<RoomType[]> => {
+        return (await api.get(`${API_ENDPOINTS.ROOMS}/types`)).data;
+    },
+    create: async (data: Omit<RoomType, 'id'>): Promise<RoomType> => {
+        return (await api.post(`${API_ENDPOINTS.ROOMS}/types`, data)).data;
+    },
+    update: async (id: number, data: Partial<RoomType>): Promise<RoomType> => {
+        return (await api.put(`${API_ENDPOINTS.ROOMS}/types/${id}`, data)).data;
+    },
+    delete: async (id: number): Promise<void> => {
+        await api.delete(`${API_ENDPOINTS.ROOMS}/types/${id}`);
     }
 };
 

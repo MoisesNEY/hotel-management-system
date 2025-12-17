@@ -11,13 +11,8 @@ import './styles/landing.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireProfile from './components/RequireProfile';
 import RoleGuard from './components/RoleGuard';
-// import './admin/styles/admin.css'; // Removed: Imported in index.css
-// import keycloak from './services/keycloak'; // Removed: Handled by AuthProvider
-// import { useEffect } from 'react'; // Removed unused
 
 function App() {
-  // Keycloak initialization is handled by AuthProvider in main.tsx
-  // No need for local useEffect init here to avoid double-init issues.
 
   return (
     <Routes>

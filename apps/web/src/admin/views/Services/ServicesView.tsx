@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
@@ -24,7 +24,7 @@ const ServicesView = () => {
                 setServices(servicesData);
                 setRequests(requestsData);
             } catch (error) {
-                console.error(error);
+                console.error("Error loading services", error);
             } finally {
                 setLoading(false);
             }
@@ -33,57 +33,128 @@ const ServicesView = () => {
     }, []);
 
     const requestColumns: Column<ServiceRequest>[] = [
-        { header: 'Servicio', accessor: (row: ServiceRequest) => row.service.name },
-        { header: 'Habitación', accessor: (row: ServiceRequest) => `Hab.?? (ID: ${row.bookingId.slice(0, 4)})` },
+        {
+            header: 'ID',
+            accessor: (row) => row.id
+        },
+        {
+            header: 'Servicio',
+            accessor: (row) => row.service.name
+        },
+        {
+            header: 'Costo Servicio',
+            accessor: (row) => formatCurrency(row.service.cost)
+        },
+        {
+            header: 'Cliente',
+            accessor: (row) => `${row.booking.customer.firstName} ${row.booking.customer.lastName}`
+        },
+        {
+            header: 'Reserva ID',
+            accessor: (row) => row.booking.id
+        },
+        {
+            header: 'Fecha Solicitud',
+            accessor: (row) => formatDateTime(row.requestDate)
+        },
+        {
+            header: 'Detalles',
+            accessor: (row) => (
+                <div className="text-xs text-gray-600 max-w-xs truncate">
+                    {row.details || '-'}
+                </div>
+            )
+        },
         {
             header: 'Estado',
-            accessor: (row: ServiceRequest) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge>
+            accessor: (row) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge>
         },
-        { header: 'Solicitado', accessor: (row: ServiceRequest) => formatDateTime(row.requestTime) },
-        { header: 'Total', accessor: (row: ServiceRequest) => formatCurrency(row.totalPrice) },
         {
             header: 'Acciones',
-            accessor: (row: ServiceRequest) => (
-                row.status === 'PENDING' ? <Button size="sm" variant="success" leftIcon={<Check size={14} />}>Atender</Button> : null
+            accessor: (row) => (
+                row.status === 'OPEN' ?
+                    <Button size="sm" variant="success" leftIcon={<Check size={14} />}>Atender</Button>
+                    : null
+            )
+        }
+    ];
+
+    const serviceColumns: Column<HotelService>[] = [
+        {
+            header: 'ID',
+            accessor: (row) => row.id
+        },
+        {
+            header: 'Nombre',
+            accessor: (row) => row.name
+        },
+        {
+            header: 'Descripción',
+            accessor: (row) => (
+                <div className="text-sm text-gray-600 max-w-md truncate">
+                    {row.description || '-'}
+                </div>
+            )
+        },
+        {
+            header: 'Costo',
+            accessor: (row) => formatCurrency(row.cost)
+        },
+        {
+            header: 'Imagen URL',
+            accessor: (row) => (
+                <div className="text-xs text-gray-500 max-w-xs truncate">
+                    {row.imageUrl || '-'}
+                </div>
+            )
+        },
+        {
+            header: 'Disponible',
+            accessor: (row) => (
+                <Badge variant={row.isAvailable ? 'success' : 'warning'}>
+                    {row.isAvailable ? 'Sí' : 'No'}
+                </Badge>
+            )
+        },
+        {
+            header: 'Acciones',
+            accessor: () => (
+                <Button size="sm" variant="outline">Editar</Button>
             )
         }
     ];
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800">Servicios de Hotel</h1>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <Table
-                        title="Solicitudes Recientes"
-                        data={requests}
-                        columns={requestColumns}
-                        isLoading={loading}
-                        emptyMessage="No hay solicitudes pendientes"
-                        keyExtractor={(item: ServiceRequest) => item.id}
-                    />
-                </div>
-
+            <div className="flex justify-between items-center">
                 <div>
-                    <Card title="Catálogo de Servicios">
-                        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                            {services.map(service => (
-                                <div key={service.id} className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50 flex justify-between items-center group">
-                                    <div>
-                                        <h4 className="font-semibold text-gray-800">{service.name}</h4>
-                                        <p className="text-xs text-gray-500">{service.category}</p>
-                                    </div>
-                                    <span className="font-bold text-blue-600">{formatCurrency(service.price)}</span>
-                                </div>
-                            ))}
-                            <Button block className="mt-4">
-                                Agregar Servicio
-                            </Button>
-                        </div>
-                    </Card>
+                    <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
+                    <p className="text-gray-600">Gestión de servicios y solicitudes</p>
                 </div>
+                <Button>Nuevo Servicio</Button>
             </div>
+
+            <Card className="card-plain">
+                <Table
+                    data={requests}
+                    columns={requestColumns}
+                    isLoading={loading}
+                    title="Solicitudes de Servicio"
+                    emptyMessage="No hay solicitudes pendientes"
+                    keyExtractor={(item) => item.id}
+                />
+            </Card>
+
+            <Card className="card-plain">
+                <Table
+                    data={services}
+                    columns={serviceColumns}
+                    isLoading={loading}
+                    title="Catálogo de Servicios"
+                    emptyMessage="No hay servicios disponibles"
+                    keyExtractor={(item) => item.id}
+                />
+            </Card>
         </div>
     );
 };

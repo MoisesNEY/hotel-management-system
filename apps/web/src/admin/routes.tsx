@@ -15,6 +15,7 @@ import type { LucideIcon } from 'lucide-react';
 // Import views
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
+import RoomTypesView from './views/RoomTypes/RoomTypesView';
 import BookingsView from './views/Bookings/BookingsView'; // Imported
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView'; // Imported
@@ -45,6 +46,13 @@ const routes: RouteConfig[] = [
         name: 'Habitaciones',
         icon: BedDouble,
         component: RoomsView,
+        layout: '/admin'
+    },
+    {
+        path: '/room-types',
+        name: 'Tipos Hab.',
+        icon: Table2, // Reusing Table icon or similar for generic config
+        component: RoomTypesView,
         layout: '/admin'
     },
     {

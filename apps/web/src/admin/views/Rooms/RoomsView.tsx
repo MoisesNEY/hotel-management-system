@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Plus, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
+import Modal from '../../components/shared/Modal';
 import { roomsService } from '../../services/api';
-import type { Room } from '../../types';
-import { formatCurrency, getStatusColor } from '../../utils/helpers';
+import type { Room } from '../../services/api';
+import { getStatusColor } from '../../utils/helpers';
+import RoomForm from './RoomForm';
 
 const RoomsView = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [showModal, setShowModal] = useState(false);
+    const [editingRoom, setEditingRoom] = useState<Room | null>(null);
 
     useEffect(() => {
         loadRooms();
@@ -29,29 +32,33 @@ const RoomsView = () => {
         }
     };
 
+    const handleSuccess = () => {
+        setShowModal(false);
+        setEditingRoom(null);
+        loadRooms();
+    };
+
+    const handleCancel = () => {
+        setShowModal(false);
+        setEditingRoom(null);
+    };
+
     const filteredRooms = statusFilter === 'ALL'
         ? rooms
         : rooms.filter(room => room.status === statusFilter);
 
     const columns: Column<Room>[] = [
         {
+            header: 'ID',
+            accessor: (row) => row.id
+        },
+        {
             header: 'Número',
             accessor: (row) => <span className="font-bold text-gray-800">#{row.roomNumber}</span>
         },
-        { header: 'Tipo', accessor: (row) => row.type.name },
         {
-            header: 'Capacidad',
-            accessor: (row) => (
-                <div className="flex items-center text-gray-600">
-                    <Users size={16} className="mr-1" /> {row.capacity}
-                </div>
-            )
-        },
-        {
-            header: 'Precio / Noche',
-            accessor: (row) => (
-                <span className="font-semibold text-green-600">{formatCurrency(row.pricePerNight)}</span>
-            )
+            header: 'Tipo',
+            accessor: (row) => row.roomType.name
         },
         {
             header: 'Estado',
@@ -83,7 +90,7 @@ const RoomsView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Gestión de Habitaciones</h1>
                     <p className="text-gray-500 text-sm mt-1">Control de inventario y estados</p>
                 </div>
-                <Button>Nueva Habitación</Button>
+                <Button onClick={() => setShowModal(true)}>Nueva Habitación</Button>
             </div>
 
             {/* Quick Stats */}
@@ -126,6 +133,20 @@ const RoomsView = () => {
                     keyExtractor={(room: Room) => room.id}
                 />
             </Card>
+
+            {/* Modal */}
+            <Modal
+                isOpen={showModal}
+                onClose={handleCancel}
+                title={editingRoom ? "Editar Habitación" : "Nueva Habitación"}
+                size="lg"
+            >
+                <RoomForm
+                    initialData={editingRoom}
+                    onSuccess={handleSuccess}
+                    onCancel={handleCancel}
+                />
+            </Modal>
         </div>
     );
 };

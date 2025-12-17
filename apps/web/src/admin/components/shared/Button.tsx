@@ -10,6 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     leftIcon?: React.ReactNode; // Alias for icon or explicit left position
     isLoading?: boolean;
     block?: boolean; // Full width
+    iconOnly?: boolean; // Icon-only button without text
     children?: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ const Button: React.FC<ButtonProps> = ({
     leftIcon,
     isLoading = false,
     block = false,
+    iconOnly = false,
     disabled,
     ...props
 }) => {
