@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface HotelServiceRepository extends JpaRepository<HotelService, Long> {}
+public interface HotelServiceRepository extends JpaRepository<HotelService, Long> {
+    boolean existsByIdAndIsAvailableTrue(Long id);
+}

@@ -13,14 +13,13 @@ import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
 import org.hotel.service.mapper.client.ClientBookingMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
@@ -83,11 +82,8 @@ public class ClientBookingService {
             request.getCheckOutDate()
         );
         if (occupiedRooms >= totalRooms) {
-            throw new BadRequestAlertException(
-                "Lo sentimos, no hay disponibilidad para estas fechas.", // Mensaje por defecto
-                "booking",
-                ERROR_ROOM_AVAILABILITY
-            );
+            throw new BusinessRuleException(
+                "Lo sentimos, no hay disponibilidad para estas fechas.");
         }
         Booking booking = clientBookingMapper.toEntity(request);
 
@@ -99,11 +95,8 @@ public class ClientBookingService {
         // Calcular Precio Total: (Días * PrecioNoche)
         long days = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
         if (days < 1) {
-            throw new BadRequestAlertException(
-                "La fecha de salida debe ser posterior a la de entrada.",
-                "booking",
-                INVALID_DATES
-            );
+            throw new BusinessRuleException(
+                "La fecha de salida debe ser posterior a la de entrada.");
         }
         BigDecimal totalPrice = roomType.getBasePrice().multiply(BigDecimal.valueOf(days));
         booking.setTotalPrice(totalPrice);

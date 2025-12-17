@@ -9,6 +9,8 @@ import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.dto.employee.request.booking.AssignRoomRequest;
 import org.hotel.service.mapper.BookingMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
+import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,17 +35,14 @@ public class EmployeeBookingService {
 
     public BookingDTO checkIn(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new BadRequestAlertException("Reserva no encontrada",
-                "booking", ID_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         if (!BookingStatus.CONFIRMED.equals(booking.getStatus())) {
-            throw new BadRequestAlertException("La reserva no esta lista para Check-In.",
-                "booking", "statusError");
+            throw new BusinessRuleException("La reserva no esta lista para Check-In.");
         }
 
         if (booking.getAssignedRoom() == null) {
-            throw new BadRequestAlertException("Debes asignar una habitación para realizar el Check-In.",
-                "booking", "roomRequired");
+            throw new BusinessRuleException("Debes asignar una habitación para realizar el Check-In.");
         }
 
         // Cambio de estado
@@ -53,12 +52,10 @@ public class EmployeeBookingService {
 
     public BookingDTO checkOut(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new BadRequestAlertException("Reserva no encontrada",
-                "booking", ID_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         if (!BookingStatus.CHECKED_IN.equals(booking.getStatus())) {
-            throw new BadRequestAlertException("Solo se puede hacer Check-Out de una reserva activa.",
-                "booking", "statusError");
+            throw new BusinessRuleException("Solo se puede hacer Check-Out de una reserva activa.");
         }
         booking.setStatus(BookingStatus.CHECKED_OUT);
         return bookingMapper.toDto(bookingRepository.save(booking));
@@ -66,16 +63,14 @@ public class EmployeeBookingService {
 
     public BookingDTO assignRoom(Long bookingId, AssignRoomRequest assignRoomRequest) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new BadRequestAlertException("Reserva no encontrada",
-                "booking", ID_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         Room newRoom = roomRepository.findById(assignRoomRequest.getRoomId())
             .orElseThrow(() -> new BadRequestAlertException("Habitación no encontrada",
                 "booking", ID_NOT_FOUND));
 
         if (!BookingStatus.CONFIRMED.equals(booking.getStatus())) {
-            throw new BadRequestAlertException("La reserva no esta lista para asignar una habitación",
-                "booking", "statusError");
+            throw new BusinessRuleException("La reserva no esta lista para asignar una habitación");
         }
 
         booking.setAssignedRoom(newRoom);
