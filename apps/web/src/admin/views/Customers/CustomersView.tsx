@@ -3,13 +3,17 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
+import Modal from '../../components/shared/Modal';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import type { CustomerDetailsDTO } from '../../../types/sharedTypes';
+import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 
 const CustomersView = () => {
     const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
 
     useEffect(() => {
         loadCustomers();
@@ -25,6 +29,21 @@ const CustomersView = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCreate = () => {
+        setEditingCustomer(null);
+        setShowForm(true);
+    };
+
+    const handleEdit = (customer: CustomerDetailsDTO) => {
+        setEditingCustomer(customer);
+        setShowForm(true);
+    };
+
+    const handleFormSuccess = () => {
+        setShowForm(false);
+        loadCustomers();
     };
 
     const columns: Column<CustomerDetailsDTO>[] = [
@@ -53,18 +72,6 @@ const CustomersView = () => {
             accessor: (row) => row.phone
         },
         {
-            header: 'Dirección Línea 1',
-            accessor: (row) => row.addressLine1
-        },
-        {
-            header: 'Dirección Línea 2',
-            accessor: (row) => (
-                <div className="text-sm text-gray-600">
-                    {row.addressLine2 || '-'}
-                </div>
-            )
-        },
-        {
             header: 'Ciudad',
             accessor: (row) => row.city
         },
@@ -73,7 +80,7 @@ const CustomersView = () => {
             accessor: (row) => row.country
         },
         {
-            header: 'Licencia ID',
+            header: 'DNI / Pasaporte',
             accessor: (row) => (
                 <code className="text-xs bg-gray-100 px-2 py-1 rounded">
                     {row.licenseId}
@@ -86,9 +93,15 @@ const CustomersView = () => {
         },
         {
             header: 'Acciones',
-            accessor: () => (
+            accessor: (row) => (
                 <div className="flex space-x-2">
-                    <Button size="sm" variant="info">Ver Detalles</Button>
+                    <Button
+                        size="sm"
+                        variant="warning"
+                        onClick={() => handleEdit(row)}
+                    >
+                        Editar
+                    </Button>
                 </div>
             )
         }
@@ -101,6 +114,9 @@ const CustomersView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
                     <p className="text-gray-600">Gestión de base de datos de clientes</p>
                 </div>
+                <Button onClick={handleCreate} variant="primary">
+                    Nuevo Cliente
+                </Button>
             </div>
 
             <Card className="card-plain">
@@ -113,6 +129,20 @@ const CustomersView = () => {
                     keyExtractor={(item) => item.id}
                 />
             </Card>
+
+            {/* Modal de Cliente */}
+            <Modal
+                isOpen={showForm}
+                onClose={() => setShowForm(false)}
+                title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
+                size="lg"
+            >
+                <CustomerForm
+                    initialData={editingCustomer}
+                    onSuccess={handleFormSuccess}
+                    onCancel={() => setShowForm(false)}
+                />
+            </Modal>
         </div>
     );
 };

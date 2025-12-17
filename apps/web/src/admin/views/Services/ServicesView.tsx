@@ -8,11 +8,33 @@ import { getAllHotelServices } from '../../../services/admin/hotelServiceService
 import { getAllServiceRequests, updateServiceRequest } from '../../../services/admin/serviceRequestService';
 import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/sharedTypes';
 import { formatCurrency, formatDateTime, getStatusColor } from '../../utils/helpers';
+import ServiceForm from './ServiceForm';
+import Modal from '../../components/shared/Modal';
 
 const ServicesView = () => {
     const [services, setServices] = useState<HotelServiceDTO[]>([]);
     const [requests, setRequests] = useState<ServiceRequestDTO[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Form State
+    const [showForm, setShowForm] = useState(false);
+    const [editingService, setEditingService] = useState<HotelServiceDTO | null>(null);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const [servicesResponse, requestsResponse] = await Promise.all([
+                getAllHotelServices(0, 50),
+                getAllServiceRequests(0, 50)
+            ]);
+            setServices(servicesResponse.data);
+            setRequests(requestsResponse.data);
+        } catch (error) {
+            console.error("Error loading services", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -58,10 +80,6 @@ const ServicesView = () => {
             accessor: (row) => row.service.name
         },
         {
-            header: 'Costo Servicio',
-            accessor: (row) => formatCurrency(row.service.cost)
-        },
-        {
             header: 'Cliente',
             accessor: (row) => `${row.booking.customer.firstName || 'Sin'} ${row.booking.customer.lastName || 'Nombre'}`
         },
@@ -76,7 +94,7 @@ const ServicesView = () => {
         {
             header: 'Detalles',
             accessor: (row) => (
-                <div className="text-xs text-gray-600 max-w-xs truncate">
+                <div className="text-xs text-gray-600 max-w-xs truncate" title={row.details}>
                     {row.details || '-'}
                 </div>
             )
@@ -141,8 +159,10 @@ const ServicesView = () => {
         },
         {
             header: 'Acciones',
-            accessor: () => (
-                <Button size="sm" variant="outline">Editar</Button>
+            accessor: (row) => (
+                <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
+                    Editar
+                </Button>
             )
         }
     ];
@@ -154,7 +174,9 @@ const ServicesView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
                     <p className="text-gray-600">Gestión de servicios y solicitudes</p>
                 </div>
-                <Button>Nuevo Servicio</Button>
+                {!showForm && (
+                    <Button onClick={handleCreateClick}>Nuevo Servicio</Button>
+                )}
             </div>
 
             <Card className="card-plain">
@@ -177,7 +199,7 @@ const ServicesView = () => {
                     emptyMessage="No hay servicios disponibles"
                     keyExtractor={(item: HotelServiceDTO) => item.id}
                 />
-            </Card>
+            </Modal>
         </div>
     );
 };
