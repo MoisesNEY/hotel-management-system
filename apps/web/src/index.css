@@ -1,7 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 * {
   margin: 0;
   padding: 0;
@@ -122,80 +124,5 @@ h6 {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  text-align: center;
-}
-
-/* Redes sociales */
-
-.footer-socials {
-  display: flex;
-  gap: 20px;
-}
-
-.footer-socials img {
-  width: 36px;
-  height: 36px;
-  transition: transform 0.3s ease, filter 0.3s ease;
-  cursor: pointer;
-}
-
-.footer-socials img:hover {
-  transform: scale(1.15);
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
-}
-
-/* Icono extra */
-
-.footer-extra-icon img {
-  width: 50px;
-  height: 50px;
-  opacity: 0.9;
-}
-
-/* Texto final */
-
-.footer-bottom p {
-  font-size: 14px;
-  color: rgba(220, 230, 255, 0.8);
-  margin: 0;
-}
-
-/* Tamaño uniforme para TODOS los iconos */
-
-.footer-socials img,
-.footer-extra-icon img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
-}
-
-/* Hover animado en redes sociales */
-
-.footer-socials img:hover {
-  transform: translateY(-6px) scale(1.15) rotate(3deg);
-  filter: drop-shadow(0 8px 15px rgba(255, 255, 255, 0.45));
-}
-
-/* Animación especial para el icono inferior */
-
-.footer-extra-icon img:hover {
-  transform: scale(1.2) rotate(-6deg);
-  filter: drop-shadow(0 6px 12px rgba(255, 215, 0, 0.6));
-}
-
-/* Suaviza el movimiento */
-
-.footer-socials img,
-.footer-extra-icon img {
-  will-change: transform;
-}
-
-.footer-title {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #e6ebff;
-  margin-bottom: 10px;
   text-align: center;
 }
