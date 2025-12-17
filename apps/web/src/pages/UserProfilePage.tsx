@@ -11,6 +11,8 @@ import keycloak from '../services/keycloak';
 import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
 import '../styles/user-profile.css';
 import { getMyBookings } from '../services/client/bookingService';
+import ServiceRequestModal from '../components/ServiceRequestModal';
+import { ConciergeBell } from 'lucide-react';
 
 interface UserData {
   firstName: string;
@@ -60,6 +62,7 @@ const UserProfilePage: React.FC = () => {
 
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [selectedBookingForService, setSelectedBookingForService] = useState<{id: number, roomTypeName: string} | null>(null);
 
   useEffect(() => {
     // Verificar autenticación
@@ -733,25 +736,33 @@ const UserProfilePage: React.FC = () => {
                              </div>
                              {renderBookingStatus(booking.status)}
                           </div>
+                                                    <div className="space-y-3 mb-6">
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <Calendar size={18} className="text-[#d4af37]" />
+                                <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <CreditCard size={18} className="text-[#d4af37]" />
+                                <span className="font-bold">${booking.totalPrice}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-gray-700">
+                                <User size={18} className="text-[#d4af37]" />
+                                <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
+                              </div>
+                            </div>
                           
-                          <div className="booking-details">
-                            <div className="booking-detail-row">
-                              <Calendar size={18} />
-                              <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
-                            </div>
-                            <div className="booking-detail-row">
-                              <CreditCard size={18} />
-                              <span className="booking-price">${booking.totalPrice}</span>
-                            </div>
-                            <div className="booking-detail-row">
-                              <User size={18} />
-                              <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
-                            </div>
+                          <div className="space-y-2">
+                             <button
+                                onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })}
+                                className="w-full py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 rounded-lg hover:bg-[#d4af37]/20 transition-colors text-sm font-bold flex items-center justify-center gap-2"
+                              >
+                                <ConciergeBell size={16} />
+                                Solicitar Servicio
+                              </button>
+                              <button className="w-full py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
+                                Ver Detalles
+                              </button>
                           </div>
-                          
-                          <button className="btn-details">
-                            Ver Detalles
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -788,6 +799,19 @@ const UserProfilePage: React.FC = () => {
         )}
 
       </div>
+
+      {selectedBookingForService && (
+        <ServiceRequestModal
+          bookingId={selectedBookingForService.id}
+          roomTypeName={selectedBookingForService.roomTypeName}
+          onClose={() => setSelectedBookingForService(null)}
+          onSuccess={() => {
+            // Optional: Show success message or toast
+            // Maybe refresh bookings or fetch service requests history
+             alert('Solicitud enviada con éxito');
+          }}
+        />
+      )}
     </div>
   );
 };
