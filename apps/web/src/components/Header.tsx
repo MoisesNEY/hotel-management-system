@@ -3,6 +3,7 @@ import { Hotel, Menu, X, LogOut, User, AlertCircle } from 'lucide-react';
 import '../styles/header.css';
 import { useAuth } from '../contexts/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
 
 const Header: React.FC = () => {
   const { isAuthenticated, userProfile, login, logout, hasProfile } = useAuth();
@@ -205,6 +206,9 @@ const Header: React.FC = () => {
                         <button className="dropdown-item" onClick={handleViewProfile}>
                           <User size={16} /><span>Ver Perfil</span>
                         </button>
+
+                        <div className="dropdown-divider"></div>
+                        <ThemeToggle variant="dropdown" />
 
                         {!hasCompletedExtraInfo && (
                           <>

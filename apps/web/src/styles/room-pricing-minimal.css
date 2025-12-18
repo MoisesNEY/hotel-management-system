@@ -188,7 +188,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--modal-overlay);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -198,11 +198,13 @@
 .reservation-modal {
     position: relative;
     z-index: 1001;
-    background: #fff;
+    background: var(--card-bg);
+    color: var(--text-primary);
     padding: 20px;
     border-radius: 8px;
     width: 90%;
     max-width: 600px;
+    border: 1px solid var(--border-color);
 }
 
 .close-modal {
@@ -290,7 +292,8 @@
     position: relative !important;
     z-index: 10000 !important;
     /* Más alto que el overlay */
-    background: #fff !important;
+    background: var(--card-bg) !important;
+    color: var(--text-primary) !important;
     padding: 30px !important;
     border-radius: 12px !important;
     width: 90% !important;
@@ -299,6 +302,7 @@
     overflow-y: auto !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
     animation: modalSlideIn 0.3s ease-out !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 @keyframes modalSlideIn {
@@ -350,7 +354,7 @@
     gap: 30px !important;
     margin-bottom: 30px !important;
     padding-bottom: 20px !important;
-    border-bottom: 1px solid #eaeaea !important;
+    border-bottom: 1px solid var(--border-color) !important;
 }
 
 .room-summary {
@@ -368,12 +372,12 @@
 
 .room-info h4 {
     margin: 0 0 10px 0 !important;
-    color: #1a1a2e !important;
+    color: var(--text-primary) !important;
 }
 
 .room-info p {
     margin: 0 0 10px 0 !important;
-    color: #666 !important;
+    color: var(--text-secondary) !important;
     font-size: 0.95rem !important;
     line-height: 1.4 !important;
 }
@@ -408,7 +412,7 @@
     align-items: center !important;
     gap: 8px !important;
     margin-bottom: 15px !important;
-    color: #1a1a2e !important;
+    color: var(--text-primary) !important;
 }
 
 .form-row {
@@ -588,10 +592,10 @@
 /* Resumen de pago */
 
 .payment-summary {
-    background: white;
+    background: var(--bg-secondary);
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid #eaeaea;
+    border: 1px solid var(--border-color);
 }
 
 .payment-row {
@@ -746,6 +750,234 @@ textarea {
 .form-group input:required:valid,
 .form-group select:required:valid {
     border-left: 4px solid #2a9d8f;
+}
+
+
+/* RoomTypes modal buttons */
+
+.btn-roomtypes-cancel {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-roomtypes-cancel:hover:not(:disabled) {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-roomtypes-confirm {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-roomtypes-confirm:hover:not(:disabled) {
+    background: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-roomtypes-cancel:disabled,
+.btn-roomtypes-confirm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* Dark mode overrides for RoomTypes modal */
+
+[data-theme="dark"] .reservation-modal-overlay {
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="dark"] .reservation-modal {
+    background: #1e1e3e !important;
+    color: #ffffff !important;
+    border-color: #2a2a3e !important;
+}
+
+[data-theme="dark"] .reservation-modal h3,
+[data-theme="dark"] .reservation-modal h4,
+[data-theme="dark"] .reservation-modal label,
+[data-theme="dark"] .reservation-modal p,
+[data-theme="dark"] .reservation-modal span {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .reservation-modal input,
+[data-theme="dark"] .reservation-modal select,
+[data-theme="dark"] .reservation-modal textarea {
+    background: #2a2a3e !important;
+    color: #ffffff !important;
+    border-color: #3a3a4e !important;
+}
+
+[data-theme="dark"] .reservation-modal input::placeholder,
+[data-theme="dark"] .reservation-modal textarea::placeholder {
+    color: #b0b0b0 !important;
+}
+
+[data-theme="dark"] .close-modal {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .close-modal:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .reservation-summary {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .room-info h4,
+[data-theme="dark"] .room-info p {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-section h4 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-section {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
+}
+
+[data-theme="dark"] .form-section label,
+[data-theme="dark"] .form-section .form-help-text,
+[data-theme="dark"] .form-section .form-hint {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus,
+[data-theme="dark"] .form-group textarea:focus {
+    border-color: var(--gold-accent) !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1) !important;
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .optional-label {
+    color: var(--text-secondary) !important;
+    background: rgba(212, 175, 55, 0.1) !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    font-size: 0.8rem !important;
+}
+
+[data-theme="dark"] .legal-notice {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    margin-top: 20px !important;
+}
+
+[data-theme="dark"] .legal-notice p,
+[data-theme="dark"] .legal-notice small {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .form-actions {
+    background: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding-top: 20px !important;
+}
+
+[data-theme="dark"] .btn-roomtypes-cancel {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-theme="dark"] .btn-roomtypes-cancel:hover {
+    background: var(--bg-secondary) !important;
+    border-color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-roomtypes-confirm {
+    background: var(--gold-accent) !important;
+    color: var(--bg-primary) !important;
+    border: 1px solid var(--gold-accent) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-theme="dark"] .btn-roomtypes-confirm:hover {
+    background: #b8860b !important;
+    border-color: #b8860b !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3) !important;
+}
+
+[data-theme="dark"] .payment-row {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .payment-row span {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .payment-total {
+    background: var(--bg-tertiary) !important;
+    border-radius: 6px !important;
+}
+
+[data-theme="dark"] .payment-total span {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .payment-total-amount {
+    color: var(--gold-accent) !important;
+    font-weight: bold !important;
+}
+
+[data-theme="dark"] .reservation-form {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .payment-summary {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .features-list {
+    background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .features-list h4,
+[data-theme="dark"] .features-list p {
+    color: var(--text-primary) !important;
 }
 
 .form-group input:required:invalid:not(:placeholder-shown),
