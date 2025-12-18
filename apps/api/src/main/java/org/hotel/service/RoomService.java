@@ -50,7 +50,7 @@ public class RoomService {
     public RoomDTO save(RoomDTO roomDTO) {
         LOG.debug("Request to save Room : {}", roomDTO);
         Room room = roomMapper.toEntity(roomDTO);
-        validateIfRoomNumberExists(room.getRoomNumber());
+        validateIfRoomNumberExists(room.getRoomNumber(), null);
         validateIfRoomTypeExists(room.getRoomType().getId());
         room = roomRepository.save(room);
         return roomMapper.toDto(room);
@@ -65,7 +65,7 @@ public class RoomService {
     public RoomDTO update(RoomDTO roomDTO) {
         LOG.debug("Request to update Room : {}", roomDTO);
         Room room = roomMapper.toEntity(roomDTO);
-        validateIfRoomNumberExists(room.getRoomNumber());
+        validateIfRoomNumberExists(room.getRoomNumber(), room.getId());
         validateIfRoomTypeExists(room.getRoomType().getId());
         room = roomRepository.save(room);
         return roomMapper.toDto(room);
@@ -80,7 +80,7 @@ public class RoomService {
     public Optional<RoomDTO> partialUpdate(RoomDTO roomDTO) {
         LOG.debug("Request to partially update Room : {}", roomDTO);
         if(roomDTO.getRoomNumber() != null) {
-            validateIfRoomNumberExists(roomDTO.getRoomNumber());
+            validateIfRoomNumberExists(roomDTO.getRoomNumber(), roomDTO.getId());
         }
         if(roomDTO.getId() != null) {
             validateIfRoomTypeExists(roomDTO.getRoomType().getId());
@@ -139,10 +139,14 @@ public class RoomService {
         validateRoomForDeletion(id);
         roomRepository.deleteById(id);
     }
-    private void validateIfRoomNumberExists(String roomNumber) {
-        if(roomRepository.existsByRoomNumber(roomNumber))
-            throw new BadRequestAlertException("El numero de habitación ya existe",
-                "room", "roomNumberAlreadyExists");
+    private void validateIfRoomNumberExists(String roomNumber, Long id) {
+        boolean exists = (id == null) 
+            ? roomRepository.existsByRoomNumber(roomNumber)
+            : roomRepository.existsByRoomNumberAndIdNot(roomNumber, id);
+            
+        if(exists) {
+            throw new BusinessRuleException("El número de habitación '" + roomNumber + "' ya está registrado");
+        }
     }
     private void validateIfRoomTypeExists(Long roomTypeId) {
         if(!roomTypeRepository.existsById(roomTypeId))

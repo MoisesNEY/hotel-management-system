@@ -85,7 +85,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gold-default/80">
                             <LayoutDashboard size={10} />
-                            <span>Gran Hotel Admin</span>
+                            <span>Hotel Admin</span>
                         </div>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
                             {getPageTitle()}

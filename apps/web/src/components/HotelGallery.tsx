@@ -17,7 +17,7 @@ const HotelGallery: React.FC = () => {
   const emailItem = getContactVal('email') || getContactVal('correo');
 
   const hotelInfo = {
-    name: 'Grand Hotel de Lujo Managua',
+    name: 'Hotel de Lujo Managua',
     address: addressItem?.subtitle || 'Cargando dirección...',
     phone: phoneItem?.subtitle || '...',
     email: emailItem?.subtitle || '...',
