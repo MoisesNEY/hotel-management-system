@@ -4,6 +4,10 @@ import { ArrowLeft, Trash2, Plus, Edit } from 'lucide-react';
 import { CollectionType, defaultWebContent, type AssetCollection, type WebContent } from '../../../types/adminTypes';
 import { AssetCollectionService } from '../../../services/admin/assetCollectionService';
 import { WebContentService } from '../../../services/admin/webContentService';
+import Button from '../../components/shared/Button';
+import Input from '../../components/shared/Input';
+import Table from '../../components/shared/Table';
+import Card from '../../components/shared/Card';
 
 const CMSEditor: React.FC = () => {
     const { id } = useParams();
@@ -67,14 +71,14 @@ const CMSEditor: React.FC = () => {
         <div className="flex flex-wrap -mx-4">
             {contents.map((item) => (
                 <div className="w-full md:w-1/3 px-4 mb-4" key={item.id}>
-                    <div className="bg-white rounded shadow-card flex flex-col h-full">
-                        <img src={item.imageUrl || 'https://via.placeholder.com/300'} className="w-full h-[200px] object-cover rounded-t" alt="..." />
-                        <div className="flex-auto p-4">
-                            <h5 className="text-lg font-semibold mb-2">{item.title}</h5>
-                            <p className="text-gray-600 text-sm mb-4">{item.subtitle}</p>
-                            <div className="flex justify-between mt-auto">
-                                <button className="bg-paper-info hover:bg-[#4ab4d1] text-white py-1 px-3 rounded text-sm transition-colors" onClick={() => setEditingItem(item)}>Editar</button>
-                                <button className="bg-paper-danger hover:bg-[#eb7446] text-white py-1 px-3 rounded text-sm transition-colors" onClick={() => handleDelete(item.id!)}>Borrar</button>
+                    <div className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col h-full overflow-hidden hover:shadow-lg transition-shadow">
+                        <img src={item.imageUrl || 'https://via.placeholder.com/300'} className="w-full h-[200px] object-cover" alt="..." />
+                        <div className="flex-auto p-4 flex flex-col">
+                            <h5 className="text-lg font-semibold mb-2 text-gray-900">{item.title}</h5>
+                            <p className="text-gray-500 text-sm mb-4 line-clamp-2">{item.subtitle}</p>
+                            <div className="flex gap-2 mt-auto">
+                                <Button size="sm" variant="info" onClick={() => setEditingItem(item)}>Editar</Button>
+                                <Button size="sm" variant="danger" onClick={() => handleDelete(item.id!)}>Borrar</Button>
                             </div>
                         </div>
                     </div>
@@ -82,170 +86,170 @@ const CMSEditor: React.FC = () => {
             ))}
             <div className="w-full md:w-1/3 px-4 mb-4">
                 <div 
-                    className="bg-white rounded shadow-card h-full min-h-[300px] border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors h-full min-h-[300px]"
                     onClick={() => setEditingItem({ ...defaultWebContent, collection })}
                 >
                     <div className="text-center text-gray-400">
-                        <Plus size={48} className="mx-auto mb-2" />
-                        <p>Agregar Imagen</p>
+                        <Plus size={48} className="mx-auto mb-2 opacity-50" />
+                        <p className="font-medium">Agregar Imagen</p>
                     </div>
                 </div>
             </div>
         </div>
     );
 
-    const renderTextListEditor = () => (
-        <div className="block w-full overflow-x-auto">
-            <button className="bg-paper-success hover:bg-[#63c38e] text-white py-2 px-4 rounded shadow mb-4 inline-flex items-center gap-2" onClick={() => setEditingItem({ ...defaultWebContent, collection })}>
-                <Plus size={16} /> Agregar Elemento
-            </button>
-            <table className="w-full max-w-full mb-4 bg-transparent border-collapse text-left">
-                <thead className="bg-gray-50">
-                    <tr>
-                        <th className="py-2 px-2 border-b border-gray-200 font-semibold text-gray-600">Orden</th>
-                        <th className="py-2 px-2 border-b border-gray-200 font-semibold text-gray-600">Título (Label)</th>
-                        <th className="py-2 px-2 border-b border-gray-200 font-semibold text-gray-600">Subtítulo (Valor)</th>
-                        <th className="py-2 px-2 border-b border-gray-200 font-semibold text-gray-600">Acción (Link)</th>
-                        <th className="py-2 px-2 border-b border-gray-200 font-semibold text-gray-600">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {contents.map((item, idx) => (
-                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                            <td className="py-2 px-2 border-b border-gray-100">{item.sortOrder}</td>
-                            <td className="py-2 px-2 border-b border-gray-100">{item.title}</td>
-                            <td className="py-2 px-2 border-b border-gray-100">{item.subtitle}</td>
-                            <td className="py-2 px-2 border-b border-gray-100"><code className="text-[#e83e8c] text-sm">{item.actionUrl}</code></td>
-                            <td className="py-2 px-2 border-b border-gray-100">
-                                <button className="bg-paper-info text-white p-1 rounded mr-2 hover:bg-[#4ab4d1]" onClick={() => setEditingItem(item)}><Edit size={14}/></button>
-                                <button className="bg-paper-danger text-white p-1 rounded hover:bg-[#eb7446]" onClick={() => handleDelete(item.id!)}><Trash2 size={14}/></button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+    const renderTextListEditor = () => {
+        const columns = [
+            { header: "Orden", accessor: 'sortOrder' as keyof WebContent },
+            { header: "Título", accessor: 'title' as keyof WebContent },
+            { header: "Subtítulo", accessor: 'subtitle' as keyof WebContent },
+            { 
+                header: "Links", 
+                accessor: 'actionUrl' as keyof WebContent, 
+                cell: (item: WebContent) => <code className="text-pink-500 text-xs bg-pink-50 px-1 py-0.5 rounded">{item.actionUrl}</code> 
+            },
+            { 
+                header: "Acciones", 
+                accessor: 'id' as keyof WebContent, 
+                cell: (item: WebContent) => (
+                    <div className="flex gap-1">
+                        <Button size="sm" variant="info" iconOnly icon={<Edit size={14}/>} onClick={() => setEditingItem(item)} />
+                        <Button size="sm" variant="danger" iconOnly icon={<Trash2 size={14}/>} onClick={() => handleDelete(item.id!)} />
+                    </div>
+                )
+            }
+        ];
+
+        return (
+            <div className="block w-full">
+                <div className="mb-4">
+                     <Button variant="success" onClick={() => setEditingItem({ ...defaultWebContent, collection })} icon={<Plus size={16} />}>
+                        Agregar Elemento
+                    </Button>
+                </div>
+                <Table 
+                    data={contents}
+                    columns={columns}
+                    keyExtractor={(item) => item.id || Math.random()}
+                    emptyMessage="No hay elementos en esta lista."
+                    striped={true}
+                />
+            </div>
+        );
+    };
 
     // Formulario Modal/Overlay simple
     const renderEditForm = () => {
         if (!editingItem) return null;
         return (
-            <div className="fixed inset-0 bg-black/50 z-[1050] flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg shadow-lg w-full max-w-[600px] max-h-[90vh] flex flex-col">
-                    <div className="p-4 border-b border-gray-200">
-                        <h4 className="m-0 text-xl font-semibold">{editingItem.id ? 'Editar Elemento' : 'Nuevo Elemento'}</h4>
+            <div className="fixed inset-0 bg-black/50 z-[1050] flex items-center justify-center p-4 backdrop-blur-sm transition-all">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+                    <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <h4 className="m-0 text-xl font-semibold text-gray-800">{editingItem.id ? 'Editar Elemento' : 'Nuevo Elemento'}</h4>
+                        <button onClick={() => setEditingItem(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <span className="text-2xl leading-none">&times;</span>
+                        </button>
                     </div>
-                    <div className="p-6 overflow-y-auto flex-auto">
-                        <div className="mb-4">
-                            <label className="block mb-1 text-gray-700 font-medium">Título</label>
-                            <input 
-                                className="block w-full px-3 py-2 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-paper-primary focus:outline-none" 
-                                value={editingItem.title || ''} 
-                                onChange={e => setEditingItem({...editingItem, title: e.target.value})}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block mb-1 text-gray-700 font-medium">Subtítulo / Descripción</label>
+                    <div className="p-6 overflow-y-auto flex-auto space-y-4">
+                        <Input 
+                            label="Título" 
+                            value={editingItem.title || ''} 
+                            onChange={e => setEditingItem({...editingItem, title: e.target.value})}
+                            placeholder="Ingrese el título principal"
+                        />
+                        
+                        <div>
+                            <label className="block mb-1.5 text-sm font-medium text-gray-700">Subtítulo / Descripción</label>
                             <textarea 
-                                className="block w-full px-3 py-2 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-paper-primary focus:outline-none" 
+                                className="block w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-paper-primary focus:border-paper-primary transition-colors min-h-[100px]"
                                 value={editingItem.subtitle || ''} 
                                 onChange={e => setEditingItem({...editingItem, subtitle: e.target.value})}
+                                placeholder="Ingrese una descripción breve..."
                             />
                         </div>
-                        
+
                         {(collection?.type === CollectionType.GALLERY || collection?.type === CollectionType.SINGLE_IMAGE) && (
-                            <div className="mb-4">
-                                <label className="block mb-1 text-gray-700 font-medium">URL de Imagen</label>
-                                <input 
-                                    className="block w-full px-3 py-2 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-paper-primary focus:outline-none" 
+                            <div className="space-y-2">
+                                <Input 
+                                    label="URL de Imagen" 
                                     value={editingItem.imageUrl || ''} 
                                     onChange={e => setEditingItem({...editingItem, imageUrl: e.target.value})}
-                                    placeholder="https://..."
+                                    placeholder="https://ejemplo.com/imagen.jpg"
                                 />
-                                {editingItem.imageUrl && <img src={editingItem.imageUrl} alt="preview" className="mt-2 h-[100px] object-cover rounded" />}
+                                {editingItem.imageUrl && (
+                                    <div className="relative rounded-lg overflow-hidden border border-gray-200 h-[150px] bg-gray-50 flex items-center justify-center">
+                                         <img src={editingItem.imageUrl} alt="preview" className="h-full object-contain" />
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {(collection?.type === CollectionType.TEXT_LIST || collection?.type === CollectionType.MAP_EMBED) && (
-                            <div className="mb-4">
-                                <label className="block mb-1 text-gray-700 font-medium">Action URL / Iframe Src</label>
-                                <input 
-                                    className="block w-full px-3 py-2 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-paper-primary focus:outline-none" 
-                                    value={editingItem.actionUrl || ''} 
-                                    onChange={e => setEditingItem({...editingItem, actionUrl: e.target.value})}
-                                />
-                            </div>
+                            <Input 
+                                label="Action URL / Iframe Src" 
+                                value={editingItem.actionUrl || ''} 
+                                onChange={e => setEditingItem({...editingItem, actionUrl: e.target.value})}
+                                placeholder="https://..."
+                            />
                         )}
 
-                        <div className="flex flex-wrap -mx-4">
-                            <div className="w-1/2 px-4">
-                                <div className="mb-4">
-                                    <label className="block mb-1 text-gray-700 font-medium">Orden</label>
-                                    <input 
-                                        type="number" 
-                                        className="block w-full px-3 py-2 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-paper-primary focus:outline-none" 
-                                        value={editingItem.sortOrder || 1} 
-                                        onChange={e => setEditingItem({...editingItem, sortOrder: parseInt(e.target.value)})}
-                                    />
-                                </div>
+                        <div className="flex flex-wrap -mx-2">
+                            <div className="w-1/2 px-2">
+                                <Input 
+                                    label="Orden" 
+                                    type="number" 
+                                    value={editingItem.sortOrder || 1} 
+                                    onChange={e => setEditingItem({...editingItem, sortOrder: parseInt(e.target.value)})}
+                                />
                             </div>
-                            <div className="w-1/2 px-4 pt-8">
-                                <label className="inline-flex items-center cursor-pointer">
+                            <div className="w-1/2 px-2 flex items-center pt-6">
+                                <label className="inline-flex items-center cursor-pointer select-none">
                                     <input 
                                         type="checkbox" 
-                                        className="form-checkbox text-paper-primary h-5 w-5"
+                                        className="w-5 h-5 text-paper-primary bg-gray-100 border-gray-300 rounded focus:ring-paper-primary focus:ring-2 transition duration-200"
                                         checked={editingItem.isActive !== false} 
                                         onChange={e => setEditingItem({...editingItem, isActive: e.target.checked})}
                                     />
-                                    <span className="ml-2 text-gray-700">Activo</span>
+                                    <span className="ml-2 text-gray-700 font-medium">Activo</span>
                                 </label>
                             </div>
                         </div>
 
                     </div>
-                    <div className="p-4 border-t border-gray-200 text-right bg-gray-50 rounded-b-lg">
-                        <button className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2" onClick={() => setEditingItem(null)}>Cancelar</button>
-                        <button className="bg-paper-primary hover:bg-[#4bc2c5] text-white font-bold py-2 px-4 rounded shadow" onClick={handleSaveItem}>Guardar</button>
+                    <div className="p-5 border-t border-gray-100 text-right bg-gray-50 flex justify-end gap-3">
+                        <Button variant="ghost" onClick={() => setEditingItem(null)}>Cancelar</Button>
+                        <Button variant="primary" onClick={handleSaveItem}>Guardar Cambios</Button>
                     </div>
                 </div>
             </div>
         );
     };
 
-    if (loading) return <div className="p-4 text-center">Cargando editor...</div>;
-    if (!collection) return <div className="p-4 text-center text-red-500">Colección no encontrada</div>;
+    if (loading) return <div className="p-10 text-center text-gray-500">Cargando editor...</div>;
+    if (!collection) return <div className="p-10 text-center text-red-500 font-medium">Colección no encontrada</div>;
 
     return (
         <div className="content">
             {renderEditForm()}
-            <div className="flex flex-wrap -mx-4">
-                <div className="w-full px-4">
-                    <div className="bg-white rounded shadow-card mb-8">
-                        <div className="p-4 bg-transparent border-b border-gray-100 flex justify-between items-center">
-                            <div>
-                                <h4 className="mt-0 mb-1 text-xl font-semibold text-[#252422]">Editando: {collection.name}</h4>
-                                <p className="text-[#9a9a9a] text-sm">Tipo: <code className="text-[#e83e8c]">{collection.type}</code></p>
-                            </div>
-                            <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded inline-flex items-center" onClick={() => navigate('/admin/cms')}>
-                                <ArrowLeft size={16} className="mr-1"/> Volver
-                            </button>
-                        </div>
-                        <div className="p-4">
-                            {collection.type === CollectionType.GALLERY && renderGalleryEditor()}
-                            {collection.type === CollectionType.TEXT_LIST && renderTextListEditor()}
-                            {collection.type === CollectionType.MAP_EMBED && renderTextListEditor()} {/* Reusamos tabla para mapa por simplicidad */}
-                            
-                            {collection.type === CollectionType.SINGLE_IMAGE && (
-                                <div className="bg-paper-info/10 border border-paper-info text-paper-info px-4 py-3 rounded relative mb-4">
-                                     <span className="block sm:inline">Para el Hero (Single Image), usa el botón de editar en la lista de abajo. Solo debería haber 1 elemento.</span>
-                                </div>
-                            )}
-                            {collection.type === CollectionType.SINGLE_IMAGE && renderTextListEditor()}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Card title={`Editando: ${collection.name}`} subtitle={`Tipo: ${collection.type}`} className="pb-4">
+                 <div className="mb-6 flex justify-end">
+                      <Button variant="light" size="sm" onClick={() => navigate('/admin/cms')} icon={<ArrowLeft size={16}/>}>
+                        Volver al listado
+                      </Button>
+                 </div>
+                 
+                 {collection.type === CollectionType.GALLERY && renderGalleryEditor()}
+                 {collection.type === CollectionType.TEXT_LIST && renderTextListEditor()}
+                 {collection.type === CollectionType.MAP_EMBED && renderTextListEditor()} 
+                 
+                 {collection.type === CollectionType.SINGLE_IMAGE && (
+                     <div className="bg-paper-info/10 border border-paper-info/30 text-paper-info px-4 py-3 rounded-lg flex items-start gap-3 mb-6">
+                          <div className="mt-1"><Edit size={18}/></div>
+                          <span className="text-sm font-medium">Para el Hero (Single Image), usa el botón de editar en la lista de abajo. Solo debería haber 1 elemento.</span>
+                     </div>
+                 )}
+                 {collection.type === CollectionType.SINGLE_IMAGE && renderTextListEditor()}
+            </Card>
         </div>
     );
 };

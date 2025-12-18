@@ -9,14 +9,14 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Card: React.FC<CardProps> = ({ title, subtitle, children, className = '', ...props }) => {
     return (
-        <div className={`bg-white rounded-[12px] shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15)] mb-5 border-none relative flex flex-col min-w-0 break-words ${className}`} {...props}>
+        <div className={`bg-white rounded-xl shadow-md border border-gray-100 flex flex-col min-w-0 break-words mb-6 transition-all hover:shadow-lg ${className}`} {...props}>
             {(title || subtitle) && (
-                <div className="p-[15px_15px_0] bg-transparent border-b-0">
-                    {title && <h4 className="mt-0 mb-0 text-[#333] text-[22px] font-normal">{title}</h4>}
-                    {subtitle && <p className="text-[#9a9a9a] text-sm m-0 mt-[5px]">{subtitle}</p>}
+                <div className="px-6 py-4 border-b border-gray-100">
+                    {title && <h4 className="m-0 text-gray-900 text-lg font-semibold">{title}</h4>}
+                    {subtitle && <p className="text-gray-500 text-sm mt-1">{subtitle}</p>}
                 </div>
             )}
-            <div className={`p-[15px_15px_10px_15px] flex-auto ${!title && !subtitle ? 'p-0' : ''}`}>
+            <div className={`p-6 flex-auto ${!title && !subtitle ? 'pt-6' : ''}`}>
                 {children}
             </div>
         </div>

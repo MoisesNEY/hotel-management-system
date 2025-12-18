@@ -12,8 +12,6 @@ import routes from '../routes';
 const AdminLayout: React.FC = () => {
     const [bgColor, setBgColor] = useState<string>('black');
     const [activeColor, setActiveColor] = useState<string>('primary');
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
     const mainPanelRef = useRef<HTMLDivElement>(null);
     const location = useLocation();
 
@@ -50,7 +48,6 @@ const AdminLayout: React.FC = () => {
     useEffect(() => {
         if (mainPanelRef.current) {
             mainPanelRef.current.scrollTop = 0;
-            // Also scroll window just in case
             window.scrollTo(0, 0);
         }
     }, [location.pathname]);
@@ -66,58 +63,28 @@ const AdminLayout: React.FC = () => {
     };
 
     const handleToggleSidebar = () => {
-        // Desktop Collapse Logic
-        if (document.documentElement.clientWidth > 991) {
-            setIsCollapsed(!isCollapsed);
-            return;
-        }
-
-        // Mobile Overlay Logic
-        setSidebarOpen(!sidebarOpen);
-        const html = document.documentElement;
-        const body = document.body;
-
-        if (!sidebarOpen) {
-            html.classList.add('nav-open');
-            body.classList.add('nav-open');
-        } else {
-            html.classList.remove('nav-open');
-            body.classList.remove('nav-open');
-        }
+        // Not needed for hover-based sidebar
     };
 
-    // Close sidebar when route changes on mobile
-    useEffect(() => {
-        const html = document.documentElement;
-        const body = document.body;
-        html.classList.remove('nav-open');
-        body.classList.remove('nav-open');
-        setSidebarOpen(false);
-    }, [location.pathname]);
-
     return (
-        <div className={`relative min-h-screen block t-0 h-screen overflow-x-hidden bg-paper-bg transition-all duration-300 ease-in-out ${isCollapsed ? 'sidebar-mini' : ''}`}>
+        <div className="min-h-screen bg-gray-50">
+            {/* Supabase-style Sidebar */}
             <Sidebar
                 bgColor={bgColor}
                 activeColor={activeColor}
                 routes={routes}
+                isOpen={true}
+                onToggle={handleToggleSidebar}
             />
 
+            {/* Main Content - Always has left margin for collapsed sidebar */}
             <div
-                className="main-panel relative float-right bg-paper-bg max-h-full h-full overflow-auto w-full transition-all duration-300 ease-in-out lg:w-[calc(100%-260px)]"
+                className="main-panel min-h-screen transition-all duration-300 ease-in-out ml-[60px]"
                 ref={mainPanelRef}
             >
                 <Navbar onToggleSidebar={handleToggleSidebar} />
 
-                {/* Overlay for mobile sidebar closing */}
-                <div
-                    className={`fixed inset-0 bg-black/30 z-[9998] transition-all duration-300 ease-in-out ${sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} lg:hidden`}
-                    onClick={() => {
-                        if (sidebarOpen) handleToggleSidebar();
-                    }}
-                />
-
-                <div className="content px-8 pb-8 mt-20 min-h-[calc(100vh-123px)]">
+                <div className="content px-6 md:px-8 pb-8 pt-20">
                     <Routes>
                         {routes.map((route, index) => (
                             <Route
@@ -134,7 +101,7 @@ const AdminLayout: React.FC = () => {
                 <Footer />
             </div>
 
-            {/* Theme Switcher kept for functionality */}
+            {/* Theme Switcher */}
             <ThemeSwitcher
                 onBgColorChange={handleBgColorChange}
                 onActiveColorChange={handleActiveColorChange}

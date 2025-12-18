@@ -68,6 +68,7 @@ const Dashboard = () => {
     }
 
     const chartOptions = {
+        maintainAspectRatio: false,
         responsive: true,
         plugins: {
             legend: { display: false }, // Custom legend layout in Paper Dashboard

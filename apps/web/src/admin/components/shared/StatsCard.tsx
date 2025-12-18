@@ -28,32 +28,30 @@ const StatsCard: React.FC<StatsCardProps> = ({
     }[type];
 
     return (
-        <div className="bg-white rounded-[12px] shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15)] mb-5 border-none p-[15px_15px_10px_15px] h-full flex flex-col justify-between">
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 h-full flex flex-col justify-between transition-all hover:shadow-lg mb-6">
             <div className="p-0 flex-auto">
-                <div className="flex flex-row">
+                <div className="flex flex-row items-center">
                     {/* Left Col: Icon */}
-                    <div className="flex-none w-5/12 pr-[15px]">
-                        <div className={`${iconColorClass} text-center leading-[59px] min-h-[64px]`}>
-                            <Icon size={50} strokeWidth={1.5} className="inline-block" />
+                    <div className="flex-none w-16 h-16 mr-4">
+                        <div className={`${iconColorClass} bg-opacity-10 bg-current rounded-full w-full h-full flex items-center justify-center`}>
+                            <Icon size={32} strokeWidth={2} />
                         </div>
                     </div>
                     {/* Right Col: Numbers */}
-                    <div className="flex-none w-7/12 pl-[15px]">
-                        <div className="text-right">
-                            <p className="text-[#9A9A9A] text-base leading-[1.4em] mb-0 capitalize">
-                                {title}
-                            </p>
-                            <h3 className="text-[2em] font-normal m-0 text-[#252422]">
-                                {value}
-                            </h3>
-                        </div>
+                    <div className="flex-1 text-right">
+                        <p className="text-gray-500 text-sm font-medium mb-1 capitalize">
+                            {title}
+                        </p>
+                        <h3 className="text-2xl font-bold text-gray-900">
+                            {value}
+                        </h3>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-transparent border-t border-[#ddd] p-0 pt-[10px] mt-[10px]">
-                <div className="text-[#a49e93] text-xs flex items-center">
-                    {FooterIcon && <FooterIcon size={14} className="mr-[5px]" />}
+            <div className="border-t border-gray-100 pt-4 mt-4">
+                <div className="text-gray-500 text-xs flex items-center font-medium">
+                    {FooterIcon && <FooterIcon size={14} className="mr-2" />}
                     {footerText}
                 </div>
             </div>
