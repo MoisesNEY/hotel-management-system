@@ -6,7 +6,6 @@ import 'perfect-scrollbar/css/perfect-scrollbar.css';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import ThemeSwitcher from '../components/layout/ThemeSwitcher';
 import routes from '../routes';
 
 const AdminLayout: React.FC = () => {
@@ -52,16 +51,6 @@ const AdminLayout: React.FC = () => {
         }
     }, [location.pathname]);
 
-    const handleBgColorChange = (color: string) => {
-        setBgColor(color);
-        localStorage.setItem('admin-sidebar-bg', color);
-    };
-
-    const handleActiveColorChange = (color: string) => {
-        setActiveColor(color);
-        localStorage.setItem('admin-active-color', color);
-    };
-
     const handleToggleSidebar = () => {
         // Not needed for hover-based sidebar
     };
@@ -100,14 +89,6 @@ const AdminLayout: React.FC = () => {
 
                 <Footer />
             </div>
-
-            {/* Theme Switcher - Minimalist trigger in Admin */}
-            <ThemeSwitcher
-                onBgColorChange={handleBgColorChange}
-                onActiveColorChange={handleActiveColorChange}
-                currentBgColor={bgColor}
-                currentActiveColor={activeColor}
-            />
         </div>
     );
 };
