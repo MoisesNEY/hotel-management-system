@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { getAllHotelServices } from '../../../services/admin/hotelServiceService';
+import { getAllHotelServices, deleteHotelService } from '../../../services/admin/hotelServiceService';
 import { getAllServiceRequests, updateServiceRequest } from '../../../services/admin/serviceRequestService';
 import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/sharedTypes';
 import { formatCurrency, formatDateTime, getStatusColor } from '../../utils/helpers';
@@ -52,9 +52,21 @@ const ServicesView = () => {
         setShowForm(true);
     };
 
+    const handleDeleteClick = async (id: number) => {
+        if (window.confirm('¿Estás seguro de eliminar este servicio?')) {
+            try {
+                await deleteHotelService(id);
+                setServices(prev => prev.filter(s => s.id !== id));
+            } catch (error) {
+                console.error("Error deleting service", error);
+                alert('No se pudo eliminar el servicio');
+            }
+        }
+    };
+
     const handleUpdateStatus = async (request: ServiceRequestDTO) => {
         if (!window.confirm('¿Marcar solicitud como completada?')) return;
-        
+
         try {
             // Assuming we change status to COMPLETED directly for "Atender" which means "Attend/Solve"
             // Or maybe IN_PROGRESS if we want intermediate state. For now COMPLETED is safe simple action.
@@ -103,9 +115,9 @@ const ServicesView = () => {
             header: 'Acciones',
             accessor: (row) => (
                 row.status === 'OPEN' || row.status === 'IN_PROGRESS' ?
-                    <Button 
-                        size="sm" 
-                        variant="success" 
+                    <Button
+                        size="sm"
+                        variant="success"
                         onClick={() => handleUpdateStatus(row)}
                         leftIcon={<Check size={14} />}
                     >
@@ -156,9 +168,14 @@ const ServicesView = () => {
         {
             header: 'Acciones',
             accessor: (row) => (
-                <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
-                    Editar
-                </Button>
+                <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
+                        Editar
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row.id)} iconOnly>
+                        <Trash2 size={14} />
+                    </Button>
+                </div>
             )
         }
     ];
