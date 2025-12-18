@@ -37,4 +37,9 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
 
     @Query("select webContent from WebContent webContent left join fetch webContent.collection where webContent.id =:id")
     Optional<WebContent> findOneWithToOneRelationships(@Param("id") Long id);
+    // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, ordenado.
+    List<WebContent> findAllByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(String code);
+
+    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo (evita arrays vacíos).
+    Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(String code);
 }

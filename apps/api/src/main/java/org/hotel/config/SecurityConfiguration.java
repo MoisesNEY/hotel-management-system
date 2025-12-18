@@ -57,17 +57,7 @@ public class SecurityConfiguration {
                     .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/room-types/*")).permitAll()
                     .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/hotel-services")).permitAll()
                     .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/hotel-services/*")).permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/asset-collections/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/asset-collections").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/web-contents/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/web-contents").permitAll()
-                    // Permitir ver las Colecciones (Ej: Buscar por código 'HOME_HERO')
-                    .requestMatchers(HttpMethod.GET, "/api/asset-collections/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/asset-collections").permitAll()
-
-                    // Permitir ver el Contenido (Ej: Las fotos dentro del carrusel)
-                    .requestMatchers(HttpMethod.GET, "/api/web-contents/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/web-contents").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                     .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
                     .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
 
