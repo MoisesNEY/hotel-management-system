@@ -96,10 +96,7 @@ const AdminLayout: React.FC = () => {
     }, [location.pathname]);
 
     return (
-        <div
-            className={`wrapper ${isCollapsed ? 'sidebar-mini' : ''}`}
-            style={{ backgroundColor: '#f4f3ef', position: 'relative', minHeight: '100vh', display: 'block', top: 0, height: '100vh', overflowX: 'hidden' }}
-        >
+        <div className={`relative min-h-screen block t-0 h-screen overflow-x-hidden bg-paper-bg transition-all duration-300 ease-in-out ${isCollapsed ? 'sidebar-mini' : ''}`}>
             <Sidebar
                 bgColor={bgColor}
                 activeColor={activeColor}
@@ -107,29 +104,20 @@ const AdminLayout: React.FC = () => {
             />
 
             <div
-                className="main-panel"
+                className="main-panel relative float-right bg-paper-bg max-h-full h-full overflow-auto w-full transition-all duration-300 ease-in-out lg:w-[calc(100%-260px)]"
                 ref={mainPanelRef}
-                style={{
-                    position: 'relative',
-                    float: 'right',
-                    backgroundColor: '#f4f3ef',
-                    maxHeight: '100%',
-                    height: '100%',
-                    overflow: 'auto',
-                    // width is handled by CSS (calc(100% - 260px) or calc(100% - 80px) via sidebar-mini)
-                }}
             >
                 <Navbar onToggleSidebar={handleToggleSidebar} />
 
-                {/* Overlay for mobile sidebar closing - visible via CSS when nav-open */}
+                {/* Overlay for mobile sidebar closing */}
                 <div
-                    className="close-layer"
+                    className={`fixed inset-0 bg-black/30 z-[9998] transition-all duration-300 ease-in-out ${sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} lg:hidden`}
                     onClick={() => {
                         if (sidebarOpen) handleToggleSidebar();
                     }}
                 />
 
-                <div className="content" style={{ padding: '0 30px 30px', minHeight: 'calc(100vh - 123px)', marginTop: '80px' }}> {/* Increased margin-top to prevent overlap */}
+                <div className="content px-8 pb-8 mt-20 min-h-[calc(100vh-123px)]">
                     <Routes>
                         {routes.map((route, index) => (
                             <Route

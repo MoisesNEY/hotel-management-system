@@ -20,54 +20,30 @@ const StatsCard: React.FC<StatsCardProps> = ({
 }) => {
     // Map colors to text colors
     const iconColorClass = {
-        primary: 'text-[#51cbce]',
-        success: 'text-[#6bd098]',
-        danger: 'text-[#ef8157]',
-        warning: 'text-[#fbc658]',
-        info: 'text-[#51bcda]'
+        primary: 'text-paper-primary',
+        success: 'text-paper-success',
+        danger: 'text-paper-danger',
+        warning: 'text-paper-warning',
+        info: 'text-paper-info'
     }[type];
 
     return (
-        <div style={{
-            borderRadius: '12px',
-            boxShadow: '0 6px 10px -4px rgba(0, 0, 0, 0.15)',
-            backgroundColor: '#FFFFFF',
-            marginBottom: '20px',
-            border: '0 none',
-            padding: '15px 15px 10px 15px',
-            height: '100%'
-        }}>
-            <div className="card-body" style={{ padding: '0' }}>
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div className="bg-white rounded-[12px] shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15)] mb-5 border-none p-[15px_15px_10px_15px] h-full flex flex-col justify-between">
+            <div className="p-0 flex-auto">
+                <div className="flex flex-row">
                     {/* Left Col: Icon */}
-                    <div style={{ flex: '0 0 41.666667%', maxWidth: '41.666667%', paddingRight: '15px' }}>
-                        <div style={{
-                            fontSize: '3em',
-                            minHeight: '64px',
-                            lineHeight: '59px',
-                            textAlign: 'center'
-                        }} className={iconColorClass}>
-                            <Icon size={50} strokeWidth={1.5} />
+                    <div className="flex-none w-5/12 pr-[15px]">
+                        <div className={`${iconColorClass} text-center leading-[59px] min-h-[64px]`}>
+                            <Icon size={50} strokeWidth={1.5} className="inline-block" />
                         </div>
                     </div>
                     {/* Right Col: Numbers */}
-                    <div style={{ flex: '0 0 58.333333%', maxWidth: '58.333333%', paddingLeft: '15px' }}>
-                        <div style={{ textAlign: 'right' }}>
-                            <p style={{
-                                color: '#9A9A9A',
-                                fontSize: '16px',
-                                lineHeight: '1.4em',
-                                marginBottom: 0,
-                                textTransform: 'capitalize'
-                            }}>
+                    <div className="flex-none w-7/12 pl-[15px]">
+                        <div className="text-right">
+                            <p className="text-[#9A9A9A] text-base leading-[1.4em] mb-0 capitalize">
                                 {title}
                             </p>
-                            <h3 style={{
-                                fontSize: '2em', /* ~28px-30px */
-                                fontWeight: 400,
-                                margin: 0,
-                                color: '#252422'
-                            }}>
+                            <h3 className="text-[2em] font-normal m-0 text-[#252422]">
                                 {value}
                             </h3>
                         </div>
@@ -75,15 +51,9 @@ const StatsCard: React.FC<StatsCardProps> = ({
                 </div>
             </div>
 
-            <div className="card-footer" style={{
-                backgroundColor: 'transparent',
-                borderTop: '1px solid #ddd',
-                padding: '0',
-                paddingTop: '10px',
-                marginTop: '10px'
-            }}>
-                <div style={{ color: '#a49e93', fontSize: '12px', display: 'flex', alignItems: 'center' }}>
-                    {FooterIcon && <FooterIcon size={14} style={{ marginRight: '5px' }} />}
+            <div className="bg-transparent border-t border-[#ddd] p-0 pt-[10px] mt-[10px]">
+                <div className="text-[#a49e93] text-xs flex items-center">
+                    {FooterIcon && <FooterIcon size={14} className="mr-[5px]" />}
                     {footerText}
                 </div>
             </div>

@@ -3,7 +3,7 @@ import { useSingleContent } from '../hooks/useContent'; // Asegura la ruta corre
 
 const Hero: React.FC = () => {
   // 1. Usamos el Hook mágico
-  const { data, loading } = useSingleContent('HOME_HERO');
+  const { data } = useSingleContent('HOME_HERO');
 
   // Valores por defecto para que no se vea roto mientras carga (Skeleton visual básico)
   const bgImage = data?.imageUrl || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070'; // Fallback elegante

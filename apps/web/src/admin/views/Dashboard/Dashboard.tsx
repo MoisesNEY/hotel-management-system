@@ -104,8 +104,8 @@ const Dashboard = () => {
     return (
         <div className="content">
             {/* Stats Components Row */}
-            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px', marginBottom: '30px' }}>
-                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
+            <div className="flex flex-wrap -mx-4 mb-8">
+                <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="warning"
                         icon={CalendarCheck}
@@ -115,7 +115,7 @@ const Dashboard = () => {
                         footerText="Actualizado ahora"
                     />
                 </div>
-                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
+                <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="success"
                         icon={DollarSign}
@@ -125,7 +125,7 @@ const Dashboard = () => {
                         footerText="Último mes"
                     />
                 </div>
-                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
+                <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="danger"
                         icon={Users}
@@ -135,7 +135,7 @@ const Dashboard = () => {
                         footerText="En la última hora"
                     />
                 </div>
-                <div className="col-lg-3 col-md-6 col-sm-6" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 25%', maxWidth: '25%' }}>
+                <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="primary"
                         icon={BedDouble}
@@ -148,11 +148,11 @@ const Dashboard = () => {
             </div>
 
             {/* Charts Row */}
-            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
-                <div className="col-md-12" style={{ padding: '0 15px', position: 'relative', width: '100%', flex: '0 0 100%', maxWidth: '100%' }}>
+            <div className="flex flex-wrap -mx-4 mb-8">
+                <div className="w-full px-4">
                     <Card title="Comportamiento de Usuarios" subtitle="Rendimiento de 24 Horas">
                         {/* Chart Container */}
-                        <div style={{ position: 'relative', height: '400px', width: '100%', marginTop: '10px' }}>
+                        <div className="relative w-full h-[400px] mt-2">
                             {chartData ? (
                                 <Line data={revenueChartData} options={chartOptions} />
                             ) : (
@@ -162,9 +162,9 @@ const Dashboard = () => {
                             )}
                         </div>
                         {/* Footer (Legend within Footer or below chart) */}
-                        <div className="card-footer" style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}>
-                            <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
-                                <RefreshCw size={14} style={{ marginRight: '5px' }} /> Updated 3 minutes ago
+                        <div className="border-t border-[#ddd] mt-4 pt-4">
+                            <div className="text-[#a49e93] text-sm flex items-center">
+                                <RefreshCw size={14} className="mr-1" /> Updated 3 minutes ago
                             </div>
                         </div>
                     </Card>
@@ -172,37 +172,37 @@ const Dashboard = () => {
             </div>
 
             {/* Bottom Row: Additional Charts or Tables could go here like in demo logic (Email Stats / NASDQ) */}
-            <div className="row" style={{ display: 'flex', flexWrap: 'wrap', margin: '0 -15px' }}>
-                <div className="col-md-4" style={{ padding: '0 15px', width: '33.3333%', flex: '0 0 33.3333%', maxWidth: '33.3333%' }}>
+            <div className="flex flex-wrap -mx-4">
+                <div className="w-full md:w-1/3 px-4 mb-4">
                     <Card title="Estadísticas Email" subtitle="Rendimiento de Campaña">
-                        <div style={{ height: '245px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>
+                        <div className="h-[245px] flex items-center justify-center text-gray-300">
                             {/* Placeholder Pie Chart */}
                             [ Pie Chart Placeholder ]
                         </div>
-                        <div className="legend" style={{ padding: '10px 0', fontSize: '12px', color: '#9a9a9a' }}>
-                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                                <span style={{ display: 'flex', alignItems: 'center' }}><Circle size={10} className="text-blue-400 fill-current mr-1" /> Abierto</span>
-                                <span style={{ display: 'flex', alignItems: 'center' }}><Circle size={10} className="text-yellow-400 fill-current mr-1" /> Leído</span>
-                                <span style={{ display: 'flex', alignItems: 'center' }}><Circle size={10} className="text-red-400 fill-current mr-1" /> Eliminado</span>
+                        <div className="py-2 text-xs text-[#9a9a9a]">
+                            <div className="flex gap-2 justify-center">
+                                <span className="flex items-center"><Circle size={10} className="text-blue-400 fill-current mr-1" /> Abierto</span>
+                                <span className="flex items-center"><Circle size={10} className="text-yellow-400 fill-current mr-1" /> Leído</span>
+                                <span className="flex items-center"><Circle size={10} className="text-red-400 fill-current mr-1" /> Eliminado</span>
                             </div>
                         </div>
-                        <div className="card-footer" style={{ borderTop: '0 none', paddingTop: '10px' }}>
-                            <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
-                                <Calendar size={14} style={{ marginRight: '5px' }} /> Número de emails enviados
+                        <div className="border-t-0 pt-2">
+                            <div className="text-[#a49e93] text-sm flex items-center">
+                                <Calendar size={14} className="mr-1" /> Número de emails enviados
                             </div>
                         </div>
                     </Card>
                 </div>
-                <div className="col-md-8" style={{ padding: '0 15px', width: '66.6666%', flex: '0 0 66.6666%', maxWidth: '66.6666%' }}>
+                <div className="w-full md:w-2/3 px-4 mb-4">
                     <Card title="NASDAQ: APHA" subtitle="Histórico 2018">
-                        <div style={{ height: '277px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>
+                        <div className="h-[277px] flex items-center justify-center text-gray-300">
                             {/* Placeholder Line Chart with different config */}
                             [ Detailed Line Chart Placeholder ]
                         </div>
-                        <div className="card-footer" style={{ borderTop: '0 none', paddingTop: '0' }}>
+                        <div className="border-0 pt-0">
                             {/* Footer content */}
-                            <div className="stats" style={{ color: '#a49e93', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
-                                <Activity size={14} style={{ marginRight: '5px' }} /> Datos certificados
+                            <div className="text-[#a49e93] text-sm flex items-center">
+                                <Activity size={14} className="mr-1" /> Datos certificados
                             </div>
                         </div>
                     </Card>

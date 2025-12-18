@@ -21,88 +21,62 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     };
 
     return (
-        // Navbar structure based on _navbar.scss
-        // Min-height 53px, padding-top/bottom ~10px
-        <nav className="navbar navbar-expand-lg navbar-absolute fixed-top" style={{
-            minHeight: '53px',
-            paddingTop: '10px',
-            paddingBottom: '10px',
-            marginBottom: '20px',
-            backgroundColor: 'transparent', /* Or #fff if scrolled, keep simple for now */
-            borderBottom: 'none',
-            boxShadow: 'none',
-            position: 'absolute',
-            width: '100%',
-            zIndex: 1029
-        }}>
-            <div className="container-fluid" style={{ paddingRight: '15px', paddingLeft: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <nav className="navbar w-full min-h-[53px] py-2 mb-5 bg-transparent border-0 z-[1029] absolute top-0 left-0">
+            <div className="container-fluid px-4 flex items-center justify-between w-full">
 
                 {/* Navbar Wrapper (Brand + Toggle) */}
-                <div className="navbar-wrapper" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <div className="navbar-toggle">
+                <div className="navbar-wrapper flex items-center">
+                    <div className="navbar-toggle lg:hidden">
                         <button
                             type="button"
-                            className="navbar-toggler"
+                            className="navbar-toggler border-0 bg-transparent p-0 cursor-pointer outline-none mr-4"
                             onClick={onToggleSidebar}
-                            style={{ border: 0, background: 'transparent', padding: 0, cursor: 'pointer', outline: 'none', marginRight: '15px' }}
                         >
-                            <span className="navbar-toggler-bar bar1" style={{ display: 'block', width: '22px', height: '2px', background: '#66615b', marginBottom: '3px' }}></span>
-                            <span className="navbar-toggler-bar bar2" style={{ display: 'block', width: '22px', height: '2px', background: '#66615b', marginBottom: '3px' }}></span>
-                            <span className="navbar-toggler-bar bar3" style={{ display: 'block', width: '22px', height: '2px', background: '#66615b', marginBottom: '0' }}></span>
+                            <span className="navbar-toggler-bar bar1 block w-[22px] h-[2px] bg-[#66615b] mb-[3px] rounded-[1px]"></span>
+                            <span className="navbar-toggler-bar bar2 block w-[22px] h-[2px] bg-[#66615b] mb-[3px] rounded-[1px]"></span>
+                            <span className="navbar-toggler-bar bar3 block w-[22px] h-[2px] bg-[#66615b] mb-0 rounded-[1px]"></span>
                         </button>
                     </div>
-                    <a className="navbar-brand" href="#pablo" onClick={(e) => e.preventDefault()} style={{
-                        color: '#66615b',
-                        textTransform: 'uppercase',
-                        fontSize: '20px',
-                        fontWeight: 800,
-                        lineHeight: '1.625rem',
-                        textDecoration: 'none',
-                        marginLeft: '10px'
-                    }}>
+                    <a className="navbar-brand text-[#66615b] uppercase text-[20px] font-extrabold leading-[1.625rem] no-underline ml-2" href="#pablo" onClick={(e) => e.preventDefault()}>
                         {getPageTitle()}
                     </a>
                 </div>
 
                 {/* Navbar Collapse (Right Menu) */}
-                <div className="collapse navbar-collapse justify-content-end" style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="collapse navbar-collapse hidden lg:flex items-center justify-end">
                     {/* Search Form - simplified */}
-                    <form style={{ marginRight: '15px' }}>
-                        <div className="input-group no-border" style={{ display: 'flex', alignItems: 'center' }}>
-                            <input type="text" className="form-control" placeholder="Search..." style={{
-                                background: 'transparent',
-                                border: 'none',
-                                borderBottom: '1px solid #DDDDDD',
-                                borderRadius: 0,
-                                color: '#66615b',
-                                padding: '10px 10px 10px 5px',
-                                height: '40px'
-                            }} />
+                    <form className="mr-4">
+                        <div className="input-group no-border flex items-center border-b border-[#DDDDDD]">
+                            <input 
+                                type="text" 
+                                className="form-control bg-transparent border-none text-[#66615b] px-2 py-2 h-10 focus:outline-none placeholder-gray-400" 
+                                placeholder="Search..." 
+                            />
                             <div className="input-group-append">
-                                <span className="input-group-text" style={{ background: 'transparent', border: 'none', padding: '10px 0 10px 0' }}>
+                                <span className="input-group-text bg-transparent border-none py-2">
                                     <Search size={20} color="#66615b" />
                                 </span>
                             </div>
                         </div>
                     </form>
 
-                    <ul className="navbar-nav" style={{ flexDirection: 'row', display: 'flex', listStyle: 'none', paddingLeft: 0, marginBottom: 0 }}>
+                    <ul className="navbar-nav flex flex-row list-none pl-0 mb-0 gap-4">
                         <li className="nav-item">
-                            <a className="nav-link btn-magnify" href="#pablo" style={{ padding: '10px 15px', color: '#66615b', display: 'block' }}>
+                            <a className="nav-link btn-magnify block py-2 px-3 text-[#66615b] hover:text-paper-primary transition-colors" href="#pablo">
                                 <i className="nc-icon nc-layout-11"><Settings size={20} /></i>
-                                <span className="d-lg-none d-md-block" style={{ display: 'none' }}>Stats</span>
+                                <span className="hidden d-lg-none d-md-block">Stats</span>
                             </a>
                         </li>
                         <li className="nav-item btn-rotate dropdown">
-                            <a className="nav-link dropdown-toggle" href="#" style={{ padding: '10px 15px', color: '#66615b', display: 'block' }}>
+                            <a className="nav-link dropdown-toggle block py-2 px-3 text-[#66615b] hover:text-paper-primary transition-colors" href="#">
                                 <Bell size={20} />
-                                <span className="d-lg-none d-md-block" style={{ display: 'none' }}>Notifications</span>
+                                <span className="hidden d-lg-none d-md-block">Notifications</span>
                             </a>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link btn-rotate" href="#pablo" style={{ padding: '10px 15px', color: '#66615b', display: 'block' }}>
+                            <a className="nav-link btn-rotate block py-2 px-3 text-[#66615b] hover:text-paper-primary transition-colors" href="#pablo">
                                 <Settings size={20} />
-                                <span className="d-lg-none d-md-block" style={{ display: 'none' }}>Settings</span>
+                                <span className="hidden d-lg-none d-md-block">Settings</span>
                             </a>
                         </li>
                     </ul>
