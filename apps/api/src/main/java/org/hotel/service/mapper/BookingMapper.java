@@ -3,8 +3,6 @@ package org.hotel.service.mapper;
 import org.hotel.domain.Booking;
 import org.hotel.domain.Room;
 import org.hotel.domain.RoomType;
-import org.hotel.domain.User;
-import org.hotel.service.dto.AdminUserDTO;
 import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.dto.RoomDTO;
 import org.hotel.service.dto.RoomTypeDTO;

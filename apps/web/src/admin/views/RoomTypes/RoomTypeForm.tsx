@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Button from '../../components/shared/Button';
 import { createRoomType, updateRoomType } from '../../../services/admin/roomTypeService';
-import type { RoomTypeDTO } from '../../../types/sharedTypes';
+import type { RoomTypeDTO } from '../../../types/adminTypes';
 
 interface RoomTypeFormProps {
     initialData?: RoomTypeDTO | null;

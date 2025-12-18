@@ -6,8 +6,7 @@ import Card from '../../components/shared/Card';
 import { getAllBookings, deleteBooking } from '../../../services/admin/bookingService';
 import { checkIn, checkOut, assignRoom } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
-import { getAllUsers } from '../../../services/admin/userService';
-import type { BookingDTO, RoomDTO, AdminUserDTO } from '../../../types/sharedTypes';
+import type { BookingDTO, RoomDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getBookingStatusConfig } from '../../utils/helpers';
 import BookingForm from './BookingForm';
 import Modal from '../../components/shared/Modal';
@@ -15,7 +14,6 @@ import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle } from 'lucide
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingBooking, setEditingBooking] = useState<BookingDTO | null>(null);
@@ -143,18 +141,8 @@ const BookingsView = () => {
     const loadBookings = async () => {
         try {
             setLoading(true);
-            const [bookingsParams, usersParams] = await Promise.all([
-                getAllBookings(),
-                getAllUsers(0, 100) // Fetch top 100 users for lookup
-            ]);
-
-            setBookings(bookingsParams.data);
-
-            // Create User Map
-            const map: Record<number, AdminUserDTO> = {};
-            usersParams.data.forEach(u => map[u.id] = u);
-            setUsersMap(map);
-
+            const response = await getAllBookings();
+            setBookings(response.data);
         } catch (error) {
             console.error("Error loading data", error);
         } finally {

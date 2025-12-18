@@ -9,7 +9,7 @@ import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import { getAllHotelServices, deleteHotelService } from '../../../services/admin/hotelServiceService';
 import { getAllServiceRequests, updateServiceRequest } from '../../../services/admin/serviceRequestService';
-import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/sharedTypes';
+import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/adminTypes';
 
 const ServicesView = () => {
     const [services, setServices] = useState<HotelServiceDTO[]>([]);

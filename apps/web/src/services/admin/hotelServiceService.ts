@@ -1,5 +1,5 @@
 import { apiClient } from '../api';
-import { type HotelServiceDTO } from '../../types/sharedTypes';
+import { type HotelServiceDTO } from '../../types/adminTypes';
 
 const API_URL = '/api/hotel-services';
 

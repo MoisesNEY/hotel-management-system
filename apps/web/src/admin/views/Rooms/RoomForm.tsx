@@ -3,7 +3,7 @@ import { Save, DoorOpen, Layout, Loader2, AlertCircle } from 'lucide-react';
 import Button from '../../components/shared/Button';
 import { createRoom, updateRoom } from '../../../services/admin/roomService';
 
-import type { RoomDTO, RoomTypeDTO, RoomStatus } from '../../../types/sharedTypes';
+import type { RoomDTO, RoomTypeDTO, RoomStatus } from '../../../types/adminTypes';
 
 interface RoomFormProps {
     initialData?: RoomDTO | null;

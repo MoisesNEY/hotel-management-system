@@ -5,7 +5,7 @@ import Button from '../../components/shared/Button';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
 import { getAllRoomTypes, deleteRoomType } from '../../../services/admin/roomTypeService';
-import type { RoomTypeDTO } from '../../../types/sharedTypes';
+import type { RoomTypeDTO } from '../../../types/adminTypes';
 import { formatCurrency } from '../../utils/helpers';
 import RoomTypeForm from './RoomTypeForm';
 

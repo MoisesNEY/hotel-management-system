@@ -17,7 +17,7 @@ import type {
     CustomerDetailsDTO as CustomerDTO,
     BookingStatus,
     AdminUserDTO
-} from '../../../types/sharedTypes';
+} from '../../../types/adminTypes';
 
 interface BookingFormProps {
     initialData?: BookingDTO | null;
@@ -39,7 +39,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
 
     const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
+    const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
 
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
@@ -57,7 +57,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 setRoomTypes(typesResponse.data);
                 setCustomers(customersResponse.data);
 
-                const map: Record<number, AdminUserDTO> = {};
+                const map: Record<string, AdminUserDTO> = {};
                 usersResponse.data.forEach(u => map[u.id] = u);
                 setUsersMap(map);
             } catch (e) {
