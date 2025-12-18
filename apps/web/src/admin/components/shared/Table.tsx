@@ -28,79 +28,73 @@ function Table<T>({
     title,
     subtitle,
     isLoading = false,
-    striped = true // Default to true for Paper theme
+    striped = true
 }: TableProps<T>) {
     return (
-        <Card className="card-plain" style={{ boxShadow: 'none', backgroundColor: 'transparent' }}>
+        <Card className="border-none shadow-none bg-transparent">
             {/* Header Section inside Card if provided */}
             {(title || subtitle) && (
-                <div className="card-header" style={{
-                    backgroundColor: 'transparent',
-                    border: '0 none',
-                    padding: '15px 15px 0'
-                }}>
-                    {title && <h4 className="card-title" style={{ margin: 0, color: '#333' }}>{title}</h4>}
-                    {subtitle && <p className="card-category" style={{ color: '#9a9a9a', fontSize: '14px', margin: 0 }}>{subtitle}</p>}
+                <div className="px-4 pt-4 pb-0 bg-transparent border-0">
+                    {title && <h4 className="m-0 text-gray-900 dark:text-white text-xl font-bold tracking-tight">{title}</h4>}
+                    {subtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{subtitle}</p>}
                 </div>
             )}
 
-            <div className="card-body table-full-width table-responsive" style={{ padding: '0' }}>
-                <table className="table table-hover" style={{ width: '100%', marginBottom: '1rem', color: '#66615b' }}>
-                    <thead style={{ color: '#51cbce' /* Primary Color */ }}>
+            <div className="overflow-x-auto w-full p-0">
+                <table className="w-full mb-4 text-left border-collapse">
+                    <thead>
                         <tr>
                             {columns.map((col, index) => (
                                 <th
                                     key={index}
-                                    style={{
-                                        fontSize: '12px',
-                                        textTransform: 'uppercase',
-                                        color: 'inherit',
-                                        fontWeight: 600,
-                                        padding: '12px 8px',
-                                        borderBottom: '1px solid #ddd',
-                                        borderTop: '0'
-                                    }}
-                                    className={col.headerClassName || ''}
+                                    className={`
+                                        text-[10px] uppercase font-bold tracking-widest
+                                        py-4 px-4
+                                        text-gray-400 dark:text-gray-500
+                                        border-b border-gray-100 dark:border-white/5
+                                        ${col.headerClassName || ''}
+                                    `}
                                 >
                                     {col.header}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="text-gray-700 dark:text-gray-300">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={columns.length} className="text-center py-5 text-gray-500">
-                                    Cargando datos...
+                                <td colSpan={columns.length} className="text-center py-12 text-gray-400">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="w-8 h-8 border-2 border-gold-default/20 border-t-gold-default rounded-full animate-spin"></div>
+                                        <span className="text-xs font-semibold uppercase tracking-wider">Cargando datos...</span>
+                                    </div>
                                 </td>
                             </tr>
                         ) : data.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length} className="text-center py-5 text-gray-500 italic">
-                                    {emptyMessage}
+                                <td colSpan={columns.length} className="text-center py-12 text-gray-400 italic">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-sm font-medium">{emptyMessage}</span>
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
                             data.map((item, index) => (
                                 <tr
                                     key={keyExtractor(item)}
-                                    // Striped logic: nth-of-type(odd) usually handled by CSS, but can force explicit bg
-                                    style={{
-                                        backgroundColor: striped && index % 2 !== 0 ? '#f2f2f2' : 'transparent',
-                                        /* Hover affect handled by global .table-hover css or inline */
-                                    }}
-                                    className="hover:bg-gray-100 transition-colors"
+                                    className={`
+                                        border-b border-gray-50 dark:border-white/[0.02] last:border-b-0
+                                        hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors duration-150
+                                        ${striped && index % 2 !== 0 ? 'bg-gray-50/30 dark:bg-white/[0.01]' : 'bg-transparent'}
+                                    `}
                                 >
                                     {columns.map((col, colIndex) => (
                                         <td
                                             key={colIndex}
-                                            style={{
-                                                fontSize: '14px',
-                                                padding: '12px 8px',
-                                                verticalAlign: 'middle',
-                                                borderTop: '1px solid #e3e3e3'
-                                            }}
-                                            className={col.className || ''}
+                                            className={`
+                                                text-sm py-4 px-4 align-middle
+                                                ${col.className || ''}
+                                            `}
                                         >
                                             {col.cell ? col.cell(item) : (typeof col.accessor === 'function' ? col.accessor(item) : (item[col.accessor] as ReactNode))}
                                         </td>

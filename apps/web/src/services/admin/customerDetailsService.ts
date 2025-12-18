@@ -1,5 +1,5 @@
+import type { CustomerDetailsDTO } from '../../types/adminTypes';
 import { apiClient } from '../api';
-import { type CustomerDetailsDTO } from '../../types/sharedTypes';
 
 const API_URL = '/api/customer-details';
 

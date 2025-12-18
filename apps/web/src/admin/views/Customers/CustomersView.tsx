@@ -6,15 +6,14 @@ import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
 import { getAllCustomerDetails, deleteCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllUsers } from '../../../services/admin/userService';
-import type { CustomerDetailsDTO } from '../../../types/sharedTypes';
-import type { AdminUserDTO } from '../../../types/adminTypes';
+import type { CustomerDetailsDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 
 const CustomersView = () => {
     const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
+    const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
@@ -34,7 +33,7 @@ const CustomersView = () => {
             setCustomers(customersParams.data);
 
             // Create User Lookup
-            const map: Record<number, AdminUserDTO> = {};
+            const map: Record<string, AdminUserDTO> = {};
             usersParams.data.forEach(u => map[u.id] = u);
             setUsersMap(map);
 
@@ -86,8 +85,8 @@ const CustomersView = () => {
                 const firstName = user?.firstName || row.user?.firstName;
                 const lastName = user?.lastName || row.user?.lastName;
 
-                if (!firstName && !lastName) return <span className="text-gray-400 italic">Sin Nombre</span>;
-                return `${firstName || ''} ${lastName || ''}`;
+                if (!firstName && !lastName) return <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>;
+                return <span className="font-semibold text-gray-900 dark:text-white tracking-tight">{`${firstName || ''} ${lastName || ''}`}</span>;
             }
         },
         {
@@ -121,7 +120,7 @@ const CustomersView = () => {
         {
             header: 'DNI / Pasaporte',
             accessor: (row) => (
-                <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                <code className="text-[10px] font-mono bg-gray-100 dark:bg-white/5 px-2 py-1 rounded text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/5">
                     {row.licenseId}
                 </code>
             )
@@ -156,12 +155,12 @@ const CustomersView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
-                    <p className="text-gray-600">Gestión de base de datos de clientes</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Clientes</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de base de datos de clientes</p>
                 </div>
-                <Button onClick={handleCreate} variant="primary">
+                <Button onClick={handleCreate} variant="primary" leftIcon={<Plus size={16} />}>
                     Nuevo Cliente
                 </Button>
             </div>

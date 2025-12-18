@@ -1,5 +1,5 @@
 import { apiClient } from '../api';
-import { type ServiceRequestDTO } from '../../types/sharedTypes';
+import { type ServiceRequestDTO } from '../../types/adminTypes';
 
 const API_URL = '/api/service-requests';
 

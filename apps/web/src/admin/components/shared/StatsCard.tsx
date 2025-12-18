@@ -20,70 +20,38 @@ const StatsCard: React.FC<StatsCardProps> = ({
 }) => {
     // Map colors to text colors
     const iconColorClass = {
-        primary: 'text-[#51cbce]',
-        success: 'text-[#6bd098]',
-        danger: 'text-[#ef8157]',
-        warning: 'text-[#fbc658]',
-        info: 'text-[#51bcda]'
+        primary: 'text-blue-500',
+        success: 'text-emerald-500',
+        danger: 'text-rose-500',
+        warning: 'text-amber-500',
+        info: 'text-cyan-500'
     }[type];
 
     return (
-        <div style={{
-            borderRadius: '12px',
-            boxShadow: '0 6px 10px -4px rgba(0, 0, 0, 0.15)',
-            backgroundColor: '#FFFFFF',
-            marginBottom: '20px',
-            border: '0 none',
-            padding: '15px 15px 10px 15px',
-            height: '100%'
-        }}>
-            <div className="card-body" style={{ padding: '0' }}>
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 h-full flex flex-col justify-between transition-all hover:shadow-md mb-6">
+            <div className="p-0 flex-auto">
+                <div className="flex flex-row items-center">
                     {/* Left Col: Icon */}
-                    <div style={{ flex: '0 0 41.666667%', maxWidth: '41.666667%', paddingRight: '15px' }}>
-                        <div style={{
-                            fontSize: '3em',
-                            minHeight: '64px',
-                            lineHeight: '59px',
-                            textAlign: 'center'
-                        }} className={iconColorClass}>
-                            <Icon size={50} strokeWidth={1.5} />
+                    <div className="flex-none w-14 h-14 mr-4">
+                        <div className={`${iconColorClass} bg-current bg-opacity-10 dark:bg-opacity-20 rounded-xl w-full h-full flex items-center justify-center`}>
+                            <Icon size={28} strokeWidth={2} />
                         </div>
                     </div>
                     {/* Right Col: Numbers */}
-                    <div style={{ flex: '0 0 58.333333%', maxWidth: '58.333333%', paddingLeft: '15px' }}>
-                        <div style={{ textAlign: 'right' }}>
-                            <p style={{
-                                color: '#9A9A9A',
-                                fontSize: '16px',
-                                lineHeight: '1.4em',
-                                marginBottom: 0,
-                                textTransform: 'capitalize'
-                            }}>
-                                {title}
-                            </p>
-                            <h3 style={{
-                                fontSize: '2em', /* ~28px-30px */
-                                fontWeight: 400,
-                                margin: 0,
-                                color: '#252422'
-                            }}>
-                                {value}
-                            </h3>
-                        </div>
+                    <div className="flex-1 text-right">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            {title}
+                        </p>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                            {value}
+                        </h3>
                     </div>
                 </div>
             </div>
 
-            <div className="card-footer" style={{
-                backgroundColor: 'transparent',
-                borderTop: '1px solid #ddd',
-                padding: '0',
-                paddingTop: '10px',
-                marginTop: '10px'
-            }}>
-                <div style={{ color: '#a49e93', fontSize: '12px', display: 'flex', alignItems: 'center' }}>
-                    {FooterIcon && <FooterIcon size={14} style={{ marginRight: '5px' }} />}
+            <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-5">
+                <div className="text-gray-400 dark:text-gray-500 text-[10px] flex items-center font-bold uppercase tracking-widest">
+                    {FooterIcon && <FooterIcon size={12} className="mr-2" />}
                     {footerText}
                 </div>
             </div>

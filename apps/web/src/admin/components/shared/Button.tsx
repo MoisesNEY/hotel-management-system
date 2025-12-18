@@ -7,10 +7,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
     size?: ButtonSize;
     icon?: React.ReactNode;
-    leftIcon?: React.ReactNode; // Alias for icon or explicit left position
+    leftIcon?: React.ReactNode; 
     isLoading?: boolean;
-    block?: boolean; // Full width
-    iconOnly?: boolean; // Icon-only button without text
+    block?: boolean; 
+    iconOnly?: boolean; 
     children?: React.ReactNode;
 }
 
@@ -27,37 +27,51 @@ const Button: React.FC<ButtonProps> = ({
     disabled,
     ...props
 }) => {
-    // Determine CSS classes based on props
-    let btnClass = 'btn';
+    // Base M3 classes: Flex center, transitions, pill or rounded shape, font medium
+    let btnClass = 'inline-flex items-center justify-center font-medium transition-all duration-200 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap';
 
-    // Variant classes (map to .btn-primary, .btn-danger etc defined in css)
-    if (variant && variant !== 'ghost') {
-        btnClass += ` btn-${variant}`;
-    } else if (variant === 'ghost') {
-        btnClass += ' btn-neutral'; // closest match or custom
-    }
+    // Size mappings
+    const sizeClasses = {
+        sm: 'text-xs px-3 py-1.5 h-8',
+        md: 'text-sm px-5 py-2.5 h-10', // Standard M3 height approx 40px
+        lg: 'text-base px-6 py-3 h-12',
+        round: 'text-sm p-3 rounded-full w-10 h-10', // Icon button circle
+    };
 
-    // Size classes
-    if (size === 'sm') {
-        btnClass += ' btn-sm';
-    } else if (size === 'lg') {
-        btnClass += ' btn-lg';
-    }
+    // Variant mappings to M3 Styles
+    // Primary -> Filled
+    // Secondary -> Tonal/Filled Tonal
+    // Outline -> Outlined
+    // Ghost/Link -> Text
+    
+    const variantClasses = {
+        primary: 'bg-gold-default text-white shadow-sm hover:shadow-md hover:bg-gold-hover rounded-xl',
+        secondary: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl',
+        outline: 'border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl',
+        ghost: 'bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl',
+        
+        danger: 'bg-rose-500 text-white shadow-sm hover:shadow-md hover:bg-rose-600 rounded-xl',
+        success: 'bg-emerald-500 text-white shadow-sm hover:shadow-md hover:bg-emerald-600 rounded-xl',
+        warning: 'bg-amber-500 text-white shadow-sm hover:shadow-md hover:bg-amber-600 rounded-xl',
+        info: 'bg-cyan-500 text-white shadow-sm hover:shadow-md hover:bg-cyan-600 rounded-xl',
+        light: 'bg-white dark:bg-white/10 text-gray-800 dark:text-white shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-white/20 rounded-xl',
+        
+        error: 'bg-rose-500 text-white shadow-sm hover:shadow-md rounded-xl',
+        link: 'bg-transparent text-gold-default hover:underline p-0 h-auto shadow-none',
+    };
 
-    // Shape
-    // Paper Dashboard buttons are 'round' (pill) by default for main actions in our design, 
-    // or explicit 'btn-round' class. 
-    // User requested "estilo pill (rounded-30px)".
-    if (size !== 'round') { // 'round' size usually implies icon button, handle separately or here
-        btnClass += ' btn-round';
+    // Apply specific "Icon Only" override if not explicitly 'round' size but 'iconOnly' prop is true
+    if (iconOnly && size !== 'round') {
+        btnClass += ' p-2 rounded-full aspect-square justify-center';
     } else {
-        // Icon button case
-        btnClass += ' btn-round btn-icon';
-        // Add specific style for icon button size if needed, usually handles padding
+        btnClass += ` ${sizeClasses[size] || sizeClasses.md}`;
     }
+
+    // Apply Variant
+    btnClass += ` ${variantClasses[variant] || variantClasses.primary}`;
 
     if (block) {
-        btnClass += ' w-full';
+        btnClass += ' w-full flex';
     }
 
     if (className) {
@@ -79,7 +93,7 @@ const Button: React.FC<ButtonProps> = ({
                 </svg>
             )}
 
-            {!isLoading && iconContent && <span className={`${children ? 'mr-2' : ''} flex items-center`}>{iconContent}</span>}
+            {!isLoading && iconContent && <span className={`${children ? 'mr-2' : ''} flex items-center justify-center`}>{iconContent}</span>}
 
             {children}
         </button>

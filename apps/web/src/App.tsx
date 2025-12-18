@@ -5,8 +5,6 @@ import CustomerDetailsPage from './pages/CustomerDetailsPage';
 import UserProfilePage from './pages/UserProfilePage';
 
 import AdminLayout from './admin/layouts/AdminLayout';
-import './App.css';
-import './styles/landing.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireProfile from './components/RequireProfile';
 import RoleGuard from './components/RoleGuard';

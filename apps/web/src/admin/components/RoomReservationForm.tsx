@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styles from '../styles/RoomReservationForm.module.css';
 
 const RoomReservationForm: React.FC = () => {
   const [roomData, setRoomData] = useState({
@@ -93,9 +92,9 @@ const RoomReservationForm: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-md">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-t-xl">
           <h1>
             <i className="fas fa-plus-circle"></i>
             AGREGAR NUEVA HABITACIÓN
@@ -103,16 +102,16 @@ const RoomReservationForm: React.FC = () => {
         </div>
 
         {message && (
-          <div className={`${styles.messageAlert} ${message.includes('✅') ? styles.success : styles.error}`}>
+          <div className={`px-6 py-4 ${message.includes('✅') || message.includes('AGREGADA') ? 'bg-green-100 text-green-800 border-l-4 border-green-500' : 'bg-red-100 text-red-800 border-l-4 border-red-500'}`}>
             {message}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className={styles.content}>
+          <div className="p-6">
             {/* FORMULARIO DE AGREGAR */}
-            <div className={styles.formSection} style={{ gridColumn: '1 / -1' }}>
-              <h2 className={styles.sectionTitle}>
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <i className="fas fa-plus-square"></i>
                 DATOS DE LA HABITACIÓN
               </h2>
@@ -120,7 +119,7 @@ const RoomReservationForm: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 {/* Columna 1 */}
                 <div>
-                  <div className={styles.formGroup}>
+                  <div className="mb-4">
                     <label htmlFor="name">
                       <i className="fas fa-hotel"></i>
                       NOMBRE DE HABITACIÓN *
@@ -131,13 +130,13 @@ const RoomReservationForm: React.FC = () => {
                       name="name"
                       value={roomData.name}
                       onChange={handleChange}
-                      className={styles.formControl}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Ej: Suite Presidencial"
                       required
                     />
                   </div>
 
-                  <div className={styles.formGroup}>
+                  <div className="mb-4">
                     <label htmlFor="basePrice">
                       <i className="fas fa-dollar-sign"></i>
                       PRECIO BASE ($) *
@@ -149,13 +148,13 @@ const RoomReservationForm: React.FC = () => {
                       name="basePrice"
                       value={roomData.basePrice}
                       onChange={handleChange}
-                      className={styles.formControl}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Ej: 150.00"
                       required
                     />
                   </div>
 
-                  <div className={styles.formGroup}>
+                  <div className="mb-4">
                     <label htmlFor="maxCapacity">
                       <i className="fas fa-users"></i>
                       CAPACIDAD MÁXIMA *
@@ -167,7 +166,7 @@ const RoomReservationForm: React.FC = () => {
                       name="maxCapacity"
                       value={roomData.maxCapacity}
                       onChange={handleChange}
-                      className={styles.formControl}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Ej: 4"
                       required
                     />
@@ -176,7 +175,7 @@ const RoomReservationForm: React.FC = () => {
 
                 {/* Columna 2 */}
                 <div>
-                  <div className={styles.formGroup}>
+                  <div className="mb-4">
                     <label htmlFor="area">
                       <i className="fas fa-arrows-alt"></i>
                       ÁREA (m²) *
@@ -188,13 +187,13 @@ const RoomReservationForm: React.FC = () => {
                       name="area"
                       value={roomData.area}
                       onChange={handleChange}
-                      className={styles.formControl}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Ej: 45"
                       required
                     />
                   </div>
 
-                  <div className={styles.formGroup}>
+                  <div className="mb-4">
                     <label htmlFor="beds">
                       <i className="fas fa-bed"></i>
                       NÚMERO DE CAMAS *
@@ -206,13 +205,13 @@ const RoomReservationForm: React.FC = () => {
                       name="beds"
                       value={roomData.beds}
                       onChange={handleChange}
-                      className={styles.formControl}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Ej: 2"
                       required
                     />
                   </div>
 
-                  <div className={styles.formGroup}>
+                  <div className="mb-4">
                     <label htmlFor="imageUrl">
                       <i className="fas fa-image"></i>
                       URL DE IMAGEN
@@ -223,7 +222,7 @@ const RoomReservationForm: React.FC = () => {
                       name="imageUrl"
                       value={roomData.imageUrl}
                       onChange={handleChange}
-                      className={styles.formControl}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="https://ejemplo.com/imagen.jpg"
                     />
                   </div>
@@ -232,21 +231,21 @@ const RoomReservationForm: React.FC = () => {
 
               {/* Vista previa de imagen */}
               {roomData.imageUrl && (
-                <div className={styles.imagePreview} style={{ marginTop: '1rem' }}>
-                  <h3 className={styles.sectionTitle}>
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-md font-semibold text-gray-700 mb-2 flex items-center gap-2">
                     <i className="fas fa-eye"></i>
                     VISTA PREVIA DE LA IMAGEN
                   </h3>
-                  <div className={styles.previewImageContainer}>
+                  <div className="flex gap-4 items-start">
                     <img 
                       src={roomData.imageUrl} 
                       alt="Vista previa" 
-                      className={styles.previewImage}
+                      className="w-48 h-32 object-cover rounded-md"
                       onError={(e) => {
                         e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23667eea"/><text x="50" y="50" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dy=".3em">Imagen no disponible</text></svg>';
                       }}
                     />
-                    <div className={styles.previewImageInfo}>
+                    <div className="flex-1">
                       <p><strong>URL:</strong> {roomData.imageUrl.substring(0, 50)}...</p>
                     </div>
                   </div>
@@ -254,7 +253,7 @@ const RoomReservationForm: React.FC = () => {
               )}
 
               {/* Descripción */}
-              <div className={styles.formGroup} style={{ marginTop: '1rem' }}>
+              <div className="mb-4 mt-4">
                 <label htmlFor="description">
                   <i className="fas fa-align-left"></i>
                   DESCRIPCIÓN *
@@ -264,7 +263,7 @@ const RoomReservationForm: React.FC = () => {
                   name="description"
                   value={roomData.description}
                   onChange={handleChange}
-                  className={styles.formControl}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={4}
                   placeholder="Describe la habitación detalladamente..."
                   required
@@ -272,12 +271,12 @@ const RoomReservationForm: React.FC = () => {
               </div>
 
               {/* Botones */}
-              <div className={styles.formActions} style={{ marginTop: '2rem' }}>
-                <button type="button" className={styles.btnCancel} onClick={clearForm}>
+              <div className="flex gap-4 justify-end mt-8">
+                <button type="button" className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center gap-2" onClick={clearForm}>
                   <i className="fas fa-times"></i>
                   LIMPIAR FORMULARIO
                 </button>
-                <button type="submit" className={styles.btnSubmit}>
+                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2">
                   <i className="fas fa-plus"></i>
                   AGREGAR HABITACIÓN
                 </button>

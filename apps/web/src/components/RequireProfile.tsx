@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthProvider';
 import { getMyProfile } from '../services/client/customerDetailsService';
 import { getAccount } from '../services/accountService';
+import LoadingScreen from './shared/LoadingScreen';
 
 const RequireProfile: React.FC = () => {
   const { isAuthenticated, isInitialized } = useAuth();
@@ -89,7 +90,7 @@ const RequireProfile: React.FC = () => {
   }, [isInitialized, isAuthenticated, navigate, location]);
 
   if (!isInitialized || isChecking) {
-    return <div className="loading-screen">Verificando perfil...</div>; 
+    return <LoadingScreen message="Actualizando perfil..." />; 
   }
 
   return <Outlet />;

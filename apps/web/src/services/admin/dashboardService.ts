@@ -1,4 +1,4 @@
-import { apiClient } from '../../services/api';
+import { apiClient, extractPaginationInfo } from '../../services/api';
 
 export interface DashboardStats {
     totalBookings: number;
@@ -25,38 +25,79 @@ export interface ChartData {
     datasets: ChartDataset[];
 }
 
-// Mock API endpoints or real ones if available
-const DASHBOARD_URL = '/api/admin/dashboard'; 
-
 export const getStats = async (): Promise<DashboardStats> => {
-    // If backend doesn't have this, we might need to calculate or mock
-    // For now, attempting to fetch from potential backend endpoint, or falling back to mock
     try {
-        const response = await apiClient.get<DashboardStats>(`${DASHBOARD_URL}/stats`);
-        return response.data;
-    } catch (error) {
-        console.warn('Dashboard stats endpoint not found, using mock data');
+        // Fetch bookings for count and revenue
+        const bookingsRes = await apiClient.get('/api/bookings?size=1000');
+        const bookingsPagination = extractPaginationInfo(bookingsRes);
+        const totalBookings = bookingsPagination?.totalElements || bookingsRes.data.length || 0;
+        
+        const totalRevenue = (bookingsRes.data as any[]).reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+
+        // Fetch rooms for occupancy
+        const roomsRes = await apiClient.get('/api/rooms?size=1000');
+        const rooms = roomsRes.data as any[];
+        const totalRooms = rooms.length;
+        const occupiedRooms = rooms.filter(r => r.status === 'OCCUPIED').length;
+        const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
+        // Fetch customers for count
+        const customersRes = await apiClient.get('/api/customer-details?size=1');
+        const customersPagination = extractPaginationInfo(customersRes);
+        const usersCount = customersPagination?.totalElements || 0;
+
         return {
-            totalBookings: 150,
-            totalRevenue: 45000,
-            occupancyRate: 75,
-            usersCount: 320
+            totalBookings,
+            totalRevenue,
+            occupancyRate,
+            usersCount
+        };
+    } catch (error) {
+        console.error('Error calculating dashboard stats', error);
+        return {
+            totalBookings: 0,
+            totalRevenue: 0,
+            occupancyRate: 0,
+            usersCount: 0
         };
     }
 };
 
 export const getRevenueChartData = async (): Promise<ChartData> => {
      try {
-        const response = await apiClient.get<ChartData>(`${DASHBOARD_URL}/revenue-chart`);
-        return response.data;
+        const bookingsRes = await apiClient.get('/api/bookings?size=1000');
+        const bookings = bookingsRes.data as any[];
+        
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthlyRevenue = new Array(12).fill(0);
+
+        bookings.forEach(booking => {
+            if (booking.checkInDate) {
+                const date = new Date(booking.checkInDate);
+                const monthIndex = date.getMonth();
+                monthlyRevenue[monthIndex] += (booking.totalPrice || 0);
+            }
+        });
+
+        return {
+            labels: months,
+            datasets: [
+                {
+                    label: "Revenue",
+                    data: monthlyRevenue,
+                    borderColor: '#51cbce',
+                    backgroundColor: 'transparent',
+                }
+            ]
+        };
     } catch (error) {
-         console.warn('Dashboard chart endpoint not found, using mock data');
+         console.warn('Error calculating chart data', error);
         return {
             labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
             datasets: [
                 {
                     label: "Revenue",
-                    data: [3000, 3500, 4000, 4500, 5000, 4800, 5500, 6000, 6500, 7000, 7500, 8000],
+                    data: new Array(12).fill(0),
                     borderColor: '#51cbce',
                     backgroundColor: 'transparent',
                 }

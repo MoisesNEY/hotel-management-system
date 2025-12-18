@@ -6,17 +6,14 @@ import Card from '../../components/shared/Card';
 import { getAllBookings, deleteBooking } from '../../../services/admin/bookingService';
 import { checkIn, checkOut, assignRoom } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
-import { getAllUsers } from '../../../services/admin/userService';
-import type { BookingDTO, RoomDTO } from '../../../types/sharedTypes';
-import type { AdminUserDTO } from '../../../types/adminTypes';
-import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
+import type { BookingDTO, RoomDTO } from '../../../types/adminTypes';
+import { formatCurrency, formatDate, getBookingStatusConfig } from '../../utils/helpers';
 import BookingForm from './BookingForm';
 import Modal from '../../components/shared/Modal';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingBooking, setEditingBooking] = useState<BookingDTO | null>(null);
@@ -27,6 +24,22 @@ const BookingsView = () => {
     const [availableRooms, setAvailableRooms] = useState<RoomDTO[]>([]);
     const [selectedRoomId, setSelectedRoomId] = useState<number | string>('');
     const [assignLoading, setAssignLoading] = useState(false);
+
+    // Feedback State
+    const [feedback, setFeedback] = useState<{
+        show: boolean;
+        title: string;
+        message: string;
+        type: 'success' | 'error' | 'warning';
+    }>({ show: false, title: '', message: '', type: 'success' });
+
+    const showSuccess = (title: string, message: string) => {
+        setFeedback({ show: true, title, message, type: 'success' });
+    };
+
+    const showError = (title: string, message: string) => {
+        setFeedback({ show: true, title, message, type: 'error' });
+    };
 
     // Handlers
     const openAssignModal = async (bookingId: number) => {
@@ -59,34 +72,37 @@ const BookingsView = () => {
             await assignRoom(assigningBookingId, Number(selectedRoomId));
             setShowAssignModal(false);
             loadBookings();
-            alert('Habitación asignada correctamente');
-        } catch (error) {
+            showSuccess('Habitación Asignada', 'La habitación se ha vinculado correctamente a la reserva.');
+        } catch (error: any) {
             console.error("Error assigning room", error);
-            alert('Error al asignar habitación');
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo asignar la habitación seleccionada.';
+            showError('Error de Asignación', serverMsg);
         } finally {
             setAssignLoading(false);
         }
     };
 
     const handleCheckIn = async (bookingId: number) => {
-        if (!confirm('¿Confirmar Check-In?')) return;
         try {
             await checkIn(bookingId);
             loadBookings();
-        } catch (error) {
+            showSuccess('Check-In Exitoso', 'El huésped ha sido registrado en el hotel.');
+        } catch (error: any) {
             console.error("Error during check-in", error);
-            alert('Error al realizar Check-In');
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'Hubo un problema al procesar la entrada del huésped.';
+            showError('Error al Realizar Check-In', serverMsg);
         }
     };
 
     const handleCheckOut = async (bookingId: number) => {
-        if (!confirm('¿Confirmar Check-Out?')) return;
         try {
             await checkOut(bookingId);
             loadBookings();
-        } catch (error) {
+            showSuccess('Check-Out Completado', 'La estancia ha finalizado correctamente.');
+        } catch (error: any) {
             console.error("Error during check-out", error);
-            alert('Error al realizar Check-Out');
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'Hubo un problema al procesar la salida del huésped.';
+            showError('Error al Realizar Check-Out', serverMsg);
         }
     };
 
@@ -96,14 +112,14 @@ const BookingsView = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar esta reserva?')) {
-            try {
-                await deleteBooking(id);
-                setBookings(prev => prev.filter(b => b.id !== id));
-            } catch (error) {
-                console.error("Error deleting booking", error);
-                alert('No se pudo eliminar la reserva');
-            }
+        try {
+            await deleteBooking(id);
+            setBookings(prev => prev.filter(b => b.id !== id));
+            showSuccess('Reserva Eliminada', 'El registro ha sido removido del sistema permanentemente.');
+        } catch (error: any) {
+            console.error("Error deleting booking", error);
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo completar la eliminación del registro.';
+            showError('Error al Eliminar', serverMsg);
         }
     };
 
@@ -125,18 +141,8 @@ const BookingsView = () => {
     const loadBookings = async () => {
         try {
             setLoading(true);
-            const [bookingsParams, usersParams] = await Promise.all([
-                getAllBookings(),
-                getAllUsers(0, 100) // Fetch top 100 users for lookup
-            ]);
-
-            setBookings(bookingsParams.data);
-
-            // Create User Map
-            const map: Record<number, AdminUserDTO> = {};
-            usersParams.data.forEach(u => map[u.id] = u);
-            setUsersMap(map);
-
+            const response = await getAllBookings();
+            setBookings(response.data);
         } catch (error) {
             console.error("Error loading data", error);
         } finally {
@@ -152,18 +158,16 @@ const BookingsView = () => {
         {
             header: 'Cliente',
             accessor: (row) => {
-                // Stitch user data
-                const user = usersMap[row.customer.id];
-                const firstName = user?.firstName || row.customer?.firstName || 'Sin Nombre';
-                const lastName = user?.lastName || row.customer?.lastName || '';
-                const email = user?.email || row.customer?.email || 'Sin Email';
+                const firstName = row.customer?.firstName || 'Sin Nombre';
+                const lastName = row.customer?.lastName || '';
+                const email = row.customer?.email || 'Sin Email';
 
                 return (
                     <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-bold text-gray-900 dark:text-white tracking-tight">
                             {firstName} {lastName}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                             {email}
                         </div>
                     </div>
@@ -188,7 +192,14 @@ const BookingsView = () => {
         },
         {
             header: 'Estado',
-            accessor: (row) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge>
+            accessor: (row) => {
+                const config = getBookingStatusConfig(row.status);
+                return (
+                    <Badge variant={config.variant} className="whitespace-nowrap px-4 py-1">
+                        {config.label}
+                    </Badge>
+                );
+            }
         },
         {
             header: 'Total',
@@ -208,7 +219,7 @@ const BookingsView = () => {
                         </Button>
                     )}
                     {row.status === 'CONFIRMED' && row.assignedRoom && (
-                        <Button size="sm" variant="primary" onClick={() => handleCheckIn(row.id)}>
+                        <Button size="sm" variant="warning" onClick={() => handleCheckIn(row.id)}>
                             Check-In
                         </Button>
                     )}
@@ -230,14 +241,14 @@ const BookingsView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Reservas</h1>
-                    <p className="text-gray-600">Gestión de reservaciones del hotel</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reservas</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de reservaciones del hotel</p>
                 </div>
                 {!showForm && (
-                    <Button onClick={() => setShowForm(true)}>
-                        + Crear Reserva
+                    <Button onClick={() => setShowForm(true)} leftIcon={<Plus size={16} />}>
+                        Crear Reserva
                     </Button>
                 )}
             </div>
@@ -272,26 +283,26 @@ const BookingsView = () => {
                 onClose={() => setShowAssignModal(false)}
                 title="Asignar Habitación"
             >
-                <div className="space-y-4">
+                <div className="space-y-4 p-8">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">
                             Seleccione una habitación disponible
                         </label>
                         <select
-                            className="w-full border-gray-300 rounded-md shadow-sm p-2 border"
+                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-gold-default focus:border-gold-default outline-none transition-all"
                             value={selectedRoomId}
                             onChange={(e) => setSelectedRoomId(e.target.value)}
                         >
-                            <option value="">-- Seleccionar --</option>
+                            <option value="" className="dark:bg-[#1c1c1c]">Seleccionar habitación</option>
                             {availableRooms.map(room => (
-                                <option key={room.id} value={room.id}>
+                                <option key={room.id} value={room.id} className="dark:bg-[#1c1c1c]">
                                     {room.roomNumber} - {room.roomType.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-                    <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={() => setShowAssignModal(false)}>
+                    <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-gray-100 dark:border-white/5">
+                        <Button variant="ghost" onClick={() => setShowAssignModal(false)}>
                             Cancelar
                         </Button>
                         <Button
@@ -301,6 +312,38 @@ const BookingsView = () => {
                             {assignLoading ? 'Asignando...' : 'Guardar'}
                         </Button>
                     </div>
+                </div>
+            </Modal>
+
+            {/* Modal de Feedback Vistoso (Toast alternative) */}
+            <Modal
+                isOpen={feedback.show}
+                onClose={() => setFeedback({ ...feedback, show: false })}
+                size="sm"
+            >
+                <div className="p-10 flex flex-col items-center text-center space-y-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                        feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                        feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                        'bg-amber-500/10 text-amber-500'
+                    }`}>
+                        {feedback.type === 'success' && <CheckCircle2 size={40} />}
+                        {feedback.type === 'error' && <XCircle size={40} />}
+                        {feedback.type === 'warning' && <AlertTriangle size={40} />}
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{feedback.title}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
+                            {feedback.message}
+                        </p>
+                    </div>
+                    <Button 
+                        variant={feedback.type === 'success' ? 'primary' : 'danger'} 
+                        className="w-full rounded-2xl py-4"
+                        onClick={() => setFeedback({ ...feedback, show: false })}
+                    >
+                        Entendido
+                    </Button>
                 </div>
             </Modal>
         </div>

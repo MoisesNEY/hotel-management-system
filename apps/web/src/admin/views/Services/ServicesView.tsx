@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { formatCurrency, formatDateTime, getRequestStatusConfig } from '../../utils/helpers';
+import ServiceForm from './ServiceForm';
+import Modal from '../../components/shared/Modal';
+import { Check, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import { getAllHotelServices, deleteHotelService } from '../../../services/admin/hotelServiceService';
 import { getAllServiceRequests, updateServiceRequest } from '../../../services/admin/serviceRequestService';
-import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/sharedTypes';
-import { formatCurrency, formatDateTime, getStatusColor } from '../../utils/helpers';
-import ServiceForm from './ServiceForm';
-import Modal from '../../components/shared/Modal';
+import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/adminTypes';
 
 const ServicesView = () => {
     const [services, setServices] = useState<HotelServiceDTO[]>([]);
@@ -19,6 +19,22 @@ const ServicesView = () => {
     // Form State
     const [showForm, setShowForm] = useState(false);
     const [editingService, setEditingService] = useState<HotelServiceDTO | null>(null);
+
+    // Feedback State
+    const [feedback, setFeedback] = useState<{
+        show: boolean;
+        title: string;
+        message: string;
+        type: 'success' | 'error' | 'warning';
+    }>({ show: false, title: '', message: '', type: 'success' });
+
+    const showSuccess = (title: string, message: string) => {
+        setFeedback({ show: true, title, message, type: 'success' });
+    };
+
+    const showError = (title: string, message: string) => {
+        setFeedback({ show: true, title, message, type: 'error' });
+    };
 
     const loadData = async () => {
         try {
@@ -53,28 +69,26 @@ const ServicesView = () => {
     };
 
     const handleDeleteClick = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar este servicio?')) {
-            try {
-                await deleteHotelService(id);
-                setServices(prev => prev.filter(s => s.id !== id));
-            } catch (error) {
-                console.error("Error deleting service", error);
-                alert('No se pudo eliminar el servicio');
-            }
+        try {
+            await deleteHotelService(id);
+            setServices(prev => prev.filter(s => s.id !== id));
+            showSuccess('Servicio Removido', 'El servicio ha sido eliminado permanentemente del catálogo.');
+        } catch (error: any) {
+            console.error("Error deleting service", error);
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo eliminar el servicio seleccionado.';
+            showError('Error al Eliminar', serverMsg);
         }
     };
 
     const handleUpdateStatus = async (request: ServiceRequestDTO) => {
-        if (!window.confirm('¿Marcar solicitud como completada?')) return;
-
         try {
-            // Assuming we change status to COMPLETED directly for "Atender" which means "Attend/Solve"
-            // Or maybe IN_PROGRESS if we want intermediate state. For now COMPLETED is safe simple action.
             await updateServiceRequest(request.id, { ...request, status: 'COMPLETED' });
             loadData();
-        } catch (error) {
+            showSuccess('Solicitud Completada', 'La solicitud de servicio ha sido marcada como resuelta.');
+        } catch (error: any) {
             console.error("Error updating request status", error);
-            alert("No se pudo actualizar el estado de la solicitud.");
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo actualizar el estado de la solicitud.';
+            showError('Error en Actualización', serverMsg);
         }
     };
 
@@ -89,7 +103,15 @@ const ServicesView = () => {
         },
         {
             header: 'Cliente',
-            accessor: (row) => `${row.booking.customer.firstName || 'Sin'} ${row.booking.customer.lastName || 'Nombre'}`
+            accessor: (row) => {
+                const customer = row.booking?.customer;
+                if (!customer) return <span className="text-gray-400 italic text-xs">Sin asignar</span>;
+                return (
+                    <div className="font-bold text-gray-900 dark:text-white">
+                        {customer.firstName} {customer.lastName}
+                    </div>
+                );
+            }
         },
         {
             header: 'Reserva ID',
@@ -102,14 +124,21 @@ const ServicesView = () => {
         {
             header: 'Detalles',
             accessor: (row) => (
-                <div className="text-xs text-gray-600 max-w-xs truncate" title={row.details}>
+                <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate font-medium" title={row.details}>
                     {row.details || '-'}
                 </div>
             )
         },
         {
             header: 'Estado',
-            accessor: (row) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge>
+            accessor: (row) => {
+                const config = getRequestStatusConfig(row.status);
+                return (
+                    <Badge variant={config.variant} className="px-4 py-1">
+                        {config.label}
+                    </Badge>
+                );
+            }
         },
         {
             header: 'Acciones',
@@ -140,7 +169,7 @@ const ServicesView = () => {
         {
             header: 'Descripción',
             accessor: (row) => (
-                <div className="text-sm text-gray-600 max-w-md truncate">
+                <div className="text-sm text-gray-600 dark:text-gray-300 max-w-md truncate font-medium">
                     {row.description || '-'}
                 </div>
             )
@@ -152,7 +181,7 @@ const ServicesView = () => {
         {
             header: 'Imagen URL',
             accessor: (row) => (
-                <div className="text-xs text-gray-500 max-w-xs truncate">
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 max-w-xs truncate font-mono">
                     {row.imageUrl || '-'}
                 </div>
             )
@@ -182,13 +211,13 @@ const ServicesView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
-                    <p className="text-gray-600">Gestión de servicios y solicitudes</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Servicios</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de servicios y solicitudes</p>
                 </div>
                 {!showForm && (
-                    <Button onClick={handleCreateClick}>Nuevo Servicio</Button>
+                    <Button onClick={handleCreateClick} leftIcon={<Plus size={16} />}>Nuevo Servicio</Button>
                 )}
             </div>
 
@@ -227,6 +256,38 @@ const ServicesView = () => {
                     }}
                     onCancel={() => setShowForm(false)}
                 />
+            </Modal>
+
+            {/* Modal de Feedback (Standard UI) */}
+            <Modal
+                isOpen={feedback.show}
+                onClose={() => setFeedback({ ...feedback, show: false })}
+                size="sm"
+            >
+                <div className="p-10 flex flex-col items-center text-center space-y-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                        feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                        feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                        'bg-amber-500/10 text-amber-500'
+                    }`}>
+                        {feedback.type === 'success' && <CheckCircle2 size={40} />}
+                        {feedback.type === 'error' && <XCircle size={40} />}
+                        {feedback.type === 'warning' && <AlertTriangle size={40} />}
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{feedback.title}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
+                            {feedback.message}
+                        </p>
+                    </div>
+                    <Button 
+                        variant={feedback.type === 'success' ? 'primary' : 'danger'} 
+                        className="w-full rounded-2xl py-4"
+                        onClick={() => setFeedback({ ...feedback, show: false })}
+                    >
+                        Entendido
+                    </Button>
+                </div>
             </Modal>
         </div>
     );
