@@ -1,7 +1,7 @@
 import { BOOKING_STATUS_COLORS, ROOM_STATUS_COLORS } from './constants';
 import type { AdminUserDTO } from '../../types/adminTypes';
 
-export const getUserDisplayInfo = (userObj: any, usersMap: Record<number, AdminUserDTO>) => {
+export const getUserDisplayInfo = (userObj: any, usersMap: Record<string | number, AdminUserDTO>) => {
     const userId = userObj?.id;
     const stitchedUser = userId ? usersMap[userId] : undefined;
 

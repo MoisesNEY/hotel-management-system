@@ -17,7 +17,7 @@ type Category = 'clientes' | 'reservas' | 'habitaciones';
 const TablesView: React.FC = () => {
     const [activeCategory, setActiveCategory] = useState<Category>('clientes');
     const [data, setData] = useState<any[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
+    const [usersMap, setUsersMap] = useState<Record<string | number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
 
     // Pagination State
@@ -137,7 +137,7 @@ const TablesView: React.FC = () => {
             // Stitching users Map
             if (category !== 'habitaciones' && Object.keys(usersMap).length === 0) {
                 const usersRes = await getAllUsers(0, 500);
-                const map: Record<number, AdminUserDTO> = {};
+                const map: Record<string | number, AdminUserDTO> = {};
                 usersRes.data.forEach(u => { if (u.id) map[u.id] = u; });
                 setUsersMap(map);
             }
