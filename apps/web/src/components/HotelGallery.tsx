@@ -136,17 +136,23 @@ const HotelGallery: React.FC = () => {
               <h4 className="text-gray-900 dark:text-white text-2xl mb-2.5 font-semibold">{hotelInfo.name}</h4>
               
               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-gray-50 dark:bg-[#16213e] p-3 rounded-lg border-l-4 border-[#e63946] transition-all duration-300 hover:bg-white dark:hover:bg-[#1a2332] hover:shadow-md hover:translate-x-1">
-                  <MapPin size={20} className="text-[#e63946] flex-shrink-0" />
-                  <span className="text-gray-900 dark:text-gray-200 font-medium">{hotelInfo.address}</span>
+                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#e63946] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
+                  <div className="p-2 rounded-lg bg-[#e63946]/10 text-[#e63946]">
+                    <MapPin size={20} className="flex-shrink-0" />
+                  </div>
+                  <span className="text-gray-900 dark:text-gray-100 font-semibold">{hotelInfo.address}</span>
                 </div>
-                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-gray-50 dark:bg-[#16213e] p-3 rounded-lg border-l-4 border-[#4361ee] transition-all duration-300 hover:bg-white dark:hover:bg-[#1a2332] hover:shadow-md hover:translate-x-1">
-                  <Phone size={20} className="text-[#4361ee] flex-shrink-0" />
-                  <a href={hotelInfo.phoneLink} className="text-gray-900 dark:text-gray-200 font-medium hover:text-[#4361ee]">{hotelInfo.phone}</a>
+                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#4361ee] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
+                  <div className="p-2 rounded-lg bg-[#4361ee]/10 text-[#4361ee]">
+                    <Phone size={20} className="flex-shrink-0" />
+                  </div>
+                  <a href={hotelInfo.phoneLink} className="text-gray-900 dark:text-gray-100 font-semibold hover:text-[#4361ee]">{hotelInfo.phone}</a>
                 </div>
-                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-gray-50 dark:bg-[#16213e] p-3 rounded-lg border-l-4 border-[#2a9d8f] transition-all duration-300 hover:bg-white dark:hover:bg-[#1a2332] hover:shadow-md hover:translate-x-1">
-                  <Mail size={20} className="text-[#2a9d8f] flex-shrink-0" />
-                  <a href={hotelInfo.emailLink} className="text-gray-900 dark:text-gray-200 font-medium hover:text-[#2a9d8f]">{hotelInfo.email}</a>
+                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#2a9d8f] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
+                  <div className="p-2 rounded-lg bg-[#2a9d8f]/10 text-[#2a9d8f]">
+                    <Mail size={20} className="flex-shrink-0" />
+                  </div>
+                  <a href={hotelInfo.emailLink} className="text-gray-900 dark:text-gray-100 font-semibold hover:text-[#2a9d8f]">{hotelInfo.email}</a>
                 </div>
               </div>
 
@@ -154,11 +160,11 @@ const HotelGallery: React.FC = () => {
                 <h5 className="text-gray-900 dark:text-white mb-5 text-xl font-semibold">Características del Hotel:</h5>
                 <div className="grid grid-cols-2 gap-4">
                   {hotelInfo.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3 p-4 bg-white dark:bg-[#16213e] rounded-xl border-2 border-gray-100 dark:border-[#2a2a3e] transition-all duration-300 hover:border-current hover:-translate-y-1 hover:shadow-lg" style={{ color: feature.color }}>
-                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:bg-black/10 dark:group-hover:bg-white/10 group-hover:scale-110">
+                    <div key={index} className="flex items-center gap-3 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 border-b-2 transition-all duration-300 hover:border-current hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: feature.color }}>
+                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:bg-black/10 dark:group-hover:bg-white/10 group-hover:scale-110" style={{ color: feature.color }}>
                         {feature.icon}
                       </div>
-                      <span className="text-gray-900 dark:text-gray-200 text-sm font-medium flex-1">{feature.text}</span>
+                      <span className="text-gray-900 dark:text-gray-200 text-sm font-semibold flex-1">{feature.text}</span>
                     </div>
                   ))}
                 </div>
@@ -176,17 +182,18 @@ const HotelGallery: React.FC = () => {
           </div>
 
           {/* Map */}
-          <div className="bg-white dark:bg-[#1e1e3e] p-10 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards]">
-            <div className="relative rounded-xl overflow-hidden h-[400px]">
+          <div className="bg-white dark:bg-[#1e1e3e] p-3 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards] self-start border border-gray-100 dark:border-white/10">
+            <div className="relative rounded-xl overflow-hidden h-[450px]">
                {hotelInfo.mapSrc ? (
                   <iframe
                     src={hotelInfo.mapSrc}
                     width="100%"
-                    height="400"
+                    height="450"
                     style={{ border: 0 }}
                     allowFullScreen
                     loading="lazy"
                     title="Ubicación"
+                    className="grayscale-[0.2] dark:grayscale-[0.5] invert-[0] dark:invert-[0.1] contrast-[1.1]"
                   />
                ) : (
                  <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">Cargando Mapa...</div>

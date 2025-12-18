@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  User, Calendar, Lock, Shield,
+  User, Calendar, Shield,
   ArrowLeft, Key, Globe, CreditCard, Package,
-  Clock, CheckCircle, XCircle, Bed, Coffee, ConciergeBell,
-  X, Edit, AlertCircle, Save
+  Bed, Coffee, ConciergeBell,
+  X, Edit, Save, ChevronDown
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
@@ -169,9 +169,11 @@ const UserProfilePage: React.FC = () => {
   const handleSave = async () => {
     try {
       const { updateProfile } = await import('../services/client/customerDetailsService');
+      
       let apiGender: Gender = 'OTHER';
-      if (userData.gender === 'Male' || userData.gender === 'Masculino') apiGender = 'MALE';
-      else if (userData.gender === 'Female' || userData.gender === 'Femenino') apiGender = 'FEMALE';
+      const g = userData.gender.toUpperCase();
+      if (g === 'MALE' || g === 'MASCULINO') apiGender = 'MALE';
+      else if (g === 'FEMALE' || g === 'FEMENINO') apiGender = 'FEMALE';
 
       const updateRequest: CustomerDetailsUpdateRequest = {
         gender: apiGender,
@@ -358,7 +360,10 @@ const UserProfilePage: React.FC = () => {
             </div>
             <div className="px-8 pb-8">
               {isLoadingServices ? (
-                <p>Cargando...</p>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-default mb-4"></div>
+                  <p>Cargando servicios...</p>
+                </div>
               ) : serviceRequests.length === 0 ? (
                 <p>No tienes servicios solicitados.</p>
               ) : (
@@ -468,6 +473,11 @@ const UserProfilePage: React.FC = () => {
                     <div className="p-2 rounded-lg bg-gold-default/10 text-gold-default"><User size={20} /></div>
                     <h2 className="text-xl font-bold dark:text-white">Información Personal</h2>
                   </div>
+                  {!hasCompletedExtraInfo && (
+                    <button onClick={handleCompleteInfo} className="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wider border border-amber-200">
+                      ⚠️ Requerido
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -502,6 +512,76 @@ const UserProfilePage: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Género</label>
+                    {isEditing ? (
+                      <div className="relative group">
+                        <select 
+                          name="gender" 
+                          value={userData.gender} 
+                          onChange={handleInputChange} 
+                          className="w-full p-4 rounded-xl bg-white dark:bg-[#1a1a2e] border-2 border-gold-default/30 text-gray-900 dark:text-white appearance-none outline-none focus:border-gold-default transition-all cursor-pointer"
+                        >
+                          <option value="Male" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Masculino</option>
+                          <option value="Female" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Femenino</option>
+                          <option value="Other" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Otro</option>
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gold-default group-hover:scale-110 transition-transform">
+                          <ChevronDown size={18} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                        {getGenderText(userData.gender)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Fecha de Nacimiento</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium opacity-60">
+                      {formatDate(userData.birthDate)}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Dirección</label>
+                    {isEditing ? (
+                      <input name="address" value={userData.address} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white focus:border-gold-default outline-none transition-all" placeholder="Ej: Calle Principal #123" />
+                    ) : (
+                      <div className={`p-4 rounded-xl font-medium ${!userData.address ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.address || 'No especificada'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Ciudad</label>
+                    {isEditing ? (
+                      <input name="city" value={userData.city} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white focus:border-gold-default outline-none transition-all" />
+                    ) : (
+                      <div className={`p-4 rounded-xl font-medium ${!userData.city ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.city || 'No especificada'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">País</label>
+                    {isEditing ? (
+                      <input name="country" value={userData.country} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white focus:border-gold-default outline-none transition-all" />
+                    ) : (
+                      <div className={`p-4 rounded-xl font-medium ${!userData.country ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.country || 'No especificada'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">DNI / Cédula / Pasaporte</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium opacity-60">
+                      {userData.licenseId || 'No especificado'}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -530,10 +610,13 @@ const UserProfilePage: React.FC = () => {
                   <div className="p-2 rounded-lg bg-red-500/10 text-red-500"><Shield size={20} /></div>
                   <h2 className="text-xl font-bold dark:text-white">Seguridad</h2>
                 </div>
-                <button onClick={handleChangePassword} className="w-full flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-gold-default/5 transition-all">
+                <button onClick={handleChangePassword} className="w-full flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-gold-default/5 transition-all text-left">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-white dark:bg-white/5 text-gray-400"><Key size={18} /></div>
-                    <p className="text-sm font-bold dark:text-white">Contraseña</p>
+                    <div>
+                      <p className="text-sm font-bold dark:text-white">Contraseña</p>
+                      <p className="text-[10px] text-gray-500">Cambiar clave actual</p>
+                    </div>
                   </div>
                   <ArrowLeft size={16} className="rotate-180 text-gray-300" />
                 </button>
@@ -543,30 +626,69 @@ const UserProfilePage: React.FC = () => {
         )}
 
         {activeTab === 'bookings' && (
-          <div className="space-y-8 animate-[fadeIn_0.5s_ease-out]">
+          <div className="space-y-12 animate-[fadeIn_0.5s_ease-out]">
             {loadingBookings ? (
-              <p className="text-center py-20">Cargando...</p>
+              <div className="flex flex-col items-center justify-center py-32 bg-white/50 dark:bg-navy-default/50 rounded-[2.5rem] border border-white/10">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-default mb-4"></div>
+                <p>Sincronizando tus estancias...</p>
+              </div>
             ) : bookings.length === 0 ? (
-              <div className="text-center py-20 bg-white/50 dark:bg-navy-default/50 rounded-[2.5rem] border border-white/10">
+              <div className="text-center py-32 bg-white/50 dark:bg-navy-default/50 rounded-[2.5rem] border border-white/10">
                 <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-xl font-bold dark:text-white">No tienes reservas</h3>
-                <button onClick={() => navigate('/')} className="mt-6 px-8 py-3 bg-gold-default text-navy-default font-bold rounded-xl">Explorar</button>
+                <h3 className="text-2xl font-bold dark:text-white">No tienes reservas aún</h3>
+                <button onClick={() => navigate('/')} className="mt-6 px-10 py-4 bg-gold-default text-navy-default font-bold rounded-2xl shadow-lg hover:shadow-gold-default/20 transition-all">Explorar Habitaciones</button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {bookings.map(booking => (
-                  <div key={booking.id} className="bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/10">
-                    <div className="flex justify-between items-start mb-6">
-                      <h4 className="font-bold dark:text-white">{booking.roomTypeName}</h4>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(booking.status)}`}>{getStatusText(booking.status)}</span>
+              <div className="space-y-12">
+                {activeBookings.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-3 mb-8 ml-4">
+                      <div className="w-2 h-2 rounded-full bg-gold-default animate-pulse"></div>
+                      <h3 className="text-xl font-bold dark:text-white">Reservas Activas</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-gold-default/10 text-gold-default text-[10px] font-black">{activeBookings.length}</span>
                     </div>
-                    <div className="space-y-4 mb-6 text-xs dark:text-gray-300">
-                      <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)}</div>
-                      <div className="flex items-center gap-2 text-lg font-bold text-gold-default"><CreditCard size={16} />${booking.totalPrice}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {activeBookings.map(booking => (
+                        <div key={booking.id} className="relative bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/10 overflow-hidden">
+                          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-gold-default to-gold-dark"></div>
+                          <div className="flex justify-between items-start mb-6">
+                            <h4 className="font-bold dark:text-white">{booking.roomTypeName}</h4>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(booking.status)}`}>{getStatusText(booking.status)}</span>
+                          </div>
+                          <div className="space-y-4 mb-8 text-xs dark:text-gray-300">
+                            <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)}</div>
+                            <div className="flex items-center gap-2 text-lg font-bold text-gold-default"><CreditCard size={16} />${booking.totalPrice}</div>
+                          </div>
+                          <button onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })} className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                            <ConciergeBell size={14} /> Servicios
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <button onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })} className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90">Servicios</button>
-                  </div>
-                ))}
+                  </section>
+                )}
+                {pastBookings.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-3 mb-8 ml-4 opacity-50">
+                      <h3 className="text-xl font-bold dark:text-white">Historial de Estadías</h3>
+                      <div className="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80">
+                      {pastBookings.map(booking => (
+                        <div key={booking.id} className="bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/5 rounded-3xl p-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-sm font-bold dark:text-gray-200">{booking.roomTypeName}</h4>
+                            <span className="text-[10px] font-mono text-gray-400">#{booking.id}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Calendar size={14} />
+                            <span>{formatDate(booking.checkInDate)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
               </div>
             )}
           </div>

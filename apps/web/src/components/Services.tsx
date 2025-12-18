@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, X, Clock, FileText, AlertCircle } from 'lucide-react';
+import { Heart, X, Clock, FileText, AlertCircle, Info } from 'lucide-react';
 import { createServiceRequest } from '../services/client/serviceRequestService';
 import { getAllHotelServices } from '../services/admin/hotelServiceService';
 import type { HotelServiceDTO } from '../types/sharedTypes';
@@ -207,11 +207,14 @@ const Services: React.FC = () => {
             )}
           </div>
           
-          <div className="mt-8 p-5 bg-gradient-to-r from-[#fff3cd] to-[#ffeaa7] dark:from-amber-900/30 dark:to-amber-800/30 rounded-xl border-l-4 border-[#ffc107]">
-            <p className="m-0 text-[#856404] dark:text-amber-200 text-sm leading-relaxed">
-              💡 <strong>Nota:</strong> Todos nuestros servicios están disponibles 
-              para huéspedes registrados. Puedes solicitar cualquier servicio 
-              durante tu estadía.
+          <div className="mt-12 p-6 bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm flex items-center gap-4 animate-[fadeIn_0.6s_ease_forwards]">
+            <div className="w-10 h-10 rounded-full bg-gold-default/10 flex items-center justify-center text-gold-default flex-shrink-0">
+              <Info size={20} />
+            </div>
+            <p className="m-0 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+              <strong className="text-gray-900 dark:text-white font-bold">Nota importante:</strong> Todos nuestros servicios exclusivos están disponibles 
+              únicamente para huéspedes registrados. Puede solicitar cualquier servicio directamente 
+              a través de este panel durante su estadía en el hotel.
             </p>
           </div>
         </div>
