@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Line, Doughnut } from 'react-chartjs-2';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
     Title,
     Tooltip,
     Legend,
@@ -22,13 +23,15 @@ import {
     Clock,
     Activity,
     Circle,
-    Home
+    Home,
+    Wrench
 } from 'lucide-react';
 
 import StatsCard from '../../components/shared/StatsCard';
 import Card from '../../components/shared/Card';
 import * as dashboardService from '../../../services/admin/dashboardService';
 import { getRoomsChartData, type RoomsChartData } from '../../../services/admin/roomService';
+import { getServicesChartData, type ServicesChartData } from '../../../services/admin/serviceRequestService';
 import type { DashboardStats, ChartData } from '../../../services/admin/dashboardService';
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
@@ -40,6 +43,7 @@ ChartJS.register(
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
     Title,
     Tooltip,
     Legend,
@@ -54,18 +58,21 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<ChartData | null>(null);
     const [roomsChartData, setRoomsChartData] = useState<RoomsChartData | null>(null);
+    const [servicesChartData, setServicesChartData] = useState<ServicesChartData | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [dashboardData, revenueData, roomsData] = await Promise.all([
+                const [dashboardData, revenueData, roomsData, servicesData] = await Promise.all([
                     dashboardService.getStats(),
                     dashboardService.getRevenueChartData(),
-                    getRoomsChartData()
+                    getRoomsChartData(),
+                    getServicesChartData()
                 ]);
                 setStats(dashboardData);
                 setChartData(revenueData);
                 setRoomsChartData(roomsData);
+                setServicesChartData(servicesData);
             } catch (error) {
                 console.error("Error fetching dashboard data", error);
             } finally {
@@ -177,6 +184,85 @@ const Dashboard = () => {
         }))
     } : { labels: [], datasets: [] };
 
+    // Datos para el gráfico de barras de servicios
+    const servicesBarChartData = servicesChartData ? {
+        labels: ['Abiertos', 'En Progreso', 'Completados', 'Rechazados'],
+        datasets: [
+            {
+                label: 'Servicios',
+                data: [
+                    servicesChartData.open,
+                    servicesChartData.inProgress,
+                    servicesChartData.completed,
+                    servicesChartData.rejected
+                ],
+                backgroundColor: [
+                    '#3b82f6', // Azul para abiertos
+                    '#f59e0b', // Ámbar para en progreso
+                    '#10b981', // Verde para completados
+                    '#ef4444'  // Rojo para rechazados
+                ],
+                borderColor: isDark ? '#1c1c1c' : '#ffffff',
+                borderWidth: 1,
+                borderRadius: 6,
+                hoverBackgroundColor: [
+                    '#2563eb', // Azul más oscuro
+                    '#d97706', // Ámbar más oscuro
+                    '#059669', // Verde más oscuro
+                    '#dc2626'  // Rojo más oscuro
+                ]
+            }
+        ]
+    } : { labels: [], datasets: [] };
+
+    const servicesChartOptions: any = {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+                titleColor: isDark ? '#ffffff' : '#111827',
+                bodyColor: isDark ? '#94a3b8' : '#4b5563',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12 },
+                callbacks: {
+                    label: function(context: any) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        return `${label}: ${value} servicios`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { 
+                    color: isDark ? "#64748b" : "#94a3b8", 
+                    font: { size: 11, weight: '500' },
+                    stepSize: 1
+                },
+                grid: { 
+                    color: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", 
+                    drawBorder: false 
+                }
+            },
+            x: {
+                grid: { display: false, drawBorder: false },
+                ticks: { 
+                    color: isDark ? "#64748b" : "#94a3b8", 
+                    font: { size: 11, weight: '500' },
+                    maxRotation: 45
+                }
+            }
+        }
+    };
+
     const clientsChartOptions: any = {
         maintainAspectRatio: false,
         responsive: true,
@@ -274,7 +360,7 @@ const Dashboard = () => {
 
     return (
         <div className="content">
-            {/* Stats Components Row - Añade estadística de habitaciones */}
+            {/* Stats Components Row - Añade estadística de servicios */}
             <div className="flex flex-wrap -mx-4 mb-8">
                 <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
@@ -308,17 +394,17 @@ const Dashboard = () => {
                 </div>
                 <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
-                        type="primary"
-                        icon={BedDouble}
-                        title="Habitaciones"
-                        value={totalRooms}
-                        footerInitIcon={Home}
-                        footerText={`${occupiedRooms} ocupadas, ${availableRooms} disponibles`}
+                        type="info"
+                        icon={Wrench}
+                        title="Servicios"
+                        value={servicesChartData?.total || 0}
+                        footerInitIcon={RefreshCw}
+                        footerText={`${servicesChartData?.completed || 0} completados`}
                     />
                 </div>
             </div>
 
-            {/* Charts Row - Ahora en 3 columnas */}
+            {/* Charts Row - Ahora en 3 columnas con las nuevas gráficas */}
             <div className="flex flex-wrap -mx-4 mb-8">
                 {/* Gráfico de Pastel de Clientes */}
                 <div className="w-full lg:w-1/3 px-4 mb-6">
@@ -386,10 +472,40 @@ const Dashboard = () => {
                     </Card>
                 </div>
 
-                {/* Gráfico de Línea de Ingresos */}
+                {/* Gráfico de Barras de Servicios (NUEVA) */}
                 <div className="w-full lg:w-1/3 px-4 mb-6">
-                    <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
+                    <Card title="Servicios del Hotel" subtitle="Por estado">
                         <div className="relative w-full h-[300px] mt-2">
+                            {servicesChartData ? (
+                                <Bar 
+                                    data={servicesBarChartData} 
+                                    options={servicesChartOptions} 
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    Cargando gráfico de servicios...
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-800 dark:text-white">
+                                    {servicesChartData?.total || 0}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Total de servicios solicitados
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Gráfico de Ingresos (movido debajo) */}
+            <div className="flex flex-wrap -mx-4 mb-8">
+                <div className="w-full px-4 mb-6">
+                    <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
+                        <div className="relative w-full h-[400px] mt-2">
                             {chartData ? (
                                 <Line 
                                     data={revenueChartData} 
