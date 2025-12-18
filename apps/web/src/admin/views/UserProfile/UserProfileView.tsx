@@ -134,7 +134,7 @@ const UserProfileView: React.FC = () => {
                                                     name="firstName"
                                                     value={formData.firstName || ''}
                                                     onChange={handleChange}
-                                                    className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 h-auto min-h-[44px]"
+                                                    className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 h-auto min-h-112px]"
                                                     placeholder="Ingresa tu nombre"
                                                 />
                                             </div>
@@ -147,7 +147,7 @@ const UserProfileView: React.FC = () => {
                                                     name="lastName"
                                                     value={formData.lastName || ''}
                                                     onChange={handleChange}
-                                                    className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 h-auto min-h-[44px]"
+                                                    className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 h-auto min-h-112px]"
                                                     placeholder="Ingresa tu apellido"
                                                 />
                                             </div>
@@ -163,7 +163,7 @@ const UserProfileView: React.FC = () => {
                                                     type="text"
                                                     value={formData.login || ''}
                                                     disabled
-                                                    className="block w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-500 cursor-not-allowed h-auto min-h-[44px]"
+                                                    className="block w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-500 cursor-not-allowed h-auto min-h-112px"
                                                 />
                                             </div>
                                         </div>
@@ -176,7 +176,7 @@ const UserProfileView: React.FC = () => {
                                                     name="email"
                                                     value={formData.email || ''}
                                                     onChange={handleChange}
-                                                    className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 h-auto min-h-[44px]"
+                                                    className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 h-auto min-h-112px"
                                                 />
                                             </div>
                                         </div>
@@ -190,7 +190,7 @@ const UserProfileView: React.FC = () => {
                                                 name="langKey"
                                                 value={formData.langKey || 'en'}
                                                 onChange={handleChange}
-                                                className="block w-full pl-10 pr-10 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer h-auto min-h-[44px]"
+                                                className="block w-full pl-10 pr-10 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer h-auto min-h-112px"
                                             >
                                                 <option value="en" className="dark:bg-[#1c1c1c]">English (Inglés)</option>
                                                 <option value="es" className="dark:bg-[#1c1c1c]">Español (Spanish)</option>
