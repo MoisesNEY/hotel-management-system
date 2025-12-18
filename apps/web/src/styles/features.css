@@ -1,8 +1,8 @@
 .features {
-    background: #ffffff;
+    background: var(--bg-primary);
     padding: 70px 0;
-    border-top: 1px solid #e9ecef;
-    border-bottom: 1px solid #e9ecef;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .section-header {
@@ -12,13 +12,13 @@
 
 .section-title {
     font-size: 2rem;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-weight: 600;
 }
 
 .section-subtitle {
-    color: #666;
+    color: var(--text-primary);
     font-size: 1rem;
     max-width: 500px;
     margin: 0 auto;
@@ -33,7 +33,7 @@
 .feature-card {
     padding: 30px 20px;
     text-align: center;
-    background: #ffffff;
+    background: var(--card-bg);
 }
 
 .feature-icon {
@@ -70,12 +70,12 @@
 .feature-title {
     font-size: 1.2rem;
     margin-bottom: 10px;
-    color: #1a1a2e;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
 .feature-description {
-    color: #666;
+    color: var(--text-secondary);
     line-height: 1.5;
     font-size: 0.9rem;
 }
@@ -133,4 +133,19 @@
     font-size: 1rem;
     max-width: 500px;
     margin: 0 auto;
+}
+
+
+/* Dark mode overrides */
+
+[data-theme="dark"] .features {
+    background: #1a1a2e;
+}
+
+[data-theme="dark"] .section-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .section-subtitle {
+    color: #ffffff;
 }

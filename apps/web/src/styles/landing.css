@@ -88,6 +88,12 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     box-shadow: var(--shadow);
+    transition: background 0.3s ease;
+}
+
+[data-theme="dark"] .booking-form {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
 }
 
 .form-group {
@@ -130,6 +136,12 @@
     transition: var(--transition);
 }
 
+[data-theme="dark"] .feature-card {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
+}
+
 .feature-card:hover {
     transform: translateY(-10px);
 }
@@ -146,6 +158,11 @@
 
 .feature-description {
     color: var(--text-light);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .feature-description {
+    color: var(--text-secondary);
 }
 
 
@@ -162,6 +179,12 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: var(--shadow);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme="dark"] .room-card {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
 }
 
 .room-image {
@@ -204,6 +227,11 @@
 .room-description {
     color: var(--text-light);
     margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .room-description {
+    color: var(--text-secondary);
 }
 
 .room-details {
@@ -217,6 +245,11 @@
     align-items: center;
     gap: 5px;
     color: var(--text-light);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .detail {
+    color: var(--text-secondary);
 }
 
 .room-amenities {
@@ -231,6 +264,12 @@
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.9rem;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] .amenity {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .room-footer {
@@ -263,6 +302,12 @@
     transition: var(--transition);
 }
 
+[data-theme="dark"] .service-card {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
+}
+
 .service-card:hover {
     transform: translateY(-5px);
 }
@@ -280,6 +325,11 @@
 .service-description {
     color: var(--text-light);
     margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .service-description {
+    color: var(--text-secondary);
 }
 
 .btn-sm {
@@ -422,6 +472,11 @@
 
 .testimonials {
     background-color: #f8f9fa;
+    transition: background-color 0.3s ease;
+}
+
+[data-theme="dark"] .testimonials {
+    background-color: var(--bg-secondary);
 }
 
 .testimonials-header {
@@ -449,6 +504,12 @@
     border-radius: 10px;
     box-shadow: var(--shadow);
     transition: var(--transition);
+}
+
+[data-theme="dark"] .testimonial-card {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
 }
 
 .testimonial-card:hover {
@@ -484,6 +545,11 @@
 .user-role {
     color: var(--text-light);
     font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .user-role {
+    color: var(--text-secondary);
 }
 
 .quote-icon {
@@ -503,6 +569,11 @@
     font-style: italic;
     position: relative;
     padding-left: 20px;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .testimonial-comment {
+    color: var(--text-primary);
 }
 
 .testimonial-comment::before {
@@ -523,10 +594,20 @@
     padding-top: 20px;
     border-top: 1px solid #eee;
     font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+[data-theme="dark"] .testimonial-footer {
+    border-top-color: var(--border-color);
 }
 
 .stay-info {
     color: var(--text-light);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .stay-info {
+    color: var(--text-secondary);
 }
 
 .verified-badge {
@@ -549,6 +630,12 @@
     padding: 40px;
     border-radius: 10px;
     box-shadow: var(--shadow);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme="dark"] .stats-container {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
 }
 
 .stat-item {
@@ -567,11 +654,21 @@
     font-weight: 600;
     margin-bottom: 5px;
     color: var(--dark);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-primary);
 }
 
 .stat-desc {
     color: var(--text-light);
     font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .stat-desc {
+    color: var(--text-secondary);
 }
 
 .stat-stars {
