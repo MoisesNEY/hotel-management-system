@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { Check, Trash2, Plus } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
@@ -102,7 +102,7 @@ const ServicesView = () => {
         {
             header: 'Detalles',
             accessor: (row) => (
-                <div className="text-xs text-gray-600 max-w-xs truncate" title={row.details}>
+                <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate font-medium" title={row.details}>
                     {row.details || '-'}
                 </div>
             )
@@ -140,7 +140,7 @@ const ServicesView = () => {
         {
             header: 'Descripción',
             accessor: (row) => (
-                <div className="text-sm text-gray-600 max-w-md truncate">
+                <div className="text-sm text-gray-600 dark:text-gray-300 max-w-md truncate font-medium">
                     {row.description || '-'}
                 </div>
             )
@@ -152,7 +152,7 @@ const ServicesView = () => {
         {
             header: 'Imagen URL',
             accessor: (row) => (
-                <div className="text-xs text-gray-500 max-w-xs truncate">
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 max-w-xs truncate font-mono">
                     {row.imageUrl || '-'}
                 </div>
             )
@@ -182,13 +182,13 @@ const ServicesView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
-                    <p className="text-gray-600">Gestión de servicios y solicitudes</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Servicios</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de servicios y solicitudes</p>
                 </div>
                 {!showForm && (
-                    <Button onClick={handleCreateClick}>Nuevo Servicio</Button>
+                    <Button onClick={handleCreateClick} leftIcon={<Plus size={16} />}>Nuevo Servicio</Button>
                 )}
             </div>
 

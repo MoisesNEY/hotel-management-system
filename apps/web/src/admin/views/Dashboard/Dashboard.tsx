@@ -191,9 +191,9 @@ const Dashboard = () => {
                             )}
                         </div>
                         {/* Footer (Legend within Footer or below chart) */}
-                        <div className="border-t border-[#ddd] mt-4 pt-4">
-                            <div className="text-[#a49e93] text-sm flex items-center">
-                                <RefreshCw size={14} className="mr-1" /> Updated 3 minutes ago
+                        <div className="border-t border-gray-100 dark:border-white/5 mt-6 pt-4">
+                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
+                                <RefreshCw size={12} className="mr-1.5" /> Actualizado hace 3 minutos
                             </div>
                         </div>
                     </Card>
@@ -215,9 +215,9 @@ const Dashboard = () => {
                                 <span className="flex items-center"><Circle size={10} className="text-red-400 fill-current mr-1" /> Eliminado</span>
                             </div>
                         </div>
-                        <div className="border-t-0 pt-2">
-                            <div className="text-[#a49e93] text-sm flex items-center">
-                                <Calendar size={14} className="mr-1" /> Número de emails enviados
+                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-2">
+                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
+                                <Calendar size={12} className="mr-1.5" /> Número de emails enviados
                             </div>
                         </div>
                     </Card>
@@ -228,10 +228,9 @@ const Dashboard = () => {
                             {/* Placeholder Line Chart with different config */}
                             [ Detailed Line Chart Placeholder ]
                         </div>
-                        <div className="border-0 pt-0">
-                            {/* Footer content */}
-                            <div className="text-[#a49e93] text-sm flex items-center">
-                                <Activity size={14} className="mr-1" /> Datos certificados
+                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-2">
+                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
+                                <Activity size={12} className="mr-1.5" /> Datos certificados de red
                             </div>
                         </div>
                     </Card>

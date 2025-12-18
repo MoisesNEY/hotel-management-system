@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Card from '../../components/shared/Card';
@@ -64,8 +64,10 @@ const RoomTypesView = () => {
             header: 'Nombre',
             accessor: (row) => (
                 <div>
-                    <div className="font-bold text-gray-800">{row.name}</div>
-                    <div className="text-xs text-gray-500 line-clamp-1">{row.description?.substring(0, 50)}{row.description && row.description.length > 50 ? '...' : ''}</div>
+                    <div className="font-bold text-gray-900 dark:text-white tracking-tight">{row.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium line-clamp-1">
+                        {row.description?.substring(0, 50)}{row.description && row.description.length > 50 ? '...' : ''}
+                    </div>
                 </div>
             )
         },
@@ -95,12 +97,12 @@ const RoomTypesView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Tipos de Habitación</h1>
-                    <p className="text-gray-500 text-sm">Configuración de categorías y precios</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tipos de Habitación</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Configuración de categorías y precios</p>
                 </div>
-                <Button onClick={() => setShowModal(true)} leftIcon={<Settings size={16} />}>
+                <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
                     Nuevo Tipo
                 </Button>
             </div>

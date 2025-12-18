@@ -1,5 +1,6 @@
 import React from 'react';
-import Table, { type Column } from '../../components/shared/Table'; // Use shared Table
+import Table, { type Column } from '../../components/shared/Table';
+import Card from '../../components/shared/Card';
 
 interface TableRow {
     id: number;
@@ -34,34 +35,32 @@ const TablesView: React.FC = () => {
     ];
 
     return (
-        <div className="content">
-            <div className="row">
-                <div className="col-md-12">
-                    {/* Table 1: Simple Table */}
-                    <Table<TableRow>
-                        title="Simple Table"
-                        subtitle="Here is a subtitle for this table"
-                        data={data}
-                        columns={columns}
-                        keyExtractor={(item) => item.id}
-                        striped={false} // Default paper table isn't heavily striped, usually white
-                    />
-                </div>
-                <div className="col-md-12">
-                    {/* Table 2: Table on Plain Background */}
-                    <Table<TableRow>
-                        title="Table on Plain Background"
-                        subtitle="Here is a subtitle for this table"
-                        data={data}
-                        columns={columns}
-                        keyExtractor={(item) => item.id}
-                    // In true Paper Dashboard, "Plain Background" removes the white card bg and transparency. 
-                    // My Card component supports transparency if I pass className="card-plain" style={{backgroundColor: 'transparent', boxShadow: 'none'}}
-                    // But strictly, I should just reuse the component logic. 
-                    // For now, I'll stick to the cleaner look.
-                    />
-                </div>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Listado de Tablas</h1>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Ejemplos de visualización de datos</p>
             </div>
+
+            <Card>
+                <Table<TableRow>
+                    title="Simple Table"
+                    subtitle="Ejemplo de tabla con fondo de tarjeta"
+                    data={data}
+                    columns={columns}
+                    keyExtractor={(item) => item.id}
+                    striped={false}
+                />
+            </Card>
+
+            <Card className="card-plain">
+                <Table<TableRow>
+                    title="Table on Plain Background"
+                    subtitle="Ejemplo de tabla con fondo transparente"
+                    data={data}
+                    columns={columns}
+                    keyExtractor={(item) => item.id}
+                />
+            </Card>
         </div>
     );
 };

@@ -29,10 +29,10 @@ const CMSList: React.FC = () => {
 
     const getBadgeColor = (type?: AssetCollection['type']) => {
         switch (type) {
-            case CollectionType.SINGLE_IMAGE: return 'bg-[#51bcda]'; // Info
-            case CollectionType.GALLERY: return 'bg-[#6bd098]'; // Success
-            case CollectionType.MAP_EMBED: return 'bg-[#fbc658]'; // Warning
-            default: return 'bg-[#ef8157]'; // Danger/Secondary default
+            case CollectionType.SINGLE_IMAGE: return 'bg-cyan-500'; // Info
+            case CollectionType.GALLERY: return 'bg-emerald-500'; // Success
+            case CollectionType.MAP_EMBED: return 'bg-amber-500'; // Warning
+            default: return 'bg-rose-500'; // Danger/Secondary default
         }
     };
     
@@ -41,16 +41,16 @@ const CMSList: React.FC = () => {
         { 
             header: "Código", 
             accessor: 'code' as keyof AssetCollection,
-            cell: (item: AssetCollection) => <code className="text-[#e83e8c] text-xs bg-pink-50 px-1 py-0.5 rounded">{item.code}</code>
+            cell: (item: AssetCollection) => <code className="text-[#e83e8c] dark:text-rose-400 text-[10px] font-mono bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded border border-rose-100 dark:border-rose-500/20">{item.code}</code>
         },
         { 
             header: "Nombre Sección", 
             accessor: 'name' as keyof AssetCollection,
             cell: (item: AssetCollection) => (
                 <div>
-                    <span className="font-medium text-gray-800">{item.name}</span>
+                    <span className="font-bold text-gray-900 dark:text-white tracking-tight">{item.name}</span>
                     <br/>
-                    <small className="text-gray-500">{item.description}</small>
+                    <small className="text-gray-500 dark:text-gray-400 font-medium">{item.description}</small>
                 </div>
             )
         },

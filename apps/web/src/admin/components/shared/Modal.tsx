@@ -31,24 +31,24 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
     };
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000]">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
             {/* Modal Container */}
             <div
-                className={`bg-white rounded-2xl shadow-xl w-full ${sizeClasses[size]} mx-4 md:mx-0 overflow-hidden max-h-[90vh] flex flex-col`}
+                className={`bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl w-full ${sizeClasses[size]} overflow-hidden max-h-[90vh] flex flex-col border border-gray-100 dark:border-white/10`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 {title && (
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                        <h3 className="text-lg md:text-xl font-semibold text-[var(--paper-text-title)]">
+                    <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-white/5">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
                             {title}
                         </h3>
                         <button
                             onClick={onClose}
-                            className="rounded-full hover:bg-gray-100 p-1 transition-colors"
+                            className="rounded-full hover:bg-gray-100 dark:hover:bg-white/5 p-2 transition-colors group"
                             type="button"
                         >
-                            <X size={20} className="text-gray-600" />
+                            <X size={20} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-white transition-colors" />
                         </button>
                     </div>
                 )}

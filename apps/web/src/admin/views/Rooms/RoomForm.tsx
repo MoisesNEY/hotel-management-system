@@ -66,18 +66,18 @@ const RoomForm = ({ initialData, roomTypes, onSuccess, onCancel }: RoomFormProps
         }
     };
 
-    const inputStyle = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#51cbce] focus:border-transparent outline-none transition-all";
-    const labelStyle = "block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1";
+    const inputStyle = "w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-gold-default focus:border-gold-default outline-none transition-all placeholder:text-gray-400";
+    const labelStyle = "block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1";
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6 p-8">
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm font-medium">
                     {error}
                 </div>
             )}
 
-            <div>
+            <div className="space-y-2">
                 <label className={labelStyle}>
                     Número de Habitación <span className="text-red-500">*</span>
                 </label>
@@ -92,7 +92,7 @@ const RoomForm = ({ initialData, roomTypes, onSuccess, onCancel }: RoomFormProps
                 />
             </div>
 
-            <div>
+            <div className="space-y-2">
                 <label className={labelStyle}>
                     Tipo de Habitación <span className="text-red-500">*</span>
                 </label>
@@ -103,16 +103,16 @@ const RoomForm = ({ initialData, roomTypes, onSuccess, onCancel }: RoomFormProps
                     required
                     className={inputStyle}
                 >
-                    <option value="">Seleccionar tipo...</option>
+                    <option value="" className="dark:bg-[#1c1c1c]">Seleccionar tipo...</option>
                     {roomTypes.map(type => (
-                        <option key={type.id} value={type.id}>
+                        <option key={type.id} value={type.id} className="dark:bg-[#1c1c1c]">
                             {type.name} - ${type.basePrice}
                         </option>
                     ))}
                 </select>
             </div>
 
-            <div>
+            <div className="space-y-2">
                 <label className={labelStyle}>
                     Estado <span className="text-red-500">*</span>
                 </label>
@@ -123,14 +123,14 @@ const RoomForm = ({ initialData, roomTypes, onSuccess, onCancel }: RoomFormProps
                     required
                     className={inputStyle}
                 >
-                    <option value="AVAILABLE">Disponible</option>
-                    <option value="OCCUPIED">Ocupada</option>
-                    <option value="MAINTENANCE">Mantenimiento</option>
-                    <option value="CLEANING">Limpieza</option>
+                    <option value="AVAILABLE" className="dark:bg-[#1c1c1c]">Disponible</option>
+                    <option value="OCCUPIED" className="dark:bg-[#1c1c1c]">Ocupada</option>
+                    <option value="MAINTENANCE" className="dark:bg-[#1c1c1c]">Mantenimiento</option>
+                    <option value="CLEANING" className="dark:bg-[#1c1c1c]">Limpieza</option>
                 </select>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-gray-100 dark:border-white/5">
                 <Button 
                     type="button" 
                     variant="ghost" 

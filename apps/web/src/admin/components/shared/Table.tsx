@@ -35,22 +35,23 @@ function Table<T>({
             {/* Header Section inside Card if provided */}
             {(title || subtitle) && (
                 <div className="px-4 pt-4 pb-0 bg-transparent border-0">
-                    {title && <h4 className="m-0 text-gray-800 text-xl font-medium">{title}</h4>}
-                    {subtitle && <p className="text-gray-500 text-sm mt-1">{subtitle}</p>}
+                    {title && <h4 className="m-0 text-gray-900 dark:text-white text-xl font-bold tracking-tight">{title}</h4>}
+                    {subtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{subtitle}</p>}
                 </div>
             )}
 
             <div className="overflow-x-auto w-full p-0">
                 <table className="w-full mb-4 text-left border-collapse">
-                    <thead className="text-paper-primary">
+                    <thead>
                         <tr>
                             {columns.map((col, index) => (
                                 <th
                                     key={index}
                                     className={`
-                                        text-xs uppercase font-semibold tracking-wider
-                                        py-3 px-4
-                                        border-b border-gray-200
+                                        text-[10px] uppercase font-bold tracking-widest
+                                        py-4 px-4
+                                        text-gray-400 dark:text-gray-500
+                                        border-b border-gray-100 dark:border-white/5
                                         ${col.headerClassName || ''}
                                     `}
                                 >
@@ -59,17 +60,22 @@ function Table<T>({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="text-gray-700">
+                    <tbody className="text-gray-700 dark:text-gray-300">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={columns.length} className="text-center py-6 text-gray-500">
-                                    Cargando datos...
+                                <td colSpan={columns.length} className="text-center py-12 text-gray-400">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="w-8 h-8 border-2 border-gold-default/20 border-t-gold-default rounded-full animate-spin"></div>
+                                        <span className="text-xs font-semibold uppercase tracking-wider">Cargando datos...</span>
+                                    </div>
                                 </td>
                             </tr>
                         ) : data.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length} className="text-center py-6 text-gray-500 italic">
-                                    {emptyMessage}
+                                <td colSpan={columns.length} className="text-center py-12 text-gray-400 italic">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-sm font-medium">{emptyMessage}</span>
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
@@ -77,16 +83,16 @@ function Table<T>({
                                 <tr
                                     key={keyExtractor(item)}
                                     className={`
-                                        border-b border-gray-100 last:border-b-0
-                                        hover:bg-gray-50 transition-colors duration-150
-                                        ${striped && index % 2 !== 0 ? 'bg-gray-50/50' : 'bg-transparent'}
+                                        border-b border-gray-50 dark:border-white/[0.02] last:border-b-0
+                                        hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors duration-150
+                                        ${striped && index % 2 !== 0 ? 'bg-gray-50/30 dark:bg-white/[0.01]' : 'bg-transparent'}
                                     `}
                                 >
                                     {columns.map((col, colIndex) => (
                                         <td
                                             key={colIndex}
                                             className={`
-                                                text-sm py-3 px-4 align-middle
+                                                text-sm py-4 px-4 align-middle
                                                 ${col.className || ''}
                                             `}
                                         >

@@ -45,19 +45,19 @@ const Button: React.FC<ButtonProps> = ({
     // Ghost/Link -> Text
     
     const variantClasses = {
-        primary: 'bg-paper-primary text-white shadow-sm hover:shadow-md hover:bg-[#4bc2c5] rounded-full',
-        secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 shadow-sm rounded-full',
-        outline: 'border border-gray-300 text-gray-700 bg-transparent hover:bg-gray-50 rounded-full',
-        ghost: 'bg-transparent text-gray-600 hover:bg-gray-100/50 rounded-full',
+        primary: 'bg-gold-default text-white shadow-sm hover:shadow-md hover:bg-gold-hover rounded-xl',
+        secondary: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl',
+        outline: 'border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl',
+        ghost: 'bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl',
         
-        danger: 'bg-[#ef8157] text-white shadow-sm hover:shadow-md hover:bg-[#d9673d] rounded-full', // M3 Error
-        success: 'bg-[#6bd098] text-white shadow-sm hover:shadow-md hover:bg-[#52b57e] rounded-full',
-        warning: 'bg-[#fbc658] text-white shadow-sm hover:shadow-md hover:bg-[#e0ad48] rounded-full',
-        info: 'bg-[#51bcda] text-white shadow-sm hover:shadow-md hover:bg-[#40a3be] rounded-full',
-        light: 'bg-white text-gray-800 shadow-sm hover:shadow-md hover:bg-gray-50 rounded-full',
+        danger: 'bg-rose-500 text-white shadow-sm hover:shadow-md hover:bg-rose-600 rounded-xl',
+        success: 'bg-emerald-500 text-white shadow-sm hover:shadow-md hover:bg-emerald-600 rounded-xl',
+        warning: 'bg-amber-500 text-white shadow-sm hover:shadow-md hover:bg-amber-600 rounded-xl',
+        info: 'bg-cyan-500 text-white shadow-sm hover:shadow-md hover:bg-cyan-600 rounded-xl',
+        light: 'bg-white dark:bg-white/10 text-gray-800 dark:text-white shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-white/20 rounded-xl',
         
-        error: 'bg-[#ef8157] text-white shadow-sm hover:shadow-md rounded-full',
-        link: 'bg-transparent text-paper-primary hover:underline p-0 h-auto shadow-none',
+        error: 'bg-rose-500 text-white shadow-sm hover:shadow-md rounded-xl',
+        link: 'bg-transparent text-gold-default hover:underline p-0 h-auto shadow-none',
     };
 
     // Apply specific "Icon Only" override if not explicitly 'round' size but 'iconOnly' prop is true

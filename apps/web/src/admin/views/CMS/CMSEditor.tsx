@@ -70,28 +70,32 @@ const CMSEditor: React.FC = () => {
     const renderGalleryEditor = () => (
         <div className="flex flex-wrap -mx-4">
             {contents.map((item) => (
-                <div className="w-full md:w-1/3 px-4 mb-4" key={item.id}>
-                    <div className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col h-full overflow-hidden hover:shadow-lg transition-shadow">
-                        <img src={item.imageUrl || 'https://via.placeholder.com/300'} className="w-full h-[200px] object-cover" alt="..." />
-                        <div className="flex-auto p-4 flex flex-col">
-                            <h5 className="text-lg font-semibold mb-2 text-gray-900">{item.title}</h5>
-                            <p className="text-gray-500 text-sm mb-4 line-clamp-2">{item.subtitle}</p>
-                            <div className="flex gap-2 mt-auto">
+                <div className="w-full md:w-1/2 lg:w-1/3 px-4 mb-4" key={item.id}>
+                    <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-sm border border-gray-100 dark:border-white/10 flex flex-col h-full overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div className="relative group">
+                            <img src={item.imageUrl || 'https://via.placeholder.com/300'} className="w-full h-[220px] object-cover" alt="..." />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                                 <Button size="sm" variant="info" onClick={() => setEditingItem(item)}>Editar</Button>
                                 <Button size="sm" variant="danger" onClick={() => handleDelete(item.id!)}>Borrar</Button>
                             </div>
                         </div>
+                        <div className="flex-auto p-5 flex flex-col">
+                            <h5 className="text-base font-bold text-gray-900 dark:text-white mb-1 tracking-tight">{item.title}</h5>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs font-medium line-clamp-2">{item.subtitle}</p>
+                        </div>
                     </div>
                 </div>
             ))}
-            <div className="w-full md:w-1/3 px-4 mb-4">
+            <div className="w-full md:w-1/2 lg:w-1/3 px-4 mb-4">
                 <div 
-                    className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors h-full min-h-[300px]"
+                    className="bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:border-gold-default/50 transition-all duration-300 h-full min-h-[300px] group"
                     onClick={() => setEditingItem({ ...defaultWebContent, collection })}
                 >
-                    <div className="text-center text-gray-400">
-                        <Plus size={48} className="mx-auto mb-2 opacity-50" />
-                        <p className="font-medium">Agregar Imagen</p>
+                    <div className="text-center">
+                        <div className="w-16 h-16 bg-white dark:bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 group-hover:bg-gold-default/10 transition-all duration-300">
+                            <Plus size={32} className="text-gray-400 group-hover:text-gold-default transition-colors" />
+                        </div>
+                        <p className="font-bold text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Agregar Imagen</p>
                     </div>
                 </div>
             </div>
@@ -106,7 +110,7 @@ const CMSEditor: React.FC = () => {
             { 
                 header: "Links", 
                 accessor: 'actionUrl' as keyof WebContent, 
-                cell: (item: WebContent) => <code className="text-pink-500 text-xs bg-pink-50 px-1 py-0.5 rounded">{item.actionUrl}</code> 
+                cell: (item: WebContent) => <code className="text-[#e83e8c] dark:text-rose-400 text-[10px] font-mono bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded border border-rose-100 dark:border-rose-500/20">{item.actionUrl}</code> 
             },
             { 
                 header: "Acciones", 
@@ -122,8 +126,8 @@ const CMSEditor: React.FC = () => {
 
         return (
             <div className="block w-full">
-                <div className="mb-4">
-                     <Button variant="success" onClick={() => setEditingItem({ ...defaultWebContent, collection })} icon={<Plus size={16} />}>
+                <div className="mb-6">
+                     <Button variant="primary" onClick={() => setEditingItem({ ...defaultWebContent, collection })} leftIcon={<Plus size={16} />}>
                         Agregar Elemento
                     </Button>
                 </div>
@@ -142,11 +146,13 @@ const CMSEditor: React.FC = () => {
     const renderEditForm = () => {
         if (!editingItem) return null;
         return (
-            <div className="fixed inset-0 bg-black/50 z-[1050] flex items-center justify-center p-4 backdrop-blur-sm transition-all">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-                    <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h4 className="m-0 text-xl font-semibold text-gray-800">{editingItem.id ? 'Editar Elemento' : 'Nuevo Elemento'}</h4>
-                        <button onClick={() => setEditingItem(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <div className="fixed inset-0 bg-black/60 z-[1050] flex items-center justify-center p-4 backdrop-blur-sm transition-all animate-in fade-in duration-300">
+                <div className="bg-white dark:bg-[#1c1c1c] rounded-3xl shadow-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in duration-300 border border-gray-100 dark:border-white/10">
+                    <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/[0.02]">
+                        <h4 className="m-0 text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+                            {editingItem.id ? 'Editar Elemento' : 'Nuevo Elemento'}
+                        </h4>
+                        <button onClick={() => setEditingItem(null)} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/10">
                             <span className="text-2xl leading-none">&times;</span>
                         </button>
                     </div>
@@ -159,9 +165,9 @@ const CMSEditor: React.FC = () => {
                         />
                         
                         <div>
-                            <label className="block mb-1.5 text-sm font-medium text-gray-700">Subtítulo / Descripción</label>
+                            <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Subtítulo / Descripción</label>
                             <textarea 
-                                className="block w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-paper-primary focus:border-paper-primary transition-colors min-h-[100px]"
+                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[120px]"
                                 value={editingItem.subtitle || ''} 
                                 onChange={e => setEditingItem({...editingItem, subtitle: e.target.value})}
                                 placeholder="Ingrese una descripción breve..."
@@ -177,8 +183,8 @@ const CMSEditor: React.FC = () => {
                                     placeholder="https://ejemplo.com/imagen.jpg"
                                 />
                                 {editingItem.imageUrl && (
-                                    <div className="relative rounded-lg overflow-hidden border border-gray-200 h-[150px] bg-gray-50 flex items-center justify-center">
-                                         <img src={editingItem.imageUrl} alt="preview" className="h-full object-contain" />
+                                    <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 h-[180px] bg-gray-50 dark:bg-black/20 flex items-center justify-center p-2">
+                                         <img src={editingItem.imageUrl} alt="preview" className="h-full w-full object-cover rounded-xl" />
                                     </div>
                                 )}
                             </div>
@@ -193,7 +199,7 @@ const CMSEditor: React.FC = () => {
                             />
                         )}
 
-                        <div className="flex flex-wrap -mx-2">
+                        <div className="flex flex-wrap -mx-2 pt-2">
                             <div className="w-1/2 px-2">
                                 <Input 
                                     label="Orden" 
@@ -203,20 +209,22 @@ const CMSEditor: React.FC = () => {
                                 />
                             </div>
                             <div className="w-1/2 px-2 flex items-center pt-6">
-                                <label className="inline-flex items-center cursor-pointer select-none">
-                                    <input 
-                                        type="checkbox" 
-                                        className="w-5 h-5 text-paper-primary bg-gray-100 border-gray-300 rounded focus:ring-paper-primary focus:ring-2 transition duration-200"
-                                        checked={editingItem.isActive !== false} 
-                                        onChange={e => setEditingItem({...editingItem, isActive: e.target.checked})}
-                                    />
-                                    <span className="ml-2 text-gray-700 font-medium">Activo</span>
+                                <label className="inline-flex items-center cursor-pointer select-none group">
+                                    <div className="relative flex items-center">
+                                        <input 
+                                            type="checkbox" 
+                                            className="w-5 h-5 text-gold-default bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 rounded-lg focus:ring-gold-default focus:ring-offset-0 transition duration-200 cursor-pointer"
+                                            checked={editingItem.isActive !== false} 
+                                            onChange={e => setEditingItem({...editingItem, isActive: e.target.checked})}
+                                        />
+                                        <span className="ml-3 text-sm font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Activo en Web</span>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
                     </div>
-                    <div className="p-5 border-t border-gray-100 text-right bg-gray-50 flex justify-end gap-3">
+                    <div className="p-6 border-t border-gray-100 dark:border-white/5 text-right bg-gray-50/50 dark:bg-white/[0.02] flex justify-end gap-3">
                         <Button variant="ghost" onClick={() => setEditingItem(null)}>Cancelar</Button>
                         <Button variant="primary" onClick={handleSaveItem}>Guardar Cambios</Button>
                     </div>
@@ -225,16 +233,25 @@ const CMSEditor: React.FC = () => {
         );
     };
 
-    if (loading) return <div className="p-10 text-center text-gray-500">Cargando editor...</div>;
-    if (!collection) return <div className="p-10 text-center text-red-500 font-medium">Colección no encontrada</div>;
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+            <div className="w-12 h-12 border-4 border-gold-default/30 border-t-gold-default rounded-full animate-spin"></div>
+            <p className="text-gray-500 dark:text-gray-400 font-bold tracking-widest text-xs uppercase">Cargando Editor de Contenido...</p>
+        </div>
+    );
+    if (!collection) return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+            <p className="p-10 text-center text-rose-500 font-bold bg-rose-50 dark:bg-rose-500/10 rounded-2xl border border-rose-100 dark:border-rose-500/20">Colección no encontrada</p>
+        </div>
+    );
 
     return (
         <div className="content">
             {renderEditForm()}
-            <Card title={`Editando: ${collection.name}`} subtitle={`Tipo: ${collection.type}`} className="pb-4">
-                 <div className="mb-6 flex justify-end">
-                      <Button variant="light" size="sm" onClick={() => navigate('/admin/cms')} icon={<ArrowLeft size={16}/>}>
-                        Volver al listado
+            <Card title={`Sección: ${collection.name}`} subtitle={`ID: ${collection.code} • Tipo: ${collection.type}`} className="pb-8 overflow-visible">
+                 <div className="mb-8 flex justify-end">
+                      <Button variant="ghost" size="sm" onClick={() => navigate('/admin/cms')} leftIcon={<ArrowLeft size={16}/>}>
+                        Volver al listado de contenido
                       </Button>
                  </div>
                  
@@ -243,9 +260,9 @@ const CMSEditor: React.FC = () => {
                  {collection.type === CollectionType.MAP_EMBED && renderTextListEditor()} 
                  
                  {collection.type === CollectionType.SINGLE_IMAGE && (
-                     <div className="bg-paper-info/10 border border-paper-info/30 text-paper-info px-4 py-3 rounded-lg flex items-start gap-3 mb-6">
-                          <div className="mt-1"><Edit size={18}/></div>
-                          <span className="text-sm font-medium">Para el Hero (Single Image), usa el botón de editar en la lista de abajo. Solo debería haber 1 elemento.</span>
+                     <div className="bg-blue-50/50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-blue-700 dark:text-blue-300 px-5 py-4 rounded-2xl flex items-start gap-4 mb-8 shadow-sm">
+                          <div className="mt-0.5 bg-blue-100 dark:bg-blue-500/20 p-2 rounded-lg"><Edit size={18}/></div>
+                          <span className="text-sm font-medium leading-relaxed">Para el Hero (Single Image), usa el botón de editar en la lista de abajo. Solo debería haber 1 elemento activo para un diseño óptimo.</span>
                      </div>
                  )}
                  {collection.type === CollectionType.SINGLE_IMAGE && renderTextListEditor()}
