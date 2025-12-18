@@ -15,15 +15,11 @@ import {
 } from 'chart.js';
 import {
     Users,
-    BedDouble,
     CalendarCheck,
     DollarSign,
     RefreshCw,
     Calendar,
     Clock,
-    Activity,
-    Circle,
-    Home,
     Wrench
 } from 'lucide-react';
 
@@ -347,7 +343,7 @@ const Dashboard = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-full min-h-[400px]">
+            <div className="flex justify-center items-center h-full min-h-100">
                 <Loader />
             </div>
         );
@@ -409,7 +405,7 @@ const Dashboard = () => {
                 {/* Gráfico de Pastel de Clientes */}
                 <div className="w-full lg:w-1/3 px-4 mb-6">
                     <Card title="Distribución de Clientes" subtitle="Activos vs Inactivos">
-                        <div className="relative w-full h-[300px] mt-2 flex items-center justify-center">
+                        <div className="relative w-full h-75 mt-2 flex items-center justify-center">
                             {stats ? (
                                 <Doughnut 
                                     data={clientsChartData} 
@@ -437,7 +433,7 @@ const Dashboard = () => {
                 {/* Gráfico de Pastel de Habitaciones */}
                 <div className="w-full lg:w-1/3 px-4 mb-6">
                     <Card title="Estado de Habitaciones" subtitle="Ocupadas vs Disponibles">
-                        <div className="relative w-full h-[300px] mt-2 flex items-center justify-center">
+                        <div className="relative w-full h-75 mt-2 flex items-center justify-center">
                             {roomsChartData ? (
                                 <Doughnut 
                                     data={roomsPieChartData} 
@@ -472,10 +468,10 @@ const Dashboard = () => {
                     </Card>
                 </div>
 
-                {/* Gráfico de Barras de Servicios (NUEVA) */}
+                {/* Gráfico de Barras de Servicios*/}
                 <div className="w-full lg:w-1/3 px-4 mb-6">
                     <Card title="Servicios del Hotel" subtitle="Por estado">
-                        <div className="relative w-full h-[300px] mt-2">
+                        <div className="relative w-full h-75 mt-2">
                             {servicesChartData ? (
                                 <Bar 
                                     data={servicesBarChartData} 
@@ -505,7 +501,7 @@ const Dashboard = () => {
             <div className="flex flex-wrap -mx-4 mb-8">
                 <div className="w-full px-4 mb-6">
                     <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
-                        <div className="relative w-full h-[400px] mt-2">
+                        <div className="relative w-full h-100 mt-2">
                             {chartData ? (
                                 <Line 
                                     data={revenueChartData} 
