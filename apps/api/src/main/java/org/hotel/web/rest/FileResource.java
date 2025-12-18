@@ -46,6 +46,24 @@ public class FileResource {
     }
 
     /**
+     * {@code PUT  /api/files} : Replace an existing file.
+     *
+     * @param oldUrl the URL of the file to replace.
+     * @param file the new file.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the new URL.
+     */
+    @PutMapping("")
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\") or hasAuthority(\"" + AuthoritiesConstants.EMPLOYEE + "\")")
+    public ResponseEntity<String> replaceFile(
+        @RequestParam("oldUrl") String oldUrl,
+        @RequestParam("file") MultipartFile file
+    ) {
+        LOG.debug("REST request to replace file with url : {} with new file : {}", oldUrl, file.getOriginalFilename());
+        String url = fileStorageService.replace(oldUrl, file);
+        return ResponseEntity.ok().body(url);
+    }
+
+    /**
      * {@code GET  /api/files} : Get all files in a folder.
      *
      * @param folder the folder to list files from.
