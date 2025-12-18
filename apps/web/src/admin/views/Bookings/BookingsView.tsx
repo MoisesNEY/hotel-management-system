@@ -3,18 +3,23 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { getAllBookings } from '../../../services/admin/bookingService';
+import { getAllBookings, deleteBooking } from '../../../services/admin/bookingService';
 import { checkIn, checkOut, assignRoom } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
+import { getAllUsers } from '../../../services/admin/userService';
 import type { BookingDTO, RoomDTO } from '../../../types/sharedTypes';
+import type { AdminUserDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
 import BookingForm from './BookingForm';
 import Modal from '../../components/shared/Modal';
+import { Edit, Trash2 } from 'lucide-react';
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
+    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [editingBooking, setEditingBooking] = useState<BookingDTO | null>(null);
 
     // Assign Room State
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -31,8 +36,17 @@ const BookingsView = () => {
         // Load available rooms
         try {
             const response = await getAllRooms();
-            // Filter only available rooms (assuming status 'AVAILABLE')
-            setAvailableRooms(response.data.filter(r => r.status === 'AVAILABLE'));
+            // Filter rooms: must be AVAILABLE and match the booking's room type
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                setAvailableRooms(response.data.filter(r =>
+                    r.status === 'AVAILABLE' &&
+                    r.roomType.id === booking.roomType.id
+                ));
+            } else {
+                // Fallback if booking not found (shouldn't happen)
+                setAvailableRooms(response.data.filter(r => r.status === 'AVAILABLE'));
+            }
         } catch (error) {
             console.error("Error loading rooms", error);
         }
@@ -76,6 +90,34 @@ const BookingsView = () => {
         }
     };
 
+    const handleEdit = (booking: BookingDTO) => {
+        setEditingBooking(booking);
+        setShowForm(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        if (window.confirm('¿Estás seguro de eliminar esta reserva?')) {
+            try {
+                await deleteBooking(id);
+                setBookings(prev => prev.filter(b => b.id !== id));
+            } catch (error) {
+                console.error("Error deleting booking", error);
+                alert('No se pudo eliminar la reserva');
+            }
+        }
+    };
+
+    const handleFormSuccess = () => {
+        setShowForm(false);
+        setEditingBooking(null);
+        loadBookings();
+    };
+
+    const handleFormCancel = () => {
+        setShowForm(false);
+        setEditingBooking(null);
+    };
+
     useEffect(() => {
         loadBookings();
     }, []);
@@ -83,10 +125,20 @@ const BookingsView = () => {
     const loadBookings = async () => {
         try {
             setLoading(true);
-            const response = await getAllBookings();
-            setBookings(response.data);
+            const [bookingsParams, usersParams] = await Promise.all([
+                getAllBookings(),
+                getAllUsers(0, 100) // Fetch top 100 users for lookup
+            ]);
+
+            setBookings(bookingsParams.data);
+
+            // Create User Map
+            const map: Record<number, AdminUserDTO> = {};
+            usersParams.data.forEach(u => map[u.id] = u);
+            setUsersMap(map);
+
         } catch (error) {
-            console.error("Error loading bookings", error);
+            console.error("Error loading data", error);
         } finally {
             setLoading(false);
         }
@@ -99,13 +151,24 @@ const BookingsView = () => {
         },
         {
             header: 'Cliente',
-            accessor: (row) => (
-                <div>
-                    <div className="font-medium text-gray-900">
-                        {row.customer.firstName} {row.customer.lastName}
+            accessor: (row) => {
+                // Stitch user data
+                const user = usersMap[row.customer.id];
+                const firstName = user?.firstName || row.customer?.firstName || 'Sin Nombre';
+                const lastName = user?.lastName || row.customer?.lastName || '';
+                const email = user?.email || row.customer?.email || 'Sin Email';
+
+                return (
+                    <div>
+                        <div className="font-medium text-gray-900">
+                            {firstName} {lastName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                            {email}
+                        </div>
                     </div>
-                </div>
-            )
+                );
+            }
         },
         {
             header: 'Check-In',
@@ -154,6 +217,12 @@ const BookingsView = () => {
                             Check-Out
                         </Button>
                     )}
+                    <Button size="sm" variant="info" onClick={() => handleEdit(row)} iconOnly>
+                        <Edit size={14} />
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} iconOnly>
+                        <Trash2 size={14} />
+                    </Button>
                 </div>
             )
         }
@@ -187,16 +256,14 @@ const BookingsView = () => {
             {/* Modal de Creación/Edición */}
             <Modal
                 isOpen={showForm}
-                onClose={() => setShowForm(false)}
-                title="Gestión de Reserva"
+                onClose={handleFormCancel}
+                title={editingBooking ? "Editar Reserva" : "Nueva Reserva"}
                 size="lg"
             >
                 <BookingForm
-                    onSuccess={() => {
-                        setShowForm(false);
-                        loadBookings();
-                    }}
-                    onCancel={() => setShowForm(false)}
+                    initialData={editingBooking}
+                    onSuccess={handleFormSuccess}
+                    onCancel={handleFormCancel}
                 />
             </Modal>
             {/* Modal de Asignación de Habitación */}

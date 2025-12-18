@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { createBooking, updateBooking } from '../../../services/admin/bookingService';
 import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
+import { getAllUsers } from '../../../services/admin/userService';
 import type { BookingDTO, RoomTypeDTO, CustomerDetailsDTO as CustomerDTO } from '../../../types/sharedTypes';
 import type { BookingStatus } from '../../../types/sharedTypes';
+import type { AdminUserDTO } from '../../../types/adminTypes';
 
 interface BookingFormProps {
     initialData?: BookingDTO | null;
@@ -25,6 +27,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
 
     const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
+    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
 
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
@@ -35,12 +38,19 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
         const loadData = async () => {
             try {
                 // Fetch ALL items for dropdowns (using a large size)
-                const [typesResponse, customersResponse] = await Promise.all([
+                const [typesResponse, customersResponse, usersResponse] = await Promise.all([
                     getAllRoomTypes(0, 100),
-                    getAllCustomerDetails(0, 100)
+                    getAllCustomerDetails(0, 100),
+                    getAllUsers(0, 100)
                 ]);
                 setRoomTypes(typesResponse.data);
                 setCustomers(customersResponse.data);
+
+                // Build User Map
+                const map: Record<number, AdminUserDTO> = {};
+                usersResponse.data.forEach(u => map[u.id] = u);
+                setUsersMap(map);
+
             } catch (e) {
                 console.error("Error loading form data", e);
                 setError("Error al cargar listas de selección");
@@ -64,10 +74,38 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 setSelectedRoomTypeId(initialData.roomType.id);
             }
             if (initialData.customer) {
-                setSelectedCustomerId(initialData.customer.id);
+                // Determine the key for the customer selection
+                // The dropdown values are `customer.id` (CustomerDetails ID)
+                // But wait, we need to make sure we are selecting the right ID.
+                // initialData.customer is a UserDTO (from checking BookingDTO earlier).
+                // But the customers list is CustomerDetailsDTO.
+                // We need to find the CustomerDetails that corresponds to this User.
+
+                // NOTE: This logic depends on when 'customers' and 'initialData' are available.
+                // But this effect runs on initialData change. 'customers' might be empty initially.
+                // We might need to handle this in render or a separate effect?
+                // Actually, let's just set the ID if we can. 
+                // Wait, BookingDTO has `customer: UserDTO`.
+                // CustomerDetailsDTO has `id` (its own ID) and `user: UserDTO`.
+                // The dropdown iterates CustomerDetailsDTO `c`. Key/Value is `c.id`.
+                // So we need to find `c` where `c.user.id === initialData.customer.id`.
+                // Since this effect might run before customers are loaded, we can't do `.find` here easily 
+                // UNLESS we add `customers` dependency.
+                // Let's rely on the user manually selecting if it fails, OR improve this.
+                // Better: Run this effect when both initialData and customers are ready.
             }
         }
     }, [initialData]);
+
+    // Secondary effect to set selected customer once list is loaded
+    useEffect(() => {
+        if (initialData && initialData.customer && customers.length > 0) {
+            const matchingCustomer = customers.find(c => c.user?.id === initialData.customer.id);
+            if (matchingCustomer) {
+                setSelectedCustomerId(matchingCustomer.id);
+            }
+        }
+    }, [initialData, customers]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,6 +136,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             }
 
             const payload = {
+                ...(initialData?.id ? { id: initialData.id } : {}),
                 checkInDate,
                 checkOutDate,
                 guestCount: Number(guestCount),
@@ -186,11 +225,19 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                             onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                         >
                             <option value="">-- Seleccionar Cliente --</option>
-                            {customers.map(c => (
-                                <option key={c.id} value={c.id}>
-                                    {c.user?.firstName} {c.user?.lastName} ({c.user?.email || 'Sin email'})
-                                </option>
-                            ))}
+                            {customers.map(c => {
+                                const userId = c.user?.id;
+                                const user = userId ? usersMap[userId] : undefined;
+                                const firstName = user?.firstName || c.user?.firstName || 'Sin Nombre';
+                                const lastName = user?.lastName || c.user?.lastName || '';
+                                const email = user?.email || c.user?.email || 'Sin Email';
+
+                                return (
+                                    <option key={c.id} value={c.id}>
+                                        {firstName} {lastName} ({email})
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
