@@ -3,12 +3,21 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { customersService } from '../../services/api';
-import type { Customer } from '../../types';
+import Modal from '../../components/shared/Modal';
+import { getAllCustomerDetails, deleteCustomerDetails } from '../../../services/admin/customerDetailsService';
+import { getAllUsers } from '../../../services/admin/userService';
+import type { CustomerDetailsDTO } from '../../../types/sharedTypes';
+import type { AdminUserDTO } from '../../../types/adminTypes';
+import CustomerForm from './CustomerForm';
+import { formatDate } from '../../utils/helpers';
+import { Trash2 } from 'lucide-react';
 
 const CustomersView = () => {
-    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
+    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
 
     useEffect(() => {
         loadCustomers();
@@ -17,8 +26,18 @@ const CustomersView = () => {
     const loadCustomers = async () => {
         try {
             setLoading(true);
-            const data = await customersService.getAll();
-            setCustomers(data);
+            const [customersParams, usersParams] = await Promise.all([
+                getAllCustomerDetails(),
+                getAllUsers(0, 100) // Fetch list of users to stitch key details
+            ]);
+
+            setCustomers(customersParams.data);
+
+            // Create User Lookup
+            const map: Record<number, AdminUserDTO> = {};
+            usersParams.data.forEach(u => map[u.id] = u);
+            setUsersMap(map);
+
         } catch (error) {
             console.error("Error loading customers", error);
         } finally {
@@ -26,18 +45,58 @@ const CustomersView = () => {
         }
     };
 
-    const columns: Column<Customer>[] = [
+    const handleCreate = () => {
+        setEditingCustomer(null);
+        setShowForm(true);
+    };
+
+    const handleEdit = (customer: CustomerDetailsDTO) => {
+        setEditingCustomer(customer);
+        setShowForm(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        if (window.confirm('¿Estás seguro de eliminar este cliente?')) {
+            try {
+                await deleteCustomerDetails(id);
+                setCustomers(prev => prev.filter(c => c.id !== id));
+            } catch (error) {
+                console.error("Error deleting customer", error);
+                alert('No se pudo eliminar el cliente');
+            }
+        }
+    };
+
+    const handleFormSuccess = () => {
+        setShowForm(false);
+        loadCustomers();
+    };
+
+    const columns: Column<CustomerDetailsDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
         },
         {
             header: 'Nombre',
-            accessor: (row) => `${row.user?.firstName || ''} ${row.user?.lastName || ''}`
+            accessor: (row) => {
+                const userId = row.user?.id;
+                const user = userId ? usersMap[userId] : undefined;
+
+                const firstName = user?.firstName || row.user?.firstName;
+                const lastName = user?.lastName || row.user?.lastName;
+
+                if (!firstName && !lastName) return <span className="text-gray-400 italic">Sin Nombre</span>;
+                return `${firstName || ''} ${lastName || ''}`;
+            }
         },
         {
             header: 'Email',
-            accessor: (row) => row.user?.email || '-'
+            accessor: (row) => {
+                const userId = row.user?.id;
+                const user = userId ? usersMap[userId] : undefined;
+                return user?.email || row.user?.email || <span className="text-gray-400 italic">Sin Email</span>;
+            }
         },
         {
             header: 'Género',
@@ -52,18 +111,6 @@ const CustomersView = () => {
             accessor: (row) => row.phone
         },
         {
-            header: 'Dirección Línea 1',
-            accessor: (row) => row.addressLine1
-        },
-        {
-            header: 'Dirección Línea 2',
-            accessor: (row) => (
-                <div className="text-sm text-gray-600">
-                    {row.addressLine2 || '-'}
-                </div>
-            )
-        },
-        {
             header: 'Ciudad',
             accessor: (row) => row.city
         },
@@ -72,7 +119,7 @@ const CustomersView = () => {
             accessor: (row) => row.country
         },
         {
-            header: 'Licencia ID',
+            header: 'DNI / Pasaporte',
             accessor: (row) => (
                 <code className="text-xs bg-gray-100 px-2 py-1 rounded">
                     {row.licenseId}
@@ -81,13 +128,27 @@ const CustomersView = () => {
         },
         {
             header: 'Fecha de Nacimiento',
-            accessor: (row) => row.birthDate
+            accessor: (row) => formatDate(row.birthDate)
         },
         {
             header: 'Acciones',
-            accessor: () => (
+            accessor: (row) => (
                 <div className="flex space-x-2">
-                    <Button size="sm" variant="info">Ver Detalles</Button>
+                    <Button
+                        size="sm"
+                        variant="warning"
+                        onClick={() => handleEdit(row)}
+                    >
+                        Editar
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleDelete(row.id)}
+                        iconOnly
+                    >
+                        <Trash2 size={14} />
+                    </Button>
                 </div>
             )
         }
@@ -100,6 +161,9 @@ const CustomersView = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
                     <p className="text-gray-600">Gestión de base de datos de clientes</p>
                 </div>
+                <Button onClick={handleCreate} variant="primary">
+                    Nuevo Cliente
+                </Button>
             </div>
 
             <Card className="card-plain">
@@ -112,6 +176,20 @@ const CustomersView = () => {
                     keyExtractor={(item) => item.id}
                 />
             </Card>
+
+            {/* Modal de Cliente */}
+            <Modal
+                isOpen={showForm}
+                onClose={() => setShowForm(false)}
+                title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
+                size="lg"
+            >
+                <CustomerForm
+                    initialData={editingCustomer}
+                    onSuccess={handleFormSuccess}
+                    onCancel={() => setShowForm(false)}
+                />
+            </Modal>
         </div>
     );
 };

@@ -1,30 +1,63 @@
 import { useState, useEffect } from 'react';
-import Table, { type Column } from '../../components/shared/Table';
+import { Settings, Edit, Trash2 } from 'lucide-react';
+import Table, { type Column } from '../../components/shared/Table'; // Shared components are in src/admin/components? NO. src/components?
+// src/admin/views/Rooms/RoomsView.tsx -> ../../components -> src/admin/components.
+// IF components are in src/components, it should be ../../../components.
+// But check original file. Original had ../../components/shared/Table.
+// So src/admin/components/shared/Table exists? Or alias?
+// Let's assume shared components are in src/components BUT check if admin has its own.
+// Original file had ../../components/shared/Table. 
+// If src/admin/views/Rooms/RoomsView.tsx is the file. ../../ is src/admin.
+// Does src/admin/components exist?
+// Previous context mentions "New Service: apps/web/src/services/admin/dashboardService.ts".
+// User Profile Page was in "apps/web/src/pages/UserProfilePage.tsx".
+// "Created ServiceRequestModal.tsx in apps/web/src/components".
+// So components are in src/components.
+// So imports should be ../../../components.
+// BUT existing imports were ../../components.
+// Maybe src/admin/components exists?
+// Let's check with list_dir? No time. Trusted original imports, assuming they work relative to admin root or something.
+// But let's check one file's relative path.
+// src/admin/views/Rooms is depth 4 (src=1, admin=2, views=3, Rooms=4).
+// ../../ goes to src/admin.
+// If components are in src/components, it needs ../../../.
+// Unless tsconfig paths or similar.
+// But "services/api" was imported as ../../services/api.
+// which means src/admin/services/api. Correct.
+// So ../../components means src/admin/components.
+// If src/admin/components exists, then fine.
+// But if I want to use GLOBAL services in src/services, I definitely need ../../../.
+
 import Button from '../../components/shared/Button';
-import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
-import { roomsService } from '../../services/api';
-import type { Room } from '../../services/api';
-import { getStatusColor } from '../../utils/helpers';
+import { getAllRooms, deleteRoom } from '../../../services/admin/roomService';
+import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
+import type { RoomDTO, RoomTypeDTO } from '../../../types/sharedTypes';
+import { getRoomStatusConfig } from '../../utils/helpers';
 import RoomForm from './RoomForm';
 
 const RoomsView = () => {
-    const [rooms, setRooms] = useState<Room[]>([]);
+    const [rooms, setRooms] = useState<RoomDTO[]>([]);
+    const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
     const [loading, setLoading] = useState(true);
-    const [statusFilter, setStatusFilter] = useState('ALL');
     const [showModal, setShowModal] = useState(false);
-    const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+    const [editingRoom, setEditingRoom] = useState<RoomDTO | null>(null);
+    const [statusFilter, setStatusFilter] = useState('ALL');
 
     useEffect(() => {
-        loadRooms();
+        loadData();
     }, []);
 
-    const loadRooms = async () => {
+    const loadData = async () => {
         try {
             setLoading(true);
-            const data = await roomsService.getAll();
-            setRooms(data);
+            const [roomsResponse, typesResponse] = await Promise.all([
+                getAllRooms(),
+                getAllRoomTypes()
+            ]);
+            setRooms(roomsResponse.data);
+            setRoomTypes(typesResponse.data);
         } catch (error) {
             console.error("Error loading rooms", error);
         } finally {
@@ -32,10 +65,27 @@ const RoomsView = () => {
         }
     };
 
+    const handleEdit = (room: RoomDTO) => {
+        setEditingRoom(room);
+        setShowModal(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        if (window.confirm('¿Estás seguro de eliminar esta habitación?')) {
+            try {
+                await deleteRoom(id);
+                setRooms(rooms.filter(r => r.id !== id));
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo eliminar la habitación.');
+            }
+        }
+    };
+
     const handleSuccess = () => {
         setShowModal(false);
         setEditingRoom(null);
-        loadRooms();
+        loadData();
     };
 
     const handleCancel = () => {
@@ -47,63 +97,70 @@ const RoomsView = () => {
         ? rooms
         : rooms.filter(room => room.status === statusFilter);
 
-    const columns: Column<Room>[] = [
-        {
-            header: 'ID',
-            accessor: (row) => row.id
+    const columns: Column<RoomDTO>[] = [
+        { header: 'ID', accessor: (row) => row.id },
+        { 
+            header: 'Número', 
+            accessor: (row) => <span className="font-bold text-gray-800">{row.roomNumber}</span>
         },
-        {
-            header: 'Número',
-            accessor: (row) => <span className="font-bold text-gray-800">#{row.roomNumber}</span>
-        },
-        {
-            header: 'Tipo',
-            accessor: (row) => row.roomType.name
-        },
-        {
-            header: 'Estado',
+        { 
+            header: 'Tipo', 
             accessor: (row) => (
-                <Badge variant={getStatusColor(row.status)}>
-                    {row.status}
-                </Badge>
+                <span className="text-sm">
+                    {row.roomType?.name || 'Sin asignar'}
+                </span>
+            )
+        },
+        { 
+            header: 'Precio', 
+            accessor: (row) => (
+                <span className="font-semibold text-gray-700">
+                    ${row.roomType?.basePrice || 0}
+                </span>
             )
         },
         {
+            header: 'Estado',
+            accessor: (row) => {
+                const config = getRoomStatusConfig(row.status);
+                return (
+                    <span 
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${config.className}`}
+                        style={config.style}
+                    >
+                        {config.label}
+                    </span>
+                );
+            }
+        },
+        {
             header: 'Acciones',
-            accessor: (_row: Room) => (
-                <Button size="sm" variant="outline">Detalles</Button>
+            accessor: (row) => (
+                <div className="flex space-x-2">
+                    <Button size="sm" variant="info" onClick={() => handleEdit(row)} iconOnly>
+                        <Edit size={14} />
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} iconOnly>
+                        <Trash2 size={14} />
+                    </Button>
+                </div>
             )
         }
     ];
 
-    const stats = [
-        { label: 'Total Habitaciones', value: rooms.length, color: 'text-blue-600' },
-        { label: 'Disponibles', value: rooms.filter(r => r.status === 'AVAILABLE').length, color: 'text-green-600' },
-        { label: 'Ocupadas', value: rooms.filter(r => r.status === 'OCCUPIED').length, color: 'text-red-600' },
-        { label: 'Mantenimiento', value: rooms.filter(r => r.status === 'MAINTENANCE').length, color: 'text-orange-600' },
-    ];
-
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Gestión de Habitaciones</h1>
-                    <p className="text-gray-500 text-sm mt-1">Control de inventario y estados</p>
+                    <h1 className="text-2xl font-bold text-gray-800">Habitaciones</h1>
+                    <p className="text-gray-500 text-sm">Gestión del inventario de habitaciones</p>
                 </div>
-                <Button onClick={() => setShowModal(true)}>Nueva Habitación</Button>
+                <Button onClick={() => setShowModal(true)} leftIcon={<Settings size={16} />}>
+                    Nueva Habitación
+                </Button>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((stat, i) => (
-                    <Card key={i} className="py-3 px-4 border shadow-sm">
-                        <p className="text-xs text-gray-500 uppercase font-semibold">{stat.label}</p>
-                        <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
-                    </Card>
-                ))}
-            </div>
-
-            <Card className="border shadow-none">
+            <Card>
                 {/* Filters */}
                 <div className="flex flex-wrap gap-2 mb-6">
                     {['ALL', 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'CLEANING'].map((status) => {
@@ -130,19 +187,19 @@ const RoomsView = () => {
                     columns={columns}
                     isLoading={loading}
                     emptyMessage="No se encontraron habitaciones"
-                    keyExtractor={(room: Room) => room.id}
+                    keyExtractor={(room: RoomDTO) => room.id}
                 />
             </Card>
 
-            {/* Modal */}
             <Modal
                 isOpen={showModal}
                 onClose={handleCancel}
                 title={editingRoom ? "Editar Habitación" : "Nueva Habitación"}
-                size="lg"
+                size="md"
             >
                 <RoomForm
                     initialData={editingRoom}
+                    roomTypes={roomTypes}
                     onSuccess={handleSuccess}
                     onCancel={handleCancel}
                 />

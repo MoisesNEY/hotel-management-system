@@ -1,5 +1,5 @@
 .services {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: var(--bg-primary);
     padding: 100px 0;
     position: relative;
 }
@@ -11,7 +11,7 @@
 
 .section-title {
     font-size: 2.5rem;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 15px;
     position: relative;
     padding-bottom: 15px;
@@ -30,7 +30,7 @@
 }
 
 .section-subtitle {
-    color: #666;
+    color: var(--text-secondary);
     font-size: 1.1rem;
     max-width: 600px;
     margin: 0 auto;
@@ -44,7 +44,7 @@
 }
 
 .service-card {
-    background: white;
+    background: var(--card-bg);
     padding: 40px 30px;
     border-radius: 12px;
     text-align: center;
@@ -52,7 +52,7 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--border-color);
 }
 
 .service-card:hover {
@@ -795,4 +795,37 @@
     margin-bottom: 15px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+
+/* No services card styles */
+
+.no-services-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+}
+
+.no-services-icon {
+    color: var(--text-secondary);
+}
+
+.no-services-title {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+
+/* Dark mode overrides for no services */
+
+[data-theme="dark"] .no-services-card {
+    background: #1e1e3e;
+}
+
+[data-theme="dark"] .no-services-icon {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .no-services-title {
+    color: #ffffff;
 }

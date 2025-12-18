@@ -10,7 +10,7 @@
         Added the entity CustomerDetails.
     -->
     <changeSet id="20251211184751-1" author="jhipster">
-        <createTable tableName="customer_details" remarks="Datos extendidos del cliente (Perfil).\nSe llena DESPUÉS del registro en Keycloak.">
+        <createTable tableName="customer_details" remarks="Datos extendidos del cliente (Perfil).D\nSe llena DESPUÉS del registro en Keycloak.">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

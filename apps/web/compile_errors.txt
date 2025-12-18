@@ -1,0 +1,6 @@
+src/admin/components/layout/Footer.tsx(2,10): error TS6133: 'Heart' is declared but its value is never read.
+src/admin/views/Dashboard/Dashboard.tsx(29,48): error TS2307: Cannot find module '../../types' or its corresponding type declarations.
+src/admin/views/Dashboard/Dashboard.tsx(91,42): error TS7006: Parameter 'ds' implicitly has an 'any' type.
+src/admin/views/Rooms/RoomForm.tsx(5,1): error TS6133: 'getAllRoomTypes' is declared but its value is never read.
+src/admin/views/Services/ServiceForm.tsx(4,1): error TS6133: 'Button' is declared but its value is never read.
+src/components/ProtectedRoute.tsx(2,10): error TS6133: 'Navigate' is declared but its value is never read.

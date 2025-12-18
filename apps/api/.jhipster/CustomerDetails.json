@@ -5,7 +5,7 @@
   "applications": ["hotelBackend"],
   "clientRootFolder": "hotelBackend",
   "databaseType": "sql",
-  "documentation": "Datos extendidos del cliente (Perfil).\\nSe llena DESPUÉS del registro en Keycloak.",
+  "documentation": "Datos extendidos del cliente (Perfil).D\\nSe llena DESPUÉS del registro en Keycloak.",
   "dto": "mapstruct",
   "fields": [
     {

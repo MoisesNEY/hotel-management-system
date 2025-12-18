@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "./admin/styles/admin.css";
 @import "./admin/styles/paper-dashboard.css";
-
+@import "./styles/theme-toggle.css";
 * {
     margin: 0;
     padding: 0;
@@ -9,6 +9,7 @@
 }
 
 :root {
+    /* Modo Claro (default) */
     --primary: #2c3e50;
     --secondary: #3498db;
     --accent: #e74c3c;
@@ -19,12 +20,48 @@
     --white: #ffffff;
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
+    /* Variables de tema */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f7fa;
+    --bg-tertiary: #ecf0f1;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --border-color: #e0e0e0;
+    --card-bg: #ffffff;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --input-bg: #ffffff;
+    --input-border: #d0d0d0;
+    --modal-overlay: rgba(0, 0, 0, 0.5);
+    --header-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --header-text: #ffffff;
+    --gold-accent: #d4af37;
+}
+
+[data-theme="dark"] {
+    /* Modo Oscuro */
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #0f1419;
+    --text: #ffffff;
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-tertiary: #b0b0b0;
+    --border-color: #2a2a3e;
+    --card-bg: #1e1e3e;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --input-bg: #2a2a3e;
+    --input-border: #3a3a4e;
+    --modal-overlay: rgba(0, 0, 0, 0.8);
+    --header-bg: linear-gradient(135deg, #0f1419 0%, #1a1a2e 100%);
+    --header-text: #ffffff;
+    --gold-accent: #d4af37;
 }
 
 body {
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
     color: var(--text);
+    background-color: var(--bg-primary);
     line-height: 1.6;
 }
 
@@ -36,7 +73,8 @@ h5,
 h6 {
     font-family: "Playfair Display", serif;
     font-weight: 600;
-    color: var(--dark);
+    color: var(--text-primary);
+    transition: color 0.3s ease;
 }
 
 .container {
@@ -115,6 +153,125 @@ h6 {
     background: #0a143c;
     padding: 40px 20px;
     color: #fff;
+}
+
+
+/* Estilos globales para modo oscuro */
+
+[data-theme="dark"] {
+    background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div,
+[data-theme="dark"] label {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn {
+    transition: var(--transition);
+}
+
+[data-theme="dark"] .btn-primary {
+    background-color: var(--secondary);
+    color: var(--white);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background-color: #2980b9;
+}
+
+[data-theme="dark"] .btn-secondary {
+    background-color: transparent;
+    color: var(--secondary);
+    border: 2px solid var(--secondary);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background-color: var(--secondary);
+    color: var(--white);
+}
+
+
+/* Cards y contenedores */
+
+[data-theme="dark"] .section-card,
+[data-theme="dark"] .card,
+[data-theme="dark"] .booking-card,
+[data-theme="dark"] .service-card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+
+/* Inputs y formularios */
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+
+/* Modales */
+
+[data-theme="dark"] .modal-overlay {
+    background-color: var(--modal-overlay);
+}
+
+[data-theme="dark"] .modal-container {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+
+/* Imágenes - ajustar opacidad en modo oscuro si es necesario */
+
+[data-theme="dark"] img {
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] img:hover {
+    opacity: 1;
+}
+
+
+/* Iconos - asegurar visibilidad */
+
+[data-theme="dark"] svg {
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+
+/* Scrollbar personalizado para modo oscuro */
+
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
 }
 
 .footer .container {

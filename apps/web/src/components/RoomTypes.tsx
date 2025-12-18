@@ -1,4 +1,3 @@
-// apps/web/src/components/RoomTypes.tsx
 import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import '../styles/room-pricing-minimal.css';
@@ -506,7 +505,7 @@ Te contactaremos para confirmar.`);
                 <div className="form-actions">
                   <button 
                     type="button" 
-                    className="btn-cancel" 
+                    className="btn-roomtypes-cancel" 
                     onClick={closeModal}
                     disabled={isSubmitting}
                   >
@@ -514,7 +513,7 @@ Te contactaremos para confirmar.`);
                   </button>
                   <button 
                     type="submit" 
-                    className="btn-submit"
+                    className="btn-roomtypes-confirm"
                     disabled={isSubmitting}
                   >
                     <CreditCard size={18} />
