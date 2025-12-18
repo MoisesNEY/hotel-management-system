@@ -11,79 +11,55 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEME_STORAGE_KEY = 'hotel-app-theme';
+
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { isAuthenticated, userProfile, isInitialized } = useAuth();
-
+  
+  // Initialize from local storage immediately to avoid flicker
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Si no está inicializado aún, usar light por defecto
-    if (!isInitialized) {
-      return 'light';
-    }
-
-    // Si no está autenticado, usar light
-    if (!isAuthenticated || !userProfile?.id) {
-      return 'light';
-    }
-
-    // Intentar cargar desde localStorage usando el ID del usuario
-    const userThemeKey = `app-theme-${userProfile.id}`;
-    const savedTheme = localStorage.getItem(userThemeKey) as Theme | null;
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      return savedTheme;
-    }
-
-    // Si no hay preferencia guardada para este usuario, usar light por defecto
-    return 'light';
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    return (saved === 'dark' || saved === 'light') ? saved : 'light';
   });
 
-  // Función para obtener la clave de localStorage del usuario actual
-  const getUserThemeKey = () => {
-    return userProfile?.id ? `app-theme-${userProfile.id}` : 'app-theme-guest';
-  };
-
-  // Aplicar el tema al documento cuando cambie
+  // Effect to apply class to documentElement
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') {
-      root.setAttribute('data-theme', 'dark');
+      root.classList.add('dark');
     } else {
-      root.setAttribute('data-theme', 'light');
+      root.classList.remove('dark');
     }
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
-    // Solo guardar si hay un usuario autenticado
-    if (isAuthenticated && userProfile?.id) {
-      localStorage.setItem(getUserThemeKey(), theme);
-    }
-  }, [theme, isAuthenticated, userProfile?.id]);
-
-  // Efecto para manejar cambios de autenticación
+  // Effect to sync with user profile when logged in (optional but good)
   useEffect(() => {
-    if (!isInitialized) return;
-
-    if (!isAuthenticated) {
-      // Usuario no autenticado - resetear a light
-      setThemeState('light');
-      const root = document.documentElement;
-      root.setAttribute('data-theme', 'light');
-    } else if (userProfile?.id) {
-      // Usuario autenticado - cargar su configuración
-      const userThemeKey = `app-theme-${userProfile.id}`;
-      const savedTheme = localStorage.getItem(userThemeKey) as Theme | null;
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        setThemeState(savedTheme);
-      } else {
-        // Nuevo usuario - usar light por defecto
-        setThemeState('light');
+    if (isInitialized && isAuthenticated && userProfile?.id) {
+      const userKey = `app-theme-${userProfile.id}`;
+      const userSaved = localStorage.getItem(userKey) as Theme | null;
+      if (userSaved && userSaved !== theme) {
+        setThemeState(userSaved);
       }
     }
-  }, [isAuthenticated, userProfile?.id, isInitialized]);
+  }, [isInitialized, isAuthenticated, userProfile?.id]);
 
   const toggleTheme = () => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light');
+    setThemeState(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      // Also save to user specific key if logged in
+      if (isAuthenticated && userProfile?.id) {
+        localStorage.setItem(`app-theme-${userProfile.id}`, next);
+      }
+      return next;
+    });
   };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
+    if (isAuthenticated && userProfile?.id) {
+      localStorage.setItem(`app-theme-${userProfile.id}`, newTheme);
+    }
   };
 
   return (
