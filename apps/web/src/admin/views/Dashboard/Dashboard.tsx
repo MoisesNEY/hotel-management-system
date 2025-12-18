@@ -21,12 +21,14 @@ import {
     Calendar,
     Clock,
     Activity,
-    Circle
+    Circle,
+    Home
 } from 'lucide-react';
 
 import StatsCard from '../../components/shared/StatsCard';
 import Card from '../../components/shared/Card';
 import * as dashboardService from '../../../services/admin/dashboardService';
+import { getRoomsChartData, type RoomsChartData } from '../../../services/admin/roomService';
 import type { DashboardStats, ChartData } from '../../../services/admin/dashboardService';
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
@@ -51,16 +53,19 @@ const Dashboard = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<ChartData | null>(null);
+    const [roomsChartData, setRoomsChartData] = useState<RoomsChartData | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [dashboardData, revenueData] = await Promise.all([
+                const [dashboardData, revenueData, roomsData] = await Promise.all([
                     dashboardService.getStats(),
-                    dashboardService.getRevenueChartData()
+                    dashboardService.getRevenueChartData(),
+                    getRoomsChartData()
                 ]);
                 setStats(dashboardData);
                 setChartData(revenueData);
+                setRoomsChartData(roomsData);
             } catch (error) {
                 console.error("Error fetching dashboard data", error);
             } finally {
@@ -157,10 +162,66 @@ const Dashboard = () => {
         ]
     } : { labels: [], datasets: [] };
 
+    // Datos para el gráfico de habitaciones usando tu servicio
+    const roomsPieChartData = roomsChartData ? {
+        labels: roomsChartData.labels,
+        datasets: roomsChartData.datasets.map(ds => ({
+            ...ds,
+            borderColor: isDark ? '#1c1c1c' : '#ffffff',
+            borderWidth: 2,
+            hoverOffset: 8,
+            hoverBackgroundColor: ds.backgroundColor.map(color => 
+                color === '#d4af37' ? '#b5942c' : 
+                color === '#51cbce' ? '#45b4b6' : color
+            )
+        }))
+    } : { labels: [], datasets: [] };
+
     const clientsChartOptions: any = {
         maintainAspectRatio: false,
         responsive: true,
-        cutout: '65%', // Para hacerlo tipo doughnut (anillo)
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'bottom' as const,
+                labels: {
+                    color: isDark ? '#94a3b8' : '#4b5563',
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    },
+                    padding: 20,
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                }
+            },
+            tooltip: {
+                backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+                titleColor: isDark ? '#ffffff' : '#111827',
+                bodyColor: isDark ? '#94a3b8' : '#4b5563',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12 },
+                callbacks: {
+                    label: function(context: any) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    };
+
+    const roomsChartOptions: any = {
+        maintainAspectRatio: false,
+        responsive: true,
+        cutout: '55%',
         plugins: {
             legend: {
                 position: 'bottom' as const,
@@ -206,9 +267,14 @@ const Dashboard = () => {
         );
     }
 
+    // Calcular el total de habitaciones
+    const totalRooms = roomsChartData?.datasets[0]?.data?.reduce((a, b) => a + b, 0) || 0;
+    const occupiedRooms = roomsChartData?.datasets[0]?.data[0] || 0;
+    const availableRooms = roomsChartData?.datasets[0]?.data[1] || 0;
+
     return (
         <div className="content">
-            {/* Stats Components Row */}
+            {/* Stats Components Row - Añade estadística de habitaciones */}
             <div className="flex flex-wrap -mx-4 mb-8">
                 <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
@@ -244,18 +310,18 @@ const Dashboard = () => {
                     <StatsCard
                         type="primary"
                         icon={BedDouble}
-                        title="Ocupación"
-                        value={`${stats?.occupancyRate || 0}%`}
-                        footerInitIcon={Activity}
-                        footerText="Actualizado ahora"
+                        title="Habitaciones"
+                        value={totalRooms}
+                        footerInitIcon={Home}
+                        footerText={`${occupiedRooms} ocupadas, ${availableRooms} disponibles`}
                     />
                 </div>
             </div>
 
-            {/* Charts Row */}
+            {/* Charts Row - Ahora en 3 columnas */}
             <div className="flex flex-wrap -mx-4 mb-8">
                 {/* Gráfico de Pastel de Clientes */}
-                <div className="w-full lg:w-1/2 px-4 mb-6">
+                <div className="w-full lg:w-1/3 px-4 mb-6">
                     <Card title="Distribución de Clientes" subtitle="Activos vs Inactivos">
                         <div className="relative w-full h-[300px] mt-2 flex items-center justify-center">
                             {stats ? (
@@ -282,8 +348,46 @@ const Dashboard = () => {
                     </Card>
                 </div>
 
+                {/* Gráfico de Pastel de Habitaciones */}
+                <div className="w-full lg:w-1/3 px-4 mb-6">
+                    <Card title="Estado de Habitaciones" subtitle="Ocupadas vs Disponibles">
+                        <div className="relative w-full h-[300px] mt-2 flex items-center justify-center">
+                            {roomsChartData ? (
+                                <Doughnut 
+                                    data={roomsPieChartData} 
+                                    options={roomsChartOptions} 
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    Cargando gráfico de habitaciones...
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                    <div className="text-lg font-semibold text-amber-600 dark:text-amber-400">
+                                        {occupiedRooms}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        Ocupadas
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">
+                                        {availableRooms}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        Disponibles
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+
                 {/* Gráfico de Línea de Ingresos */}
-                <div className="w-full lg:w-1/2 px-4 mb-6">
+                <div className="w-full lg:w-1/3 px-4 mb-6">
                     <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
                         <div className="relative w-full h-[300px] mt-2">
                             {chartData ? (
