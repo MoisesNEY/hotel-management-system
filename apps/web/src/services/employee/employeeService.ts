@@ -4,7 +4,7 @@ import type {
   BookingDTO, 
   ServiceRequestDTO, 
   RequestStatus 
-} from '../../types/sharedTypes';
+} from '../../types/adminTypes';
 import { type PaginatedResponse } from '../../types/clientTypes';
 
 const BOOKINGS_PATH = '/api/bookings';

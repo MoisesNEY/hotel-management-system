@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createHotelService, updateHotelService } from '../../../services/admin/hotelServiceService';
-import type { HotelServiceDTO } from '../../../types/sharedTypes';
+import type { HotelServiceDTO } from '../../../types/adminTypes';
 
 
 interface ServiceFormProps {
@@ -58,9 +58,10 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                 await createHotelService(createPayload as HotelServiceDTO);
             }
             onSuccess();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error saving service", err);
-            setError("Error al guardar el servicio");
+            const serverMsg = err.response?.data?.detail || err.response?.data?.message || 'Error al guardar el servicio';
+            setError(serverMsg);
         } finally {
             setLoading(false);
         }

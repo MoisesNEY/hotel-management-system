@@ -39,7 +39,7 @@ public class BookingDTO implements Serializable {
     private RoomDTO assignedRoom;
 
     @NotNull
-    private UserDTO customer;
+    private AdminUserDTO customer;
 
     public Long getId() {
         return id;
@@ -113,11 +113,11 @@ public class BookingDTO implements Serializable {
         this.assignedRoom = assignedRoom;
     }
 
-    public UserDTO getCustomer() {
+    public AdminUserDTO getCustomer() {
         return customer;
     }
 
-    public void setCustomer(UserDTO customer) {
+    public void setCustomer(AdminUserDTO customer) {
         this.customer = customer;
     }
 

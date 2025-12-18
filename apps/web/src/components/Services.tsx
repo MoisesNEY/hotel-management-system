@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Heart, X, Clock, FileText, AlertCircle, Info } from 'lucide-react';
 import { createServiceRequest } from '../services/client/serviceRequestService';
 import { getAllHotelServices } from '../services/admin/hotelServiceService';
-import type { HotelServiceDTO } from '../types/sharedTypes';
+import { getMyBookings } from '../services/client/bookingService';
+import { useAuth } from '../contexts/AuthProvider';
+import type { HotelServiceDTO } from '../types/adminTypes';
+import type { BookingResponse } from '../types/clientTypes';
+import { ChevronDown } from 'lucide-react';
 
 // Enum para RequestStatus
 export const RequestStatus = {
@@ -20,6 +24,10 @@ const Services: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedService, setSelectedService] = useState<HotelServiceDTO | null>(null);
+  const { isAuthenticated, login } = useAuth();
+  const [userBookings, setUserBookings] = useState<BookingResponse[]>([]);
+  const [selectedBookingId, setSelectedBookingId] = useState<string>('');
+  const [loadingBookings, setLoadingBookings] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -56,9 +64,45 @@ const Services: React.FC = () => {
     fetchServices();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUserBookings();
+    }
+  }, [isAuthenticated]);
+
+  const loadUserBookings = async () => {
+    try {
+      setLoadingBookings(true);
+      const response = await getMyBookings();
+      // Only active bookings
+      const active = response.data.filter(b => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN');
+      setUserBookings(active);
+      
+      if (active.length > 0) {
+        setSelectedBookingId(active[0].id.toString());
+      }
+    } catch (err) {
+      console.error('[Services] Error fetching bookings:', err);
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
   const handleServiceRequest = (service: HotelServiceDTO) => {
+    if (!isAuthenticated) {
+      if (window.confirm('Debes iniciar sesión para solicitar servicios. ¿Deseas ir a la página de ingreso?')) {
+        login();
+      }
+      return;
+    }
+    
     setSelectedService(service);
     setShowModal(true);
+    
+    // Auto-select if bookings already loaded
+    if (userBookings.length > 0 && !selectedBookingId) {
+       setSelectedBookingId(userBookings[0].id.toString());
+    }
     
     const now = new Date();
     const localDateTime = now.toISOString().slice(0, 16);
@@ -122,12 +166,17 @@ const Services: React.FC = () => {
       return;
     }
     
+    if (!selectedBookingId) {
+      alert('Debes seleccionar una reserva activa para solicitar este servicio');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await createServiceRequest({
         details: `${formData.details.trim()} [Fecha: ${formData.requestDate}] [Servicio: ${selectedService?.name}]`,
         serviceId: selectedService?.id || 1,
-        bookingId: 1
+        bookingId: Number(selectedBookingId)
       });
 
       alert(`¡Solicitud de servicio enviada con éxito!\n\nServicio: ${selectedService?.name}\nFecha solicitada: ${formatDateForDisplay(formData.requestDate)}\n\nRecibirás una confirmación por correo electrónico.`);
@@ -277,6 +326,53 @@ const Services: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Selección de Reserva */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <h4 className="flex items-center gap-2.5 m-0 mb-4 text-gray-900 dark:text-white text-xl">
+                    <Info size={18} />
+                    Seleccionar Reserva Asociada *
+                  </h4>
+                  {loadingBookings ? (
+                    <div className="flex items-center gap-3 py-4 text-gray-500">
+                      <div className="animate-spin h-4 w-4 border-2 border-[#d4af37] border-t-transparent rounded-full"></div>
+                      <span className="text-sm">Buscando tus reservas...</span>
+                    </div>
+                  ) : userBookings.length === 0 ? (
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+                      <AlertCircle className="text-amber-600 flex-shrink-0" size={18} />
+                      <p className="text-sm text-amber-800 dark:text-amber-300 m-0 leading-snug">
+                        No hemos encontrado reservas activas. Para solicitar servicios premium, debes tener una reserva confirmada o estar hospedado actualmente.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="bookingId" className="font-semibold text-gray-700 dark:text-gray-300 text-sm">Reserva</label>
+                      <div className="relative group">
+                        <select
+                          id="bookingId"
+                          name="bookingId"
+                          value={selectedBookingId}
+                          onChange={(e) => setSelectedBookingId(e.target.value)}
+                          className="w-full p-3.5 pr-10 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none focus:outline-none focus:border-gray-900 dark:focus:border-gray-400 focus:shadow-[0_0_0_3px_rgba(26,26,46,0.1)] transition-all duration-200"
+                          required
+                        >
+                          {userBookings.map(b => (
+                            <option key={b.id} value={b.id}>
+                              #{b.id} - {b.roomTypeName} ({b.checkInDate} a {b.checkOutDate})
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:rotate-180 transition-transform duration-200">
+                          <ChevronDown size={14} />
+                        </div>
+                      </div>
+                      <small className="text-gray-500 dark:text-gray-400 text-xs italic">
+                        El servicio se asociará a esta estadía.
+                      </small>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Fecha y hora */}
                 <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -365,8 +461,8 @@ const Services: React.FC = () => {
                   </button>
                   <button 
                     type="submit" 
-                    className="px-8 py-3.5 bg-gradient-to-br from-[#1a1a2e] to-[#2c3e50] text-white rounded-lg font-semibold cursor-pointer transition-all duration-300 shadow-[0_4px_12px_rgba(26,26,46,0.2)] hover:from-[#2c3e50] hover:to-[#1a1a2e] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(26,26,46,0.3)] active:translate-y-0"
-                    disabled={isSubmitting}
+                    className="px-8 py-3.5 bg-gradient-to-br from-[#1a1a2e] to-[#2c3e50] text-white rounded-lg font-semibold cursor-pointer transition-all duration-300 shadow-[0_4px_12px_rgba(26,26,46,0.2)] hover:from-[#2c3e50] hover:to-[#1a1a2e] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(26,26,46,0.3)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    disabled={isSubmitting || userBookings.length === 0}
                   >
                     {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
                   </button>

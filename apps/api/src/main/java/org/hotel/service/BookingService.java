@@ -156,6 +156,14 @@ public class BookingService {
      * @param currentBookingId ID de la reserva si es update, null si es create.
      */
     private Booking validateAndPrepareData(BookingDTO bookingDTO, Long currentBookingId) {
+        if (currentBookingId != null) {
+            bookingRepository.findById(currentBookingId).ifPresent(existing -> {
+                if (!existing.getCustomer().getId().equals(bookingDTO.getCustomer().getId())) {
+                    throw new BusinessRuleException("No se permite cambiar el cliente de una reserva existente");
+                }
+            });
+        }
+
         // Es crítico obtener el RoomType de BD para tener los datos reales (precio, capacidad)
         RoomType roomType = roomTypeRepository.findById(bookingDTO.getRoomType().getId())
             .orElseThrow(() -> new ResourceNotFoundException("RoomType", bookingDTO.getRoomType().getId()));

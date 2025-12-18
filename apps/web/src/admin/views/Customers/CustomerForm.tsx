@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createCustomerDetails, updateCustomerDetails } from '../../../services/admin/customerDetailsService';
-import type { CustomerDetailsDTO, Gender } from '../../../types/sharedTypes';
+import type { CustomerDetailsDTO, Gender } from '../../../types/adminTypes';
 
 interface CustomerFormProps {
     initialData?: CustomerDetailsDTO | null;
@@ -62,7 +62,7 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
                 licenseId,
                 birthDate,
                 user: {
-                    id: initialData?.user?.id || 0,
+                    id: initialData?.user?.id || '',
                     firstName,
                     lastName,
                     email,

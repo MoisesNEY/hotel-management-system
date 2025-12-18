@@ -6,15 +6,14 @@ import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
 import { getAllCustomerDetails, deleteCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllUsers } from '../../../services/admin/userService';
-import type { CustomerDetailsDTO } from '../../../types/sharedTypes';
-import type { AdminUserDTO } from '../../../types/adminTypes';
+import type { CustomerDetailsDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 import { Trash2, Plus } from 'lucide-react';
 
 const CustomersView = () => {
     const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
+    const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
@@ -34,7 +33,7 @@ const CustomersView = () => {
             setCustomers(customersParams.data);
 
             // Create User Lookup
-            const map: Record<number, AdminUserDTO> = {};
+            const map: Record<string, AdminUserDTO> = {};
             usersParams.data.forEach(u => map[u.id] = u);
             setUsersMap(map);
 
