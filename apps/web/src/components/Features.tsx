@@ -1,41 +1,26 @@
 import React from 'react';
-import { Shield, Clock, Wifi, Utensils, Car, ConciergeBell } from 'lucide-react';
+import { Shield, Clock, Wifi, Utensils, Car, ConciergeBell, Star } from 'lucide-react';
 import '../styles/features.css';
+import { useListContent } from '../hooks/useContent';
 
 const Features: React.FC = () => {
-    const features = [
-        {
-            icon: <Shield size={32} />,
-            title: 'Seguridad Garantizada',
-            description: 'Protección de datos y privacidad mediante controles de acceso y procesos seguros.'
-        },
+    // 1. Traemos la lista desde DB
+    const { data: features, loading } = useListContent('HOME_FEATURES');
 
-        {
-            icon: <Clock size={32} />,
-            title: 'Gestión en Tiempo Real',
-            description: 'Reservas y estado de habitaciones actualizado al instante'
-        },
-        {
-            icon: <Wifi size={32} />,
-            title: 'WiFi de Alta Velocidad',
-            description: 'Conexión gratuita premium en todas las áreas del hotel'
-        },
-        {
-            icon: <Utensils size={32} />,
-            title: 'Restaurante Gourmet',
-            description: 'Experiencias culinarias con chefs internacionales 5 estrellas'
-        },
-        {
-            icon: <Car size={32} />,
-            title: 'Estacionamiento VIP',
-            description: 'Estacionamiento privado, vigilado y con valet parking'
-        },
-        {
-            icon: <ConciergeBell size={32} />,
-            title: 'Servicio 24/7',
-            description: 'Concierge, recepción y servicio al cuarto premium 24 horas'
-        }
-    ];
+    // 2. Mapeo inteligente: Título DB -> Componente React
+    // Si el titulo de la DB contiene la palabra clave, mostramos el icono correspondiente
+    const getIcon = (title: string) => {
+        const t = title.toLowerCase();
+        if (t.includes('seguridad')) return <Shield size={32} />;
+        if (t.includes('tiempo')) return <Clock size={32} />;
+        if (t.includes('wifi') || t.includes('conexión')) return <Wifi size={32} />;
+        if (t.includes('restaurante') || t.includes('gourmet')) return <Utensils size={32} />;
+        if (t.includes('estacionamiento') || t.includes('parking')) return <Car size={32} />;
+        if (t.includes('servicio') || t.includes('24/7')) return <ConciergeBell size={32} />;
+        return <Star size={32} />; // Icono por defecto
+    };
+
+    if (loading) return null; // O un spinner pequeño
 
     return (
         <section className="section features" id="caracteristicas">
@@ -48,12 +33,12 @@ const Features: React.FC = () => {
                 </div>
                 <div className="features-grid">
                     {features.map((feature, index) => (
-                        <div key={index} className="feature-card">
+                        <div key={feature.id || index} className="feature-card">
                             <div className="feature-icon">
-                                {feature.icon}
+                                {getIcon(feature.title || '')}
                             </div>
                             <h3 className="feature-title">{feature.title}</h3>
-                            <p className="feature-description">{feature.description}</p>
+                            <p className="feature-description">{feature.subtitle}</p>
                         </div>
                     ))}
                 </div>
