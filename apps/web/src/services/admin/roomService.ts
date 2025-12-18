@@ -1,4 +1,3 @@
-// roomsService.ts
 import { apiClient } from '../api';
 import { type RoomDTO } from '../../types/adminTypes';
 

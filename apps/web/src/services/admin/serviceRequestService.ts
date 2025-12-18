@@ -1,12 +1,7 @@
-// serviceRequestService.ts
 import { apiClient } from '../api';
 import { type ServiceRequestDTO } from '../../types/adminTypes';
 
 const API_URL = '/api/service-requests';
-
-// --------------------------
-// Funciones CRUD básicas
-// --------------------------
 export const getAllServiceRequests = async (
   page: number = 0,
   size: number = 20,
@@ -42,9 +37,8 @@ export const deleteServiceRequest = async (id: number) => {
   await apiClient.delete(`${API_URL}/${id}`);
 };
 
-// --------------------------
+
 // Función para la gráfica de barras de servicios
-// --------------------------
 export interface ServicesChartData {
   total: number;
   open: number;

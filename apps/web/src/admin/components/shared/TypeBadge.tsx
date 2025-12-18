@@ -1,11 +1,11 @@
 import React from 'react';
-import { CollectionType } from '../../../types';
+import { CollectionType } from '../../../types/adminTypes';
 import type {
   BookingStatus,
   RoomStatus,
   RequestStatus,
   Gender
-} from '../../../types';
+} from '../../../types/adminTypes';
 
 interface TypeBadgeProps {
   type: string;
