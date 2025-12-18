@@ -215,7 +215,7 @@ const TablesView: React.FC = () => {
 
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold tracking-tight text-gray-400 dark:text-gray-500">Rango:</span>
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 dark:text-gray-400">Rango:</span>
                         <div className="flex items-center gap-1.5">
                             <select
                                 value={exportScope}
@@ -223,20 +223,20 @@ const TablesView: React.FC = () => {
                                     const val = e.target.value;
                                     setExportScope(val === 'page' || val === 'all' || val === 'custom' ? val : Number(val));
                                 }}
-                                className="bg-gray-100 dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gold-light text-[10px] uppercase font-bold tracking-tight rounded-lg focus:ring-1 focus:ring-gold-default focus:border-gold-default block p-1.5 h-9 transition-all cursor-pointer outline-none appearance-none pr-8 relative"
+                                className="bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 text-[10px] uppercase font-bold tracking-widest rounded-lg focus:ring-1 focus:ring-gold-default/30 block px-3 h-9 transition-all cursor-pointer outline-none appearance-none pr-8 relative"
                                 style={{
                                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d4af37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                     backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 0.5rem center',
+                                    backgroundPosition: 'right 0.6rem center',
                                     backgroundSize: '0.8rem'
                                 }}
                             >
-                                <option value="page" style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Página Actual</option>
-                                <option value={50} style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Primeros 50</option>
-                                <option value={100} style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Primeros 100</option>
-                                <option value={500} style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Primeros 500</option>
-                                <option value="all" style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Todo</option>
-                                <option value="custom" style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Personalizado...</option>
+                                <option value="page" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">Página Actual</option>
+                                <option value={50} className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">Primeros 50</option>
+                                <option value={100} className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">Primeros 100</option>
+                                <option value={500} className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">Primeros 500</option>
+                                <option value="all" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">Todo</option>
+                                <option value="custom" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">Personalizado...</option>
                             </select>
 
                             {exportScope === 'custom' && (
@@ -244,7 +244,7 @@ const TablesView: React.FC = () => {
                                     type="number"
                                     value={customLimit}
                                     onChange={(e) => setCustomLimit(Math.max(1, Number(e.target.value)))}
-                                    className="w-20 h-9 bg-gray-100 dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gold-light text-xs font-bold px-2 rounded-lg focus:ring-1 focus:ring-gold-default outline-none transition-all"
+                                    className="w-16 h-9 bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gray-300 text-[10px] font-bold px-2 rounded-lg focus:ring-1 focus:ring-gold-default/30 outline-none transition-all placeholder:text-gray-500"
                                     placeholder="Cant."
                                 />
                             )}
@@ -283,8 +283,8 @@ const TablesView: React.FC = () => {
                         key={id}
                         onClick={() => handleCategoryChange(id as Category)}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${activeCategory === id
-                            ? 'bg-white dark:bg-navy-light text-gold-dark shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            ? 'bg-white dark:bg-gold-default/20 text-gold-dark dark:text-gold-light shadow-sm border border-gold-default/30'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border border-transparent'
                             }`}
                     >
                         {config.icon}
@@ -293,45 +293,53 @@ const TablesView: React.FC = () => {
                 ))}
             </div>
 
-            {/* Pagination & Table Header Controls */}
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white dark:bg-navy-light p-4 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm mt-4">
-                <div className="flex items-center gap-4">
+            <Card className="mt-4">
+                {/* Pagination & Table Header Controls */}
+                <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-white/5">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Filas:</span>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(0); }}
+                                className="bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gray-300 text-sm rounded-lg focus:ring-1 focus:ring-gold-default/30 block px-3 h-9 transition-all cursor-pointer outline-none appearance-none pr-8 relative"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d4af37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.6rem center',
+                                    backgroundSize: '0.8rem'
+                                }}
+                            >
+                                {[10, 20, 50, 100].map(sz => (
+                                    <option key={sz} value={sz} className="bg-white dark:bg-[#121212] text-gray-900 dark:text-white">{sz}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="h-4 w-[1px] bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                            Mostrando <span className="font-bold text-gray-900 dark:text-white">{currentPage * pageSize + 1}</span> - <span className="font-bold text-gray-900 dark:text-white">{Math.min((currentPage + 1) * pageSize, totalItems)}</span> de <span className="font-bold text-gray-900 dark:text-white">{totalItems}</span>
+                        </span>
+                    </div>
+
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Filas:</span>
-                        <select
-                            value={pageSize}
-                            onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(0); }}
-                            className="bg-gray-50 dark:bg-navy-default border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-gold-default focus:border-gold-default block p-1.5 transition-colors cursor-pointer"
-                        >
-                            {[10, 20, 50, 100].map(sz => <option key={sz} value={sz}>{sz}</option>)}
-                        </select>
+                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(0)} disabled={currentPage === 0 || loading} className="px-2 border-gray-200 dark:border-white/10">
+                            <ChevronsLeft size={16} />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))} disabled={currentPage === 0 || loading} leftIcon={<ChevronLeft size={16} />} className="border-gray-200 dark:border-white/10">
+                            Anterior
+                        </Button>
+                        <div className="flex items-center justify-center min-w-[36px] h-8 bg-gold-default/10 text-gold-dark dark:text-gold-light font-bold rounded-lg text-sm border border-gold-default/20">
+                            {currentPage + 1}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => prev + 1)} disabled={(currentPage + 1) * pageSize >= totalItems || loading} rightIcon={<ChevronRight size={16} />} className="border-gray-200 dark:border-white/10">
+                            Siguiente
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(Math.ceil(totalItems / pageSize) - 1)} disabled={(currentPage + 1) * pageSize >= totalItems || loading} className="px-2 border-gray-200 dark:border-white/10">
+                            <ChevronsRight size={16} />
+                        </Button>
                     </div>
-                    <div className="h-4 w-[1px] bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                        Mostrando <span className="font-bold text-gray-900 dark:text-white">{currentPage * pageSize + 1}</span> - <span className="font-bold text-gray-900 dark:text-white">{Math.min((currentPage + 1) * pageSize, totalItems)}</span> de <span className="font-bold text-gray-900 dark:text-white">{totalItems}</span>
-                    </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(0)} disabled={currentPage === 0 || loading} className="px-2 border-gray-200 dark:border-white/10">
-                        <ChevronsLeft size={16} />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))} disabled={currentPage === 0 || loading} leftIcon={<ChevronLeft size={16} />} className="border-gray-200 dark:border-white/10">
-                        Anterior
-                    </Button>
-                    <div className="flex items-center justify-center min-w-[36px] h-8 bg-gold-default/10 text-gold-dark dark:text-gold-light font-bold rounded-lg text-sm border border-gold-default/20">
-                        {currentPage + 1}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => prev + 1)} disabled={(currentPage + 1) * pageSize >= totalItems || loading} rightIcon={<ChevronRight size={16} />} className="border-gray-200 dark:border-white/10">
-                        Siguiente
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(Math.ceil(totalItems / pageSize) - 1)} disabled={(currentPage + 1) * pageSize >= totalItems || loading} className="px-2 border-gray-200 dark:border-white/10">
-                        <ChevronsRight size={16} />
-                    </Button>
-                </div>
-            </div>
-
-            <Card className="mt-2">
                 <Table
                     title={currentConfig.title}
                     subtitle={currentConfig.subtitle}
