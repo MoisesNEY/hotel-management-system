@@ -141,21 +141,39 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                                 
                                 <div className="h-px bg-gray-100 dark:bg-white/5 mx-2 mb-1"></div>
                                 
-                                <button className="flex items-center gap-3 w-full p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group">
+                                <button 
+                                    onClick={() => {
+                                        navigate('/admin/user-profile');
+                                        setShowUserMenu(false);
+                                    }}
+                                    className="flex items-center gap-3 w-full p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                >
                                     <div className="p-2 rounded-lg bg-gray-100 dark:bg-white/10 group-hover:text-gold-default transition-colors">
                                         <User size={16} />
                                     </div>
                                     <span className="text-sm font-medium">Mi Perfil</span>
                                 </button>
                                 
-                                <button className="flex items-center gap-3 w-full p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group">
+                                <button 
+                                    onClick={() => {
+                                        alert('Configuración próximamente');
+                                        setShowUserMenu(false);
+                                    }}
+                                    className="flex items-center gap-3 w-full p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                >
                                     <div className="p-2 rounded-lg bg-gray-100 dark:bg-white/10 group-hover:text-gold-default transition-colors">
                                         <Settings size={16} />
                                     </div>
                                     <span className="text-sm font-medium">Configuración</span>
                                 </button>
 
-                                <button className="flex items-center gap-3 w-full p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group">
+                                <button 
+                                    onClick={() => {
+                                        alert('Seguridad próximamente');
+                                        setShowUserMenu(false);
+                                    }}
+                                    className="flex items-center gap-3 w-full p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                >
                                     <div className="p-2 rounded-lg bg-gray-100 dark:bg-white/10 group-hover:text-gold-default transition-colors">
                                         <Shield size={16} />
                                     </div>
