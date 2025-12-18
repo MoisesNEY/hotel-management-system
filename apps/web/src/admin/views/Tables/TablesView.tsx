@@ -25,6 +25,10 @@ const TablesView: React.FC = () => {
     const [pageSize, setPageSize] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
 
+    const [exportScope, setExportScope] = useState<string | number>('page');
+    const [customLimit, setCustomLimit] = useState<number>(50);
+    const [exportLoading, setExportLoading] = useState(false);
+
     // Metadata Configuration for each Table Category
     const CATEGORY_CONFIG = useMemo(() => ({
         clientes: {
@@ -162,16 +166,40 @@ const TablesView: React.FC = () => {
         setData([]); // Clear data while loading new category
     };
 
-    const handleExport = (type: 'pdf' | 'excel') => {
-        const config = CATEGORY_CONFIG[activeCategory];
-        const dateStr = new Date().toISOString().split('T')[0];
-        const filename = `reporte-${activeCategory}-${dateStr}`;
-        const exportData = config.mapForExport(data);
+    const handleExport = async (type: 'pdf' | 'excel') => {
+        try {
+            setExportLoading(true);
+            const config = CATEGORY_CONFIG[activeCategory];
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `reporte-${activeCategory}-${exportScope}-${dateStr}`;
 
-        if (type === 'pdf') {
-            exportToPDF(filename, config.exportTitle, config.exportColumns as ExportColumn[], exportData);
-        } else {
-            exportToExcel(filename, activeCategory, exportData);
+            let exportRows = data;
+
+            // Fetch data if scope is 'all', a specific number, or 'custom'
+            if (exportScope === 'all') {
+                if (totalItems > data.length) {
+                    const result = await config.fetcher(0, totalItems);
+                    exportRows = result.data;
+                }
+            } else if (typeof exportScope === 'number') {
+                const result = await config.fetcher(0, exportScope);
+                exportRows = result.data;
+            } else if (exportScope === 'custom') {
+                const result = await config.fetcher(0, customLimit);
+                exportRows = result.data;
+            }
+
+            const exportData = config.mapForExport(exportRows);
+
+            if (type === 'pdf') {
+                exportToPDF(filename, config.exportTitle, config.exportColumns as ExportColumn[], exportData);
+            } else {
+                exportToExcel(filename, activeCategory, exportData);
+            }
+        } catch (error) {
+            console.error("Export error:", error);
+        } finally {
+            setExportLoading(false);
         }
     };
 
@@ -185,13 +213,66 @@ const TablesView: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400 text-sm">Visualiza y exporta datos estratégicos del hotel</p>
                 </div>
 
-                <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleExport('pdf')} leftIcon={<FileDown size={14} />} className="text-[10px] uppercase font-bold tracking-widest py-1 h-9">
-                        Exportar PDF
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleExport('excel')} leftIcon={<FileSpreadsheet size={14} />} className="text-[10px] uppercase font-bold tracking-widest py-1 h-9 border-green-200 text-green-700 hover:bg-green-50">
-                        Exportar Excel
-                    </Button>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold tracking-tight text-gray-400 dark:text-gray-500">Rango:</span>
+                        <div className="flex items-center gap-1.5">
+                            <select
+                                value={exportScope}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setExportScope(val === 'page' || val === 'all' || val === 'custom' ? val : Number(val));
+                                }}
+                                className="bg-gray-100 dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gold-light text-[10px] uppercase font-bold tracking-tight rounded-lg focus:ring-1 focus:ring-gold-default focus:border-gold-default block p-1.5 h-9 transition-all cursor-pointer outline-none appearance-none pr-8 relative"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d4af37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.5rem center',
+                                    backgroundSize: '0.8rem'
+                                }}
+                            >
+                                <option value="page" style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Página Actual</option>
+                                <option value={50} style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Primeros 50</option>
+                                <option value={100} style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Primeros 100</option>
+                                <option value={500} style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Primeros 500</option>
+                                <option value="all" style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Todo</option>
+                                <option value="custom" style={{ backgroundColor: '#1c1c1c', color: 'white' }}>Personalizado...</option>
+                            </select>
+
+                            {exportScope === 'custom' && (
+                                <input
+                                    type="number"
+                                    value={customLimit}
+                                    onChange={(e) => setCustomLimit(Math.max(1, Number(e.target.value)))}
+                                    className="w-20 h-9 bg-gray-100 dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gold-light text-xs font-bold px-2 rounded-lg focus:ring-1 focus:ring-gold-default outline-none transition-all"
+                                    placeholder="Cant."
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleExport('pdf')}
+                            isLoading={exportLoading}
+                            leftIcon={<FileDown size={14} />}
+                            className="text-[10px] uppercase font-bold tracking-widest py-1 h-9"
+                        >
+                            Exportar PDF
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleExport('excel')}
+                            isLoading={exportLoading}
+                            leftIcon={<FileSpreadsheet size={14} />}
+                            className="text-[10px] uppercase font-bold tracking-widest py-1 h-9 border-green-200 text-green-700 hover:bg-green-50"
+                        >
+                            Exportar Excel
+                        </Button>
+                    </div>
                 </div>
             </div>
 
