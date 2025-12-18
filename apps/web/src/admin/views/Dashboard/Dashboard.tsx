@@ -525,49 +525,6 @@ const Dashboard = () => {
                     </Card>
                 </div>
             </div>
-
-            {/* Bottom Row */}
-            <div className="flex flex-wrap -mx-4">
-                <div className="w-full md:w-1/3 px-4 mb-4">
-                    <Card title="Estadísticas Email" subtitle="Rendimiento de Campaña">
-                        <div className="h-[245px] flex items-center justify-center text-gray-300 dark:text-gray-600">
-                            {/* Placeholder Pie Chart */}
-                            [ Pie Chart Placeholder ]
-                        </div>
-                        <div className="py-2 text-xs text-gray-500 dark:text-gray-400">
-                            <div className="flex gap-4 justify-center">
-                                <span className="flex items-center">
-                                    <Circle size={10} className="text-blue-400 fill-current mr-1" /> Abierto
-                                </span>
-                                <span className="flex items-center">
-                                    <Circle size={10} className="text-yellow-400 fill-current mr-1" /> Leído
-                                </span>
-                                <span className="flex items-center">
-                                    <Circle size={10} className="text-red-400 fill-current mr-1" /> Eliminado
-                                </span>
-                            </div>
-                        </div>
-                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-2">
-                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
-                                <Calendar size={12} className="mr-1.5" /> Número de emails enviados
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-                <div className="w-full md:w-2/3 px-4 mb-4">
-                    <Card title="NASDAQ: APHA" subtitle="Histórico 2018">
-                        <div className="h-[277px] flex items-center justify-center text-gray-300 dark:text-gray-600">
-                            {/* Placeholder Line Chart with different config */}
-                            [ Detailed Line Chart Placeholder ]
-                        </div>
-                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-2">
-                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
-                                <Activity size={12} className="mr-1.5" /> Datos certificados de red
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-            </div>
         </div>
     );
 };
