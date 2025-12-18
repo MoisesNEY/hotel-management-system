@@ -1,4 +1,3 @@
-// apps/web/src/components/RoomTypes.tsx
 import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import '../styles/room-pricing-minimal.css';

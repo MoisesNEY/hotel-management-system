@@ -77,7 +77,7 @@ const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   const selectedService = services.find(s => s.id === Number(selectedServiceId));
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+   <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       {/* Click outside to close can be added here if needed */}
       <div
         className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-slideUp border border-gray-100 dark:border-gray-700 flex flex-col max-h-[90vh]"
@@ -210,7 +210,7 @@ const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3.5 bg-gradient-to-r from-[#d4af37] to-[#b5952f] text-white rounded-xl hover:shadow-lg hover:to-[#9e8229] font-bold shadow-md transform hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex justify-center items-center gap-2 focus:ring-4 focus:ring-[#d4af37]/30 outline-none"
+                  className="flex-1 px-4 py-3.5 bg-linear-to-r from-[#d4af37] to-[#b5952f] text-white rounded-xl hover:shadow-lg hover:to-[#9e8229] font-bold shadow-md transform hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex justify-center items-center gap-2 focus:ring-4 focus:ring-[#d4af37]/30 outline-none"
                   disabled={submitting || !selectedServiceId}
                 >
                   {submitting ? (
