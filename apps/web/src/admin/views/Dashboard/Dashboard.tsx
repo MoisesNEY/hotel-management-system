@@ -29,6 +29,7 @@ import * as dashboardService from '../../../services/admin/dashboardService';
 import type { DashboardStats, ChartData } from '../../../services/admin/dashboardService';
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 // Register ChartJS components
 ChartJS.register(
@@ -43,6 +44,8 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<ChartData | null>(null);
@@ -63,44 +66,69 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    if (loading) {
-        return <div className="flex justify-center items-center h-full min-h-[400px]"><Loader /></div>;
-    }
-
-    const chartOptions = {
+    const chartOptions: any = {
         maintainAspectRatio: false,
         responsive: true,
         plugins: {
-            legend: { display: false }, // Custom legend layout in Paper Dashboard
-            tooltip: { mode: 'index' as const, intersect: false },
+            legend: { display: false },
+            tooltip: { 
+                mode: 'index' as const, 
+                intersect: false,
+                backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+                titleColor: isDark ? '#ffffff' : '#111827',
+                bodyColor: isDark ? '#94a3b8' : '#4b5563',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12 }
+            },
         },
         scales: {
             y: {
-                ticks: { color: "#9f9f9f", font: { size: 10 } },
-                grid: { color: "#f3f3f3", drawBorder: false }
+                ticks: { color: isDark ? "#64748b" : "#94a3b8", font: { size: 11, weight: '500' } },
+                grid: { color: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", drawBorder: false }
             },
             x: {
                 grid: { display: false, drawBorder: false },
-                ticks: { color: "#9f9f9f", font: { size: 10 } }
+                ticks: { color: isDark ? "#64748b" : "#94a3b8", font: { size: 11, weight: '500' } }
             }
         },
-        layout: { padding: 0 }
+        layout: { padding: { top: 10, bottom: 0, left: 10, right: 10 } }
     };
 
     const revenueChartData = chartData ? {
         ...chartData,
         datasets: chartData.datasets.map(ds => ({
             ...ds,
-            tension: 0.4,
+            tension: 0.45,
             fill: true,
-            borderColor: '#51cbce',
-            backgroundColor: 'transparent',
-            pointBorderColor: '#51cbce',
+            borderColor: '#d4af37',
+            backgroundColor: (context: any) => {
+                const ctx = context.chart.ctx;
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(212, 175, 55, 0.15)');
+                gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+                return gradient;
+            },
+            pointBorderColor: '#d4af37',
+            pointBackgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+            pointBorderWidth: 2,
             pointRadius: 4,
-            pointHoverRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBorderWidth: 3,
             borderWidth: 3,
         }))
     } : { labels: [], datasets: [] };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-full min-h-[400px]">
+                <Loader />
+            </div>
+        );
+    }
 
     return (
         <div className="content">

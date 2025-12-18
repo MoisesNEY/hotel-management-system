@@ -6,7 +6,6 @@ import {
     SparklesIcon,
     UsersIcon,
     MapPinIcon,
-    BellIcon,
     KeyIcon,
     UserIcon,
     ComputerDesktopIcon
@@ -20,7 +19,6 @@ import BookingsView from './views/Bookings/BookingsView'; // Imported
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView'; // Imported
 import MapsView from './views/Maps/MapsView';
-import NotificationsView from './views/Notifications/NotificationsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
@@ -83,13 +81,6 @@ const routes: RouteConfig[] = [
         name: 'Mapas',
         icon: MapPinIcon,
         component: MapsView,
-        layout: '/admin'
-    },
-    {
-        path: '/notifications',
-        name: 'Notificaciones',
-        icon: BellIcon,
-        component: NotificationsView,
         layout: '/admin'
     },
     {

@@ -67,7 +67,7 @@ const AdminLayout: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#111111] transition-colors duration-300">
             {/* Supabase-style Sidebar */}
             <Sidebar
                 bgColor={bgColor}
@@ -84,7 +84,7 @@ const AdminLayout: React.FC = () => {
             >
                 <Navbar onToggleSidebar={handleToggleSidebar} />
 
-                <div className="content px-6 md:px-8 pb-8 pt-20">
+                <div className="content px-6 md:px-8 pb-8 pt-24 min-h-[calc(100vh-60px)]">
                     <Routes>
                         {routes.map((route, index) => (
                             <Route
@@ -101,7 +101,7 @@ const AdminLayout: React.FC = () => {
                 <Footer />
             </div>
 
-            {/* Theme Switcher */}
+            {/* Theme Switcher - Minimalist trigger in Admin */}
             <ThemeSwitcher
                 onBgColorChange={handleBgColorChange}
                 onActiveColorChange={handleActiveColorChange}
