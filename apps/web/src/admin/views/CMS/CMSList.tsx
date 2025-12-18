@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Layers } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { CollectionType, type AssetCollection } from '../../../types/adminTypes';
 import { AssetCollectionService } from '../../../services/admin/assetCollectionService';
-
+import Table from '../../components/shared/Table';
+import Button from '../../components/shared/Button';
+import Card from '../../components/shared/Card';
 
 const CMSList: React.FC = () => {
     const [collections, setCollections] = useState<AssetCollection[]>([]);
@@ -27,61 +29,77 @@ const CMSList: React.FC = () => {
 
     const getBadgeColor = (type?: AssetCollection['type']) => {
         switch (type) {
-            case CollectionType.SINGLE_IMAGE: return 'info';
-            case CollectionType.GALLERY: return 'success';
-            case CollectionType.MAP_EMBED: return 'warning';
-            default: return 'secondary';
+            case CollectionType.SINGLE_IMAGE: return 'bg-cyan-500'; // Info
+            case CollectionType.GALLERY: return 'bg-emerald-500'; // Success
+            case CollectionType.MAP_EMBED: return 'bg-amber-500'; // Warning
+            default: return 'bg-rose-500'; // Danger/Secondary default
         }
     };
+    
+    // Define columns for the Table component
+    const columns = [
+        { 
+            header: "Código", 
+            accessor: 'code' as keyof AssetCollection,
+            cell: (item: AssetCollection) => <code className="text-[#e83e8c] dark:text-rose-400 text-[10px] font-mono bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded border border-rose-100 dark:border-rose-500/20">{item.code}</code>
+        },
+        { 
+            header: "Nombre Sección", 
+            accessor: 'name' as keyof AssetCollection,
+            cell: (item: AssetCollection) => (
+                <div>
+                    <span className="font-bold text-gray-900 dark:text-white tracking-tight">{item.name}</span>
+                    <br/>
+                    <small className="text-gray-500 dark:text-gray-400 font-medium">{item.description}</small>
+                </div>
+            )
+        },
+        { 
+            header: "Tipo", 
+            accessor: 'type' as keyof AssetCollection,
+            cell: (item: AssetCollection) => (
+                <span className={`inline-flex px-2 py-0.5 text-[11px] font-bold text-white rounded-full ${getBadgeColor(item.type)}`}>
+                    {item.type}
+                </span>
+            )
+        },
+        {
+            header: "Acciones",
+            accessor: 'id' as keyof AssetCollection,
+            cell: (item: AssetCollection) => (
+                <div className="flex justify-end">
+                     <Button 
+                        size="sm" 
+                        variant="primary" 
+                        icon={<Edit size={14} />} 
+                        onClick={() => navigate(`/admin/cms/edit/${item.id}`)}
+                    >
+                        Gestionar
+                    </Button>
+                </div>
+            ),
+            headerClassName: "text-right",
+            className: "text-right"
+        }
+    ];
 
     return (
         <div className="content">
-            <div className="row">
-                <div className="col-md-12">
-                    <div className="card">
-                        <div className="card-header">
-                            <h4 className="card-title">Gestor de Contenido Web</h4>
-                            <p className="category">Administra las secciones de tu Landing Page</p>
-                        </div>
-                        <div className="card-body">
-                            <div className="table-responsive">
-                                <table className="table">
-                                    <thead className="text-primary">
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Nombre Sección</th>
-                                            <th>Tipo</th>
-                                            <th className="text-right">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {loading ? (
-                                            <tr><td colSpan={4} className="text-center">Cargando...</td></tr>
-                                        ) : collections.map((col) => (
-                                            <tr key={col.id}>
-                                                <td><code>{col.code}</code></td>
-                                                <td>{col.name} <br/><small className="text-muted">{col.description}</small></td>
-                                                <td>
-                                                    <span className={`badge badge-${getBadgeColor(col.type)}`}>
-                                                        {col.type}
-                                                    </span>
-                                                </td>
-                                                <td className="text-right">
-                                                    <button 
-                                                        className="btn btn-primary btn-sm"
-                                                        onClick={() => navigate(`/admin/cms/edit/${col.id}`)}
-                                                    >
-                                                        <Edit size={16} className="mr-1" />
-                                                        Gestionar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+            <div className="flex flex-wrap -mx-4">
+                <div className="w-full px-4">
+                    <Card 
+                        title="Gestor de Contenido Web" 
+                        subtitle="Administra las secciones de tu Landing Page"
+                        className="mb-8"
+                    >
+                        <Table 
+                            data={collections}
+                            columns={columns}
+                            keyExtractor={(item) => item.id || item.code || Math.random()}
+                            isLoading={loading}
+                            emptyMessage="No se encontraron colecciones de contenido."
+                        />
+                    </Card>
                 </div>
             </div>
         </div>

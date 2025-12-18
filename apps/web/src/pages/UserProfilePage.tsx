@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  User, Mail, Phone, Calendar, Edit,
-  Save, X, Lock, Shield,
-  ArrowLeft, Key, Info,
-  IdCard, Globe, Home, AlertCircle, CreditCard, Package,
-  Clock, CheckCircle, XCircle, Bed, Coffee
+  User, Calendar, Shield,
+  ArrowLeft, Key, Globe, CreditCard, Package,
+  Bed, Coffee, ConciergeBell,
+  X, Edit, Save, ChevronDown
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
-import '../styles/user-profile.css';
 import { getMyBookings } from '../services/client/bookingService';
 import ServiceRequestModal from '../components/ServiceRequestModal';
-import { ConciergeBell } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
-// Interfaces para los datos
 interface UserData {
   firstName: string;
   lastName: string;
@@ -35,8 +31,6 @@ interface UserData {
   };
 }
 
-
-
 interface ServiceRequest {
   id: string;
   serviceType: string;
@@ -54,10 +48,9 @@ const UserProfilePage: React.FC = () => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
 
-  // Estados para los modales
   const [showBookingsModal, setShowBookingsModal] = useState(false);
   const [showServicesModal, setShowServicesModal] = useState(false);
-  // Estados para los datos
+  
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
     lastName: '',
@@ -81,7 +74,6 @@ const UserProfilePage: React.FC = () => {
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [selectedBookingForService, setSelectedBookingForService] = useState<{ id: number, roomTypeName: string } | null>(null);
 
-  // Estados para servicios
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
 
@@ -89,24 +81,17 @@ const UserProfilePage: React.FC = () => {
   const handleCloseServicesModal = () => setShowServicesModal(false);
 
   useEffect(() => {
-    // Verificar autenticación
     if (!keycloak.authenticated) {
       navigate('/');
       return;
     }
-
-    // Cargar datos del usuario
     loadUserData();
-
-    // Cargar reservas
     loadBookings();
   }, [navigate]);
 
   const loadUserData = async () => {
     try {
       if (!keycloak.tokenParsed) return;
-
-      // 1. Datos base del token
       const token = keycloak.tokenParsed;
       const baseData = {
         firstName: token.given_name || '',
@@ -116,13 +101,9 @@ const UserProfilePage: React.FC = () => {
 
       setUserData(prev => ({ ...prev, ...baseData }));
 
-      // 2. Intentar cargar perfil completo del backend
       const { getMyProfile } = await import('../services/client/customerDetailsService');
       const profileResponse = await getMyProfile();
 
-      console.log('[UserProfile] Profile loaded:', profileResponse);
-
-      // Actualizar estado con datos del backend
       setUserData(prev => ({
         ...prev,
         ...baseData,
@@ -137,12 +118,11 @@ const UserProfilePage: React.FC = () => {
           : '',
       }));
 
-      // Confirmar que tenemos info
       setHasCompletedExtraInfo(true);
       localStorage.setItem('hasCompletedExtraInfo', 'true');
 
     } catch (error) {
-      console.warn('[UserProfile] Failed to load profile from backend (might be incomplete)', error);
+      console.warn('[UserProfile] Failed to load profile from backend', error);
       setHasCompletedExtraInfo(false);
     }
   };
@@ -164,8 +144,6 @@ const UserProfilePage: React.FC = () => {
       setIsLoadingServices(true);
       const { getMyServiceRequests } = await import('../services/client/serviceRequestService');
       const response = await getMyServiceRequests();
-      // Map DTO to local interface if needed, or just use response.data
-      // Assuming response.data matches ServiceRequest interface or is close enough
       const requests = response.data.map((req: any) => ({
         id: req.id,
         serviceType: req.service?.name || 'Servicio',
@@ -186,17 +164,16 @@ const UserProfilePage: React.FC = () => {
     loadServiceRequests();
   }, [showServicesModal]);
 
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
-  };
+  const handleEditToggle = () => setIsEditing(!isEditing);
 
   const handleSave = async () => {
     try {
       const { updateProfile } = await import('../services/client/customerDetailsService');
-
+      
       let apiGender: Gender = 'OTHER';
-      if (userData.gender === 'Male' || userData.gender === 'Masculino') apiGender = 'MALE';
-      else if (userData.gender === 'Female' || userData.gender === 'Femenino') apiGender = 'FEMALE';
+      const g = userData.gender.toUpperCase();
+      if (g === 'MALE' || g === 'MASCULINO') apiGender = 'MALE';
+      else if (g === 'FEMALE' || g === 'FEMENINO') apiGender = 'FEMALE';
 
       const updateRequest: CustomerDetailsUpdateRequest = {
         gender: apiGender,
@@ -206,32 +183,17 @@ const UserProfilePage: React.FC = () => {
         country: userData.country
       };
 
-      console.log('[UserProfile] Updating profile:', updateRequest);
       await updateProfile(updateRequest);
-
-      localStorage.setItem('userData', JSON.stringify({
-        gender: userData.gender,
-        phone: userData.phone,
-        address: userData.address,
-        city: userData.city,
-        country: userData.country,
-        licenseId: userData.licenseId,
-        birthDate: userData.birthDate
-      }));
-
-      localStorage.setItem('userPreferences', JSON.stringify(userData.preferences));
-
       setIsEditing(false);
       alert('¡Perfil actualizado exitosamente!');
     } catch (error) {
       console.error('[UserProfile] Failed to update profile', error);
-      alert('Error al actualizar el perfil. Por favor verifica los datos.');
+      alert('Error al actualizar el perfil.');
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setUserData(prev => ({
@@ -242,10 +204,7 @@ const UserProfilePage: React.FC = () => {
         }
       }));
     } else {
-      setUserData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setUserData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -255,24 +214,19 @@ const UserProfilePage: React.FC = () => {
   };
 
   const handleChangePassword = () => {
-    if (keycloak.accountManagement) {
-      keycloak.accountManagement();
-    }
+    if (keycloak.accountManagement) keycloak.accountManagement();
   };
 
-  const handleCompleteInfo = () => {
-    navigate('/customer');
-  };
+  const handleCompleteInfo = () => navigate('/customer');
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'No especificada';
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      year: 'numeric', month: 'long', day: 'numeric'
     });
   };
+
   const getGenderText = (gender: string) => {
     switch (gender) {
       case 'Male': return 'Masculino';
@@ -281,19 +235,13 @@ const UserProfilePage: React.FC = () => {
       default: return 'No especificado';
     }
   };
-  const isNewUser = () => {
-    return !hasCompletedExtraInfo;
-  };
 
   const formatDateTime = (dateTimeString: string) => {
     if (!dateTimeString) return 'No especificada';
     const date = new Date(dateTimeString);
     return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
   };
 
@@ -304,6 +252,8 @@ const UserProfilePage: React.FC = () => {
       case 'CANCELLED': return 'Cancelada';
       case 'COMPLETED': return 'Completada';
       case 'IN_PROGRESS': return 'En Progreso';
+      case 'CHECKED_IN': return 'En el Hotel';
+      case 'CHECKED_OUT': return 'Completada';
       default: return status;
     }
   };
@@ -315,17 +265,9 @@ const UserProfilePage: React.FC = () => {
       case 'PENDING': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border dark:border-yellow-800';
       case 'CANCELLED': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border dark:border-red-800';
       case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:border dark:border-purple-800';
+      case 'CHECKED_IN': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border dark:border-emerald-800';
+      case 'CHECKED_OUT': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 dark:border dark:border-gray-700';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 dark:border dark:border-gray-700';
-    }
-  };
-
-  const renderBookingStatus = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border dark:border-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Confirmada</span>;
-      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border dark:border-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
-      case 'CANCELLED': return <span className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border dark:border-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
-      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border dark:border-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Completada</span>;
-      default: return <span className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 dark:border dark:border-gray-700 px-2 py-1 rounded text-xs font-bold">{status}</span>;
     }
   };
 
@@ -333,67 +275,61 @@ const UserProfilePage: React.FC = () => {
   const pastBookings = bookings.filter(b => ['CHECKED_OUT', 'CANCELLED', 'COMPLETED'].includes(b.status));
 
   return (
-    <div className="user-profile-container">
-      {/* Modales */}
+    <div className="min-h-screen bg-gray-50 dark:bg-navy-dark transition-all duration-300 pb-20">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold-default/5 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-navy-light/10 dark:bg-gold-default/5 rounded-full blur-[120px]"></div>
+      </div>
+
       {showBookingsModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
+        <div className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5">
+          <div className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-4xl max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="flex justify-between items-center pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+              <h2 className="flex items-center gap-3 m-0 text-gray-900 dark:text-white text-2xl font-semibold">
                 <Bed size={24} />
                 Mis Reservas
               </h2>
-              <button className="modal-close" onClick={handleCloseBookingsModal}>
+              <button className="bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400" onClick={handleCloseBookingsModal}>
                 <X size={24} />
               </button>
             </div>
-            <div className="modal-content">
+            <div className="px-8 pb-8">
               {loadingBookings ? (
-                <div className="loading-state">
-                  <div className="loading-spinner"></div>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-default mb-4"></div>
                   <p>Cargando reservas...</p>
                 </div>
               ) : bookings.length === 0 ? (
-                <div className="empty-state">
-                  <Bed size={48} className="empty-icon" />
+                <div className="text-center py-20">
+                  <Bed size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
                   <h3>No has realizado ninguna reserva</h3>
                   <p>Cuando hagas una reserva en nuestro hotel, aparecerá aquí.</p>
-                  <button className="btn btn-primary" onClick={() => navigate('/')}>
+                  <button className="px-6 py-3 rounded-xl border-none font-semibold text-sm cursor-pointer transition-all duration-300 bg-gold-default text-navy-default hover:shadow-lg" onClick={() => navigate('/')}>
                     Explorar Habitaciones
                   </button>
                 </div>
               ) : (
-                <div className="bookings-list">
+                <div className="flex flex-col gap-4">
                   {bookings.map(booking => (
-                    <div key={booking.id} className="booking-card">
-                      <div className="booking-header">
+                    <div key={booking.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg">
+                      <div className="flex justify-between items-center mb-4">
                         <h3>{booking.roomTypeName}</h3>
-                        <span className={`status-badge ${getStatusColor(booking.status)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(booking.status)}`}>
                           {getStatusText(booking.status)}
                         </span>
                       </div>
-                      <div className="booking-details">
-                        <div className="detail">
-                          <span className="detail-label">Check-in:</span>
-                          <span className="detail-value">{formatDate(booking.checkInDate)}</span>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Check-in:</span>
+                          <span className="text-sm text-gray-900 dark:text-white">{formatDate(booking.checkInDate)}</span>
                         </div>
-                        <div className="detail">
-                          <span className="detail-label">Check-out:</span>
-                          <span className="detail-value">{formatDate(booking.checkOutDate)}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Check-out:</span>
+                          <span className="text-sm text-gray-900 dark:text-white">{formatDate(booking.checkOutDate)}</span>
                         </div>
-                        <div className="detail">
-                          <span className="detail-label">Huéspedes:</span>
-                          <span className="detail-value">{booking.guestCount}</span>
-                        </div>
-                        {booking.assignedRoomNumber && (
-                          <div className="detail">
-                            <span className="detail-label">Habitación:</span>
-                            <span className="detail-value">{booking.assignedRoomNumber}</span>
-                          </div>
-                        )}
-                        <div className="detail">
-                          <span className="detail-label">Total:</span>
-                          <span className="detail-value font-bold">${booking.totalPrice}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total:</span>
+                          <span className="text-sm text-gray-900 dark:text-white font-bold">${booking.totalPrice}</span>
                         </div>
                       </div>
                     </div>
@@ -401,8 +337,8 @@ const UserProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={handleCloseBookingsModal}>
+            <div className="flex justify-end gap-4 mt-6 pt-5 border-t border-gray-200 dark:border-gray-700 px-8 pb-8">
+              <button className="px-6 py-3 rounded-xl border-none font-semibold text-sm cursor-pointer transition-all duration-300 bg-gray-500 text-white hover:bg-gray-600" onClick={handleCloseBookingsModal}>
                 Cerrar
               </button>
             </div>
@@ -411,546 +347,342 @@ const UserProfilePage: React.FC = () => {
       )}
 
       {showServicesModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
+        <div className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5">
+          <div className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-4xl max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="flex justify-between items-center pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+              <h2 className="flex items-center gap-3 m-0 text-gray-900 dark:text-white text-2xl font-semibold">
                 <Coffee size={24} />
-                Mis Servicios Solicitados
+                Mis Servicios
               </h2>
-              <button className="modal-close" onClick={handleCloseServicesModal}>
+              <button className="bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400" onClick={handleCloseServicesModal}>
                 <X size={24} />
               </button>
             </div>
-            <div className="modal-content">
+            <div className="px-8 pb-8">
               {isLoadingServices ? (
-                <div className="loading-state">
-                  <div className="loading-spinner"></div>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-default mb-4"></div>
                   <p>Cargando servicios...</p>
                 </div>
               ) : serviceRequests.length === 0 ? (
-                <div className="empty-state">
-                  <Coffee size={48} className="empty-icon" />
-                  <h3>No has solicitado ningún servicio</h3>
-                  <p>Cuando solicites un servicio durante tu estancia, aparecerá aquí.</p>
-                </div>
+                <p>No tienes servicios solicitados.</p>
               ) : (
-                <div className="services-list">
+                <div className="flex flex-col gap-4">
                   {serviceRequests.map(service => (
-                    <div key={service.id} className="service-card">
-                      <div className="service-header">
+                    <div key={service.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                      <div className="flex justify-between items-center mb-4">
                         <h3>{service.serviceType}</h3>
-                        <span className={`status-badge ${getStatusColor(service.status)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(service.status)}`}>
                           {getStatusText(service.status)}
                         </span>
                       </div>
-                      <div className="service-details">
-                        <div className="detail">
-                          <span className="detail-label">Solicitado:</span>
-                          <span className="detail-value">{formatDateTime(service.requestedDate)}</span>
-                        </div>
-                        {service.notes && (
-                          <div className="detail">
-                            <span className="detail-label">Notas:</span>
-                            <span className="detail-value">{service.notes}</span>
-                          </div>
-                        )}
-                        {service.price && (
-                          <div className="detail">
-                            <span className="detail-label">Precio:</span>
-                            <span className="detail-value">${service.price}</span>
-                          </div>
-                        )}
-                      </div>
+                      <p className="text-sm opacity-60">{formatDateTime(service.requestedDate)}</p>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={handleCloseServicesModal}>
-                Cerrar
-              </button>
-            </div>
           </div>
         </div>
       )}
 
-      {/* Contenido principal */}
-      <div className="profile-header">
-        <button className="back-button" onClick={() => navigate('/')}>
-          <ArrowLeft size={24} />
-          Volver al inicio
-        </button>
+      {/* Main Content Area */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+        <div className="bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-3xl p-8 mb-8 shadow-xl transition-all duration-300">
+          <button 
+            className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-300 hover:text-gold-default mb-8" 
+            onClick={() => navigate('/')}
+          >
+            <div className="p-2 rounded-full bg-gray-100 dark:bg-white/5 group-hover:bg-gold-default/10 transition-colors">
+              <ArrowLeft size={18} />
+            </div>
+            Volver al inicio
+          </button>
 
-        <div className="header-content">
-          <div className="profile-avatar">
-            <div className="profile-card">
-              <div className="profile-card-container">
-                <div className="profile-card-avatar">
-                  <span className="profile-card-initials">
-                    {userData.firstName.charAt(0)}
-                    {userData.lastName.charAt(0)}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-5">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-300">
+                  <span className="text-3xl font-bold">
+                    {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
                   </span>
-
-                  {!hasCompletedExtraInfo && <span className="profile-card-pulse"></span>}
-
-                  {isNewUser() && (
-                    <div className="profile-card-badge">Nuevo</div>
-                  )}
                 </div>
+                {!hasCompletedExtraInfo && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 border-4 border-white dark:border-navy-default rounded-full animate-pulse shadow-lg"></div>
+                )}
+              </div>
 
-                <div className="profile-card-info">
-                  <h1>{userData.firstName} {userData.lastName}</h1>
-                  <p className="profile-card-member">
-                    Miembro desde Diciembre 2025
-                  </p>
-
-                  {!hasCompletedExtraInfo && (
-                    <div className="profile-card-alert">
-                      <AlertCircle size={16} />
-                      <span>
-                        <strong>¡Atención!</strong> Debes completar tu información de perfil.
-                      </span>
-                    </div>
-                  )}
+              <div className="flex flex-col">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">
+                  {userData.firstName} {userData.lastName}
+                </h1>
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1.5">
+                    <Calendar size={14} className="text-gold-default" />
+                    Miembro desde {formatDate(userData.birthDate).split(' ').slice(-1)}
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${hasCompletedExtraInfo ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100'}`}>
+                    {hasCompletedExtraInfo ? 'Verificado' : 'Pendiente'}
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
 
-
-          <div className="header-actions">
-            <ThemeToggle variant="button" className="theme-toggle-profile" />
-            {activeTab === 'profile' && (
-              !isEditing ? (
-                <>
-                  <button className="btn btn-edit" onClick={handleEditToggle}>
-                    <Edit size={18} />
-                    Editar Perfil
+            <div className="flex items-center gap-3">
+              <ThemeToggle variant="button" />
+              {activeTab === 'profile' && !isEditing && (
+                <button className="px-6 py-3 rounded-xl border-none font-semibold text-sm cursor-pointer flex items-center gap-2 transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-700 text-white hover:shadow-lg" onClick={handleEditToggle}>
+                  <Edit size={18} /> Editar Perfil
+                </button>
+              )}
+              {activeTab === 'profile' && isEditing && (
+                <div className="flex gap-3">
+                  <button className="px-6 py-3 rounded-xl border-none font-semibold text-sm cursor-pointer flex items-center gap-2 transition-all duration-300 bg-emerald-500 text-white hover:shadow-lg" onClick={handleSave}>
+                    <Save size={18} /> Guardar
                   </button>
-                  {!hasCompletedExtraInfo && (
-                    <button
-                      className="btn btn-warning"
-                      onClick={handleCompleteInfo}
-                    >
-                      <AlertCircle size={18} />
-                      Completar Información
-                    </button>
-                  )}
-                </>
-              ) : (
-                <div className="edit-actions">
-                  <button className="btn btn-save" onClick={handleSave}>
-                    <Save size={18} />
-                    Guardar
-                  </button>
-                  <button className="btn btn-cancel-red" onClick={handleCancel}>
-                    <X size={18} />
-                    Cancelar
+                  <button className="px-6 py-3 rounded-xl border-none font-semibold text-sm cursor-pointer flex items-center gap-2 transition-all duration-300 bg-red-500 text-white hover:shadow-lg" onClick={handleCancel}>
+                    <X size={18} /> Cancelar
                   </button>
                 </div>
+              )}
+            </div>
+          </div>
 
-              )
-            )}
+          <div className="flex gap-2 mt-10 p-1.5 bg-gray-100/50 dark:bg-white/5 backdrop-blur-md rounded-2xl w-fit">
+            <button
+              className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'profile' ? 'bg-white dark:bg-navy-default text-gold-default shadow-md' : 'text-gray-500 hover:text-white'}`}
+              onClick={() => setActiveTab('profile')}
+            >
+              <div className="flex items-center gap-2"><User size={16} />Mi Perfil</div>
+            </button>
+            <button
+              className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'bookings' ? 'bg-white dark:bg-navy-default text-gold-default shadow-md' : 'text-gray-500 hover:text-white'}`}
+              onClick={() => setActiveTab('bookings')}
+            >
+              <div className="flex items-center gap-2"><Bed size={16} />Mis Reservas</div>
+            </button>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="profile-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            Mi Perfil
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('bookings')}
-          >
-            Mis Reservas
-          </button>
-        </div>
-      </div>
-
-      <div className="profile-content">
         {activeTab === 'profile' && (
-          <div className="content-grid">
-            {/* Columna izquierda - Información personal */}
-            <div className="personal-info">
-              <div className="section-card">
-                <div className="section-header">
-                  <User size={20} />
-                  <h2>Información Personal</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white/80 dark:bg-navy-default/85 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl">
+                <div className="flex items-center justify-between mb-8 pb-4 border-b dark:border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gold-default/10 text-gold-default"><User size={20} /></div>
+                    <h2 className="text-xl font-bold dark:text-white">Información Personal</h2>
+                  </div>
                   {!hasCompletedExtraInfo && (
-                    <span className="section-warning">
-                      ⚠️ Obligatorio completar
-                    </span>
+                    <button onClick={handleCompleteInfo} className="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wider border border-amber-200">
+                      ⚠️ Requerido
+                    </button>
                   )}
                 </div>
 
-                <div className="info-grid">
-                  <div className="info-item">
-                    <label><User size={16} /> Nombre</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Nombre</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                      {userData.firstName || 'No especificado'}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Apellido</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                      {userData.lastName || 'No especificado'}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Email</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-between">
+                      <span className="text-gray-900 dark:text-white font-medium">{userData.email}</span>
+                      <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold flex items-center gap-1">
+                        <Shield size={10} /> Verificado
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Teléfono</label>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={userData.firstName}
-                        disabled
-                        className="edit-input"
-                      />
+                      <input name="phone" value={userData.phone} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white" />
                     ) : (
-                      <p>{userData.firstName || 'No especificado'}</p>
+                      <div className={`p-4 rounded-xl font-medium ${!userData.phone ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.phone || 'Pendiente por completar'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Género</label>
+                    {isEditing ? (
+                      <div className="relative group">
+                        <select 
+                          name="gender" 
+                          value={userData.gender} 
+                          onChange={handleInputChange} 
+                          className="w-full p-4 rounded-xl bg-white dark:bg-[#1a1a2e] border-2 border-gold-default/30 text-gray-900 dark:text-white appearance-none outline-none focus:border-gold-default transition-all cursor-pointer"
+                        >
+                          <option value="Male" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Masculino</option>
+                          <option value="Female" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Femenino</option>
+                          <option value="Other" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Otro</option>
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gold-default group-hover:scale-110 transition-transform">
+                          <ChevronDown size={18} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                        {getGenderText(userData.gender)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Fecha de Nacimiento</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium opacity-60">
+                      {formatDate(userData.birthDate)}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Dirección</label>
+                    {isEditing ? (
+                      <input name="address" value={userData.address} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white focus:border-gold-default outline-none transition-all" placeholder="Ej: Calle Principal #123" />
+                    ) : (
+                      <div className={`p-4 rounded-xl font-medium ${!userData.address ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.address || 'No especificada'}
+                      </div>
                     )}
                   </div>
 
-                  <div className="info-item">
-                    <label><User size={16} /> Apellido</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Ciudad</label>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={userData.lastName}
-                        disabled
-                        className="edit-input"
-                      />
+                      <input name="city" value={userData.city} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white focus:border-gold-default outline-none transition-all" />
                     ) : (
-                      <p>{userData.lastName || 'No especificado'}</p>
+                      <div className={`p-4 rounded-xl font-medium ${!userData.city ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.city || 'No especificada'}
+                      </div>
                     )}
                   </div>
 
-                  <div className="info-item">
-                    <label><Mail size={16} /> Email</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">País</label>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={userData.email}
-                        disabled
-                        className="edit-input"
-                      />
+                      <input name="country" value={userData.country} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white focus:border-gold-default outline-none transition-all" />
                     ) : (
-                      <>
-                        <p>{userData.email || 'No especificado'}</p>
-                        <small className="email-note"><Shield size={12} /> Verificado</small>
-                      </>
+                      <div className={`p-4 rounded-xl font-medium ${!userData.country ? 'bg-amber-50 text-amber-600 italic' : 'bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white'}`}>
+                        {userData.country || 'No especificada'}
+                      </div>
                     )}
                   </div>
 
-                  <div className="info-item">
-                    <label><Phone size={16} /> Teléfono <span className="required">*</span></label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={userData.phone}
-                        onChange={handleInputChange}
-                        className="edit-input"
-                        placeholder="+505 1234 5678"
-                        required
-                      />
-                    ) : (
-                      <p className={!userData.phone ? 'required-field' : ''}>
-                        {userData.phone || 'Requerido - No especificado'}
-                      </p>
-                    )}
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">DNI / Cédula / Pasaporte</label>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium opacity-60">
+                      {userData.licenseId || 'No especificado'}
+                    </div>
                   </div>
-
-                  <div className="info-item">
-                    <label><Calendar size={16} /> Fecha de Nacimiento</label>
-                    {isEditing ? (
-                      <input
-                        type="date"
-                        value={userData.birthDate}
-                        disabled
-                        className="edit-input"
-                      />
-                    ) : (
-                      <p>{formatDate(userData.birthDate)}</p>
-                    )}
-                  </div>
-
-                  {hasCompletedExtraInfo && (
-                    <>
-                      <div className="info-item">
-                        <label><User size={16} /> Género</label>
-                        {isEditing ? (
-                          <select
-                            name="gender"
-                            value={userData.gender}
-                            onChange={handleInputChange}
-                            className="edit-input"
-                          >
-                            <option value="">Seleccionar...</option>
-                            <option value="Male">Masculino</option>
-                            <option value="Female">Femenino</option>
-                            <option value="Other">Otro</option>
-                          </select>
-                        ) : (
-                          <p>{getGenderText(userData.gender)}</p>
-                        )}
-                      </div>
-
-                      <div className="info-item">
-                        <label><IdCard size={16} /> DNI/Pasaporte</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={userData.licenseId}
-                            disabled
-                            className="edit-input"
-                          />
-                        ) : (
-                          <p>{userData.licenseId || 'No especificado'}</p>
-                        )}
-                      </div>
-
-                      <div className="info-item full-width">
-                        <label><Home size={16} /> Dirección <span className="required">*</span></label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="address"
-                            value={userData.address}
-                            onChange={handleInputChange}
-                            className="edit-input"
-                            placeholder="Dirección completa"
-                            required
-                          />
-                        ) : (
-                          <p className={!userData.address ? 'required-field' : ''}>
-                            {userData.address || 'Requerido - No especificada'}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="info-item">
-                        <label><Globe size={16} /> Ciudad <span className="required">*</span></label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="city"
-                            value={userData.city}
-                            onChange={handleInputChange}
-                            className="edit-input"
-                            placeholder="Ciudad"
-                            required
-                          />
-                        ) : (
-                          <p className={!userData.city ? 'required-field' : ''}>
-                            {userData.city || 'Requerido - No especificada'}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="info-item">
-                        <label className="text-gray-700 font-medium mb-1 block"><Globe size={16} className="inline mr-2" /> País <span className="text-red-500">*</span></label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="country"
-                            value={userData.country}
-                            onChange={handleInputChange}
-                            className="edit-input"
-                            placeholder="País"
-                            required
-                          />
-                        ) : (
-                          <p className={!userData.country ? 'required-field' : ''}>
-                            {userData.country || 'Requerido - No especificado'}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Columna derecha */}
-            <div className="right-column">
-              <div className="section-card">
-                <div className="section-header">
-                  <Info size={20} />
-                  <h2>Informacion</h2>
+            <div className="space-y-8">
+              <div className="bg-white/80 dark:bg-navy-default/85 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl">
+                <div className="flex items-center gap-3 mb-8 pb-4 border-b dark:border-white/5">
+                  <div className="p-2 rounded-lg bg-gold-default/10 text-gold-default"><Globe size={20} /></div>
+                  <h2 className="text-xl font-bold dark:text-white">Preferencias</h2>
                 </div>
-
-                <div className="preferences-grid">
-                  <div className="preference-item">
-                    <div className="preference-info">
-                      <Package size={18} />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-400"><Package size={18} /></div>
                       <div>
-                        <h4>Idioma</h4>
-                        <p>Idioma preferido</p>
+                        <p className="text-sm font-bold dark:text-white">Idioma</p>
+                        <p className="text-[10px] text-gray-500 uppercase">Español</p>
                       </div>
                     </div>
-
-                    <span className="preference-value">
-                      Español
-                    </span>
-                  </div>
-                  <div className="preference-item">
-                    <div className="preference-info">
-                      <CreditCard size={18} />
-                      <div>
-                        <h4>Moneda</h4>
-                        <p>Moneda preferida</p>
-                      </div>
-                    </div>
-                    <span className="preference-value">
-                      USD ($)
-                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Información del sistema */}
-              <div className="section-card">
-                <div className="section-header">
-                  <Shield size={20} />
-                  <h2>Información del Sistema</h2>
+              <div className="bg-white/80 dark:bg-navy-default/85 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl">
+                <div className="flex items-center gap-3 mb-8 pb-4 border-b dark:border-white/5">
+                  <div className="p-2 rounded-lg bg-red-500/10 text-red-500"><Shield size={20} /></div>
+                  <h2 className="text-xl font-bold dark:text-white">Seguridad</h2>
                 </div>
-
-                <div className="system-info">
-                  <div className="system-item">
-                    <span className="system-label">Estado de la cuenta:</span>
-                    <span className={`system-value ${hasCompletedExtraInfo ? 'active' : 'incomplete'}`}>
-                      {hasCompletedExtraInfo ? 'Completa' : 'Incompleta'}
-                    </span>
-                  </div>
-
-                  <div className="system-item">
-                    <span className="system-label">Autenticación:</span>
-                    <span className="system-value active">Keycloak</span>
-                  </div>
-
-                  <div className="system-item">
-                    <span className="system-label">Última actualización:</span>
-                    <span className="system-value">
-                      {new Date().toLocaleDateString('es-ES')}
-                    </span>
-                  </div>
-
-                  {!hasCompletedExtraInfo && (
-                    <button
-                      className="btn-complete-info"
-                      onClick={handleCompleteInfo}
-                    >
-                      <AlertCircle size={16} />
-                      Completar información ahora
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="section-card">
-                <div className="section-header">
-                  <Shield size={20} />
-                  <h2>Seguridad</h2>
-                </div>
-
-                <div className="security-actions">
-                  <button className="security-btn" onClick={handleChangePassword}>
-                    <Key size={18} />
+                <button onClick={handleChangePassword} className="w-full flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-gold-default/5 transition-all text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white dark:bg-white/5 text-gray-400"><Key size={18} /></div>
                     <div>
-                      <h4>Cambiar Contraseña</h4>
-                      <p>Actualiza tu contraseña regularmente</p>
+                      <p className="text-sm font-bold dark:text-white">Contraseña</p>
+                      <p className="text-[10px] text-gray-500">Cambiar clave actual</p>
                     </div>
-                  </button>
-
-                  <button className="security-btn">
-                    <Lock size={18} />
-                    <div>
-                      <h4>Autenticación de Dos Factores</h4>
-                      <p>Activar para mayor seguridad</p>
-                    </div>
-                  </button>
-                </div>
+                  </div>
+                  <ArrowLeft size={16} className="rotate-180 text-gray-300" />
+                </button>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'bookings' && (
-          <div className="bookings-container">
+          <div className="space-y-12 animate-[fadeIn_0.5s_ease-out]">
             {loadingBookings ? (
-              <div className="flex justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+              <div className="flex flex-col items-center justify-center py-32 bg-white/50 dark:bg-navy-default/50 rounded-[2.5rem] border border-white/10">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-default mb-4"></div>
+                <p>Sincronizando tus estancias...</p>
               </div>
             ) : bookings.length === 0 ? (
-              <div className="empty-bookings">
-                <Calendar className="mx-auto h-20 w-20 text-gray-300 mb-6" />
-                <h3>No tienes reservas activas</h3>
-                <p>Parece que aún no has reservado tu estadía perfecta con nosotros.</p>
-                <button onClick={() => navigate('/')} className="btn btn-warning" style={{ margin: '0 auto', display: 'inline-flex' }}>
-                  Explorar Habitaciones
-                </button>
+              <div className="text-center py-32 bg-white/50 dark:bg-navy-default/50 rounded-[2.5rem] border border-white/10">
+                <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-2xl font-bold dark:text-white">No tienes reservas aún</h3>
+                <button onClick={() => navigate('/')} className="mt-6 px-10 py-4 bg-gold-default text-navy-default font-bold rounded-2xl shadow-lg hover:shadow-gold-default/20 transition-all">Explorar Habitaciones</button>
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-12">
                 {activeBookings.length > 0 && (
                   <section>
-                    <div className="bookings-section-title">
-                      <Clock className="text-[#d4af37]" /> Reservas Activas
+                    <div className="flex items-center gap-3 mb-8 ml-4">
+                      <div className="w-2 h-2 rounded-full bg-gold-default animate-pulse"></div>
+                      <h3 className="text-xl font-bold dark:text-white">Reservas Activas</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-gold-default/10 text-gold-default text-[10px] font-black">{activeBookings.length}</span>
                     </div>
-                    <div className="bookings-grid">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {activeBookings.map(booking => (
-                        <div key={booking.id} className="booking-card">
-                          <div className="booking-header">
-                            <div className="booking-title">
-                              <h4>{booking.roomTypeName}</h4>
-                              <span className="booking-id">Reserva #{booking.id}</span>
-                            </div>
-                            {renderBookingStatus(booking.status)}
+                        <div key={booking.id} className="relative bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/10 overflow-hidden">
+                          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-gold-default to-gold-dark"></div>
+                          <div className="flex justify-between items-start mb-6">
+                            <h4 className="font-bold dark:text-white">{booking.roomTypeName}</h4>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(booking.status)}`}>{getStatusText(booking.status)}</span>
                           </div>
-                          <div className="space-y-3 mb-6">
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <Calendar size={18} className="text-[#d4af37]" />
-                              <span>{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <CreditCard size={18} className="text-[#d4af37]" />
-                              <span className="font-bold">${booking.totalPrice}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <User size={18} className="text-[#d4af37]" />
-                              <span>{booking.guestCount} {booking.guestCount === 1 ? 'huésped' : 'huéspedes'}</span>
-                            </div>
+                          <div className="space-y-4 mb-8 text-xs dark:text-gray-300">
+                            <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)}</div>
+                            <div className="flex items-center gap-2 text-lg font-bold text-gold-default"><CreditCard size={16} />${booking.totalPrice}</div>
                           </div>
-
-                          <div className="space-y-2">
-                            <button
-                              onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })}
-                              className="w-full py-2 bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 rounded-lg hover:bg-[#d4af37]/20 transition-colors text-sm font-bold flex items-center justify-center gap-2"
-                            >
-                              <ConciergeBell size={16} />
-                              Solicitar Servicio
-                            </button>
-                            <button className="w-full py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
-                              Ver Detalles
-                            </button>
-                          </div>
+                          <button onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })} className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                            <ConciergeBell size={14} /> Servicios
+                          </button>
                         </div>
                       ))}
                     </div>
                   </section>
                 )}
-
                 {pastBookings.length > 0 && (
                   <section>
-                    <div className="bookings-section-title">
-                      <CheckCircle className="text-gray-400" /> Historial
+                    <div className="flex items-center gap-3 mb-8 ml-4 opacity-50">
+                      <h3 className="text-xl font-bold dark:text-white">Historial de Estadías</h3>
+                      <div className="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
                     </div>
-                    <div className="bookings-grid">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80">
                       {pastBookings.map(booking => (
-                        <div key={booking.id} className="booking-card past">
-                          <div className="booking-header">
-                            <div className="booking-title">
-                              <h4>{booking.roomTypeName}</h4>
-                              <span className="booking-id">#{booking.id}</span>
-                            </div>
-                            {renderBookingStatus(booking.status)}
+                        <div key={booking.id} className="bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/5 rounded-3xl p-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-sm font-bold dark:text-gray-200">{booking.roomTypeName}</h4>
+                            <span className="text-[10px] font-mono text-gray-400">#{booking.id}</span>
                           </div>
-                          <div className="booking-detail-row">
-                            <Calendar size={16} />
-                            <span className="text-sm">{formatDate(booking.checkInDate)}</span>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Calendar size={14} />
+                            <span>{formatDate(booking.checkInDate)}</span>
                           </div>
                         </div>
                       ))}
@@ -961,7 +693,6 @@ const UserProfilePage: React.FC = () => {
             )}
           </div>
         )}
-
       </div>
 
       {selectedBookingForService && (
@@ -969,11 +700,7 @@ const UserProfilePage: React.FC = () => {
           bookingId={selectedBookingForService.id}
           roomTypeName={selectedBookingForService.roomTypeName}
           onClose={() => setSelectedBookingForService(null)}
-          onSuccess={() => {
-            // Optional: Show success message or toast
-            // Maybe refresh bookings or fetch service requests history
-            alert('Solicitud enviada con éxito');
-          }}
+          onSuccess={() => alert('Solicitud enviada con éxito')}
         />
       )}
     </div>

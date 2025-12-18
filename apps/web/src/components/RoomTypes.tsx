@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
-import '../styles/room-pricing-minimal.css';
 import { createBooking } from '../services/client/bookingService';
-
 import { getAllRoomTypes } from '../services/admin/roomTypeService';
 import type { RoomTypeDTO } from '../types/sharedTypes';
 
-// Usaremos RoomTypeDTO directamente, pero mantenemos el alias por compatibilidad interna si es necesario
 type RoomType = RoomTypeDTO;
 
 export const BookingStatus = {
@@ -18,19 +15,27 @@ export const BookingStatus = {
 
 export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 
-
 const RoomTypes: React.FC = () => {
-  // Estado para los datos de la API
   const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    checkInDate: '',
+    checkOutDate: '',
+    guestCount: 1,
+    status: BookingStatus.PENDING,
+    totalPrice: 0,
+    notes: ''
+  });
 
-  // Cargar datos al montar
   useEffect(() => {
     const fetchRoomTypes = async () => {
       try {
         setLoading(true);
-        // Traemos más resultados para mostrar todos (size: 100)
         const response = await getAllRoomTypes(0, 100);
         console.log('[RoomTypes] Loaded:', response);
         setRoomTypes(response.data);
@@ -45,37 +50,10 @@ const RoomTypes: React.FC = () => {
     fetchRoomTypes();
   }, []);
 
-  // Estado para el modal
-  const [showModal, setShowModal] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Estado para los datos del formulario según la entidad Booking
-  const [formData, setFormData] = useState({
-    checkInDate: '',
-    checkOutDate: '',
-    guestCount: 1,
-    status: BookingStatus.PENDING, // Estado inicial por defecto
-    totalPrice: 0,
-    notes: ''
-  });
-
-  // Abrir modal de reserva
-
-
-  // Importar hook de auth para validación
-  // NOTA: Para este componente funcional, necesitamos mover el hook al inicio
-  // Pero como ya existe el componente, lo usaremos a través de una verificación simple o props si fuera necesario.
-  // Mejor opción: Importar keycloak directamente para check rápido si no queremos cambiar todo el componente a usar useAuth
-  // o refactorizar para usar useAuth al principio.
-  
-  // Asumiendo que podemos usar keycloak service directamente
   const handleReservation = async (room: RoomType) => {
-    // Verificar auth dinámicamente
     const { default: keycloak } = await import('../services/keycloak');
     
     if (!keycloak.authenticated) {
-        // Redirigir a login o mostrar mensaje
         alert('Debes iniciar sesión para realizar una reserva.');
         keycloak.login();
         return;
@@ -85,10 +63,8 @@ const RoomTypes: React.FC = () => {
     setSelectedRoom(room);
     setShowModal(true);
     
-    // Calcular precio inicial
     const initialTotalPrice = calculateTotalPrice(room.basePrice, 1, 1);
     
-    // Limpiar y establecer formulario con valores iniciales
     setFormData({
       checkInDate: '',
       checkOutDate: '',
@@ -99,21 +75,18 @@ const RoomTypes: React.FC = () => {
     });
   };
 
-  // Cerrar modal
   const closeModal = () => {
     console.log('Cerrando modal');
     setShowModal(false);
     setSelectedRoom(null);
   };
 
-  // Manejar clic en el overlay para cerrar modal
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       closeModal();
     }
   };
 
-  // Manejar cambios en el formulario
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
@@ -122,7 +95,6 @@ const RoomTypes: React.FC = () => {
       [name]: value
     };
 
-    // Si cambia guestCount, calcular precio
     if (name === 'guestCount') {
       const guestCount = parseInt(value);
       updatedData.guestCount = guestCount;
@@ -133,7 +105,6 @@ const RoomTypes: React.FC = () => {
       }
     }
 
-    // Si cambian las fechas, calcular precio
     if (name === 'checkInDate' || name === 'checkOutDate') {
       if (selectedRoom && formData.checkInDate && formData.checkOutDate) {
         const nights = calculateNights();
@@ -144,7 +115,6 @@ const RoomTypes: React.FC = () => {
     setFormData(updatedData);
   };
 
-  // Calcular número de noches
   const calculateNights = () => {
     if (!formData.checkInDate || !formData.checkOutDate) return 1;
     
@@ -155,18 +125,13 @@ const RoomTypes: React.FC = () => {
     return diffDays > 0 ? diffDays : 1;
   };
 
-  // Calcular precio total según la lógica de negocio
   const calculateTotalPrice = (basePrice: number, guestCount: number, nights: number) => {
     let total = basePrice * nights;
-    
-    // Recargo por huéspedes extra (el primero incluido)
     const extraGuests = Math.max(0, guestCount - 1);
-    total += extraGuests * 30 * nights; // $30 por huésped extra por noche
-    
+    total += extraGuests * 30 * nights;
     return total;
   };
 
-  // Obtener fecha mínima para check-out (día siguiente al check-in)
   const getMinCheckoutDate = () => {
     if (!formData.checkInDate) return '';
     const checkInDate = new Date(formData.checkInDate);
@@ -174,12 +139,10 @@ const RoomTypes: React.FC = () => {
     return checkInDate.toISOString().split('T')[0];
   };
 
-  // Obtener fecha de hoy para limitar fechas pasadas
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0];
   };
 
-  // Enviar formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -214,23 +177,13 @@ const RoomTypes: React.FC = () => {
       
       await createBooking({
         roomTypeId: selectedRoom!.id,
-        checkInDate: formData.checkInDate, // Ya es YYYY-MM-DD del input type="date"
-        checkOutDate: formData.checkOutDate, // Ya es YYYY-MM-DD del input type="date"
+        checkInDate: formData.checkInDate,
+        checkOutDate: formData.checkOutDate,
         guestCount: formData.guestCount,
         notes: formData.notes
       });
 
-      alert(`¡Reserva enviada con éxito!
-    
-Detalles:
-- Habitación: ${selectedRoom?.name}
-- Fechas: ${formData.checkInDate} al ${formData.checkOutDate}
-- Huéspedes: ${formData.guestCount}
-- Noches: ${nights}
-- Total: $${finalTotalPrice}
-- Total: $${finalTotalPrice}
-
-Te contactaremos para confirmar.`);
+      alert(`¡Reserva enviada con éxito!\n\nDetalles:\n- Habitación: ${selectedRoom?.name}\n- Fechas: ${formData.checkInDate} al ${formData.checkOutDate}\n- Huéspedes: ${formData.guestCount}\n- Noches: ${nights}\n- Total: $${finalTotalPrice}\n\nTe contactaremos para confirmar.`);
       closeModal();
     } catch (error) {
       console.error('Error al enviar la reserva:', error);
@@ -242,95 +195,98 @@ Te contactaremos para confirmar.`);
 
   return (
     <>
-      <section className="section rooms" id="habitaciones">
-        <div className="container">
-          <h2 className="section-title">Tipos de Habitación</h2>
+      <section className="bg-white dark:bg-[#1a1a2e] py-20" id="habitaciones">
+        <div className="max-w-7xl mx-auto px-5">
+          <h2 className="text-center text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
+            Tipos de Habitación
+          </h2>
           
           {loading ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
             </div>
           ) : error ? (
-             <div className="text-center py-10 text-red-500 bg-red-50 rounded-xl p-4">
+             <div className="text-center py-10 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
                {error}
              </div>
           ) : roomTypes.length === 0 ? (
-            <div className="text-center py-20 bg-gray-50 rounded-xl">
-               <Bed className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-               <h3 className="text-xl text-gray-600 font-medium">No hay tipos de habitación disponibles</h3>
-               <p className="text-gray-500 mt-2">Por favor, vuelve a consultar más tarde.</p>
+            <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+               <Bed className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+               <h3 className="text-xl text-gray-600 dark:text-gray-400 font-medium">No hay tipos de habitación disponibles</h3>
+               <p className="text-gray-500 dark:text-gray-500 mt-2">Por favor, vuelve a consultar más tarde.</p>
             </div>
           ) : (
-            <div className="rooms-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {roomTypes.map((room) => (
-                <div key={room.id} className="room-card">
-                  <div className="room-image">
+                <div key={room.id} className="group bg-white dark:bg-[#1e1e3e] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 dark:border-gray-700">
+                  <div className="relative overflow-hidden h-64">
                     <img 
                       src={room.imageUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600'} 
-                      alt={room.name} 
+                      alt={room.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="room-badge">Disponible</div>
+                    <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-1.5 rounded text-sm font-semibold uppercase tracking-wide shadow-lg z-10">
+                      Disponible
+                    </div>
                   </div>
-                  <div className="room-content">
-                    <h3 className="room-name">{room.name}</h3>
-                    <p className="room-description">{room.description || 'Sin descripción disponible.'}</p>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{room.name}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">{room.description || 'Sin descripción disponible.'}</p>
                     
-                    <div className="room-details">
-                      <div className="detail">
-                        <Maximize size={18} />
-                        <span>{room.area || 0} m²</span>
+                    <div className="flex justify-around mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex flex-col items-center gap-2">
+                        <Maximize size={18} className="text-[#2a9d8f]" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.area || 0} m²</span>
                       </div>
-                      <div className="detail">
-                        <Users size={18} />
-                        <span>{room.maxCapacity} personas</span>
+                      <div className="flex flex-col items-center gap-2">
+                        <Users size={18} className="text-[#2a9d8f]" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.maxCapacity} personas</span>
                       </div>
-                      <div className="detail">
-                        <Bed size={18} />
-                        <span>{room.beds || 1} {(!room.beds || room.beds === 1) ? 'cama' : 'camas'}</span>
+                      <div className="flex flex-col items-center gap-2">
+                        <Bed size={18} className="text-[#2a9d8f]" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.beds || 1} {(!room.beds || room.beds === 1) ? 'cama' : 'camas'}</span>
                       </div>
                     </div>
                     
-                    <div className="room-pricing-section">
-                      <div className="pricing-container">
-                        <div className="price-display">
-                          <div className="price-main">
-                            <span className="price-currency">$</span>
-                            <span className="price-amount">{room.basePrice}</span>
-                            <span className="price-period">/noche</span>
-                          </div>
-                          <div className="price-note">Impuestos incluidos</div>
+                    <div className="mt-6 pt-5 border-t border-gray-200 dark:border-gray-700">
+                      <div className="text-center mb-5">
+                        <div className="mb-2">
+                          <span className="text-2xl font-bold text-gray-900 dark:text-white align-super">$</span>
+                          <span className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{room.basePrice}</span>
+                          <span className="text-base text-gray-600 dark:text-gray-400 font-normal ml-2">/noche</span>
                         </div>
-                        
-                        <button 
-                          className="book-btn"
-                          onClick={() => handleReservation(room)}
-                          type="button"
-                        >
-                          RESERVAR AHORA
-                        </button>
-                        
-                        <div className="price-features">
-                          <div className="price-feature">
-                            <div className="feature-icon">
-                              <Check size={16} />
-                            </div>
-                            <div className="feature-text">
-                              Cancelación gratuita
-                            </div>
+                        <div className="text-sm text-[#2a9d8f] font-medium">Impuestos incluidos</div>
+                      </div>
+                      
+                      <button 
+                        className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+                        onClick={() => handleReservation(room)}
+                        type="button"
+                      >
+                        RESERVAR AHORA
+                      </button>
+                      
+                      <div className="flex justify-center gap-5 mt-4 mb-5">
+                        <div className="text-center">
+                          <div className="w-6 h-6 mx-auto mb-1 text-[#2a9d8f]">
+                            <Check size={16} />
                           </div>
-                          <div className="price-feature">
-                            <div className="feature-icon">
-                              <Check size={16} />
-                            </div>
-                            <div className="feature-text">
-                              Desayuno incluido
-                            </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                            Cancelación gratuita
                           </div>
                         </div>
-                        
-                        <div className="quality-badge">
-                          Calidad Garantizada
+                        <div className="text-center">
+                          <div className="w-6 h-6 mx-auto mb-1 text-[#2a9d8f]">
+                            <Check size={16} />
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                            Desayuno incluido
+                          </div>
                         </div>
+                      </div>
+                      
+                      <div className="inline-block bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-3 py-1 rounded text-xs text-[#2a9d8f] dark:text-[#4cc9f0] font-semibold mt-2.5">
+                        Calidad Garantizada
                       </div>
                     </div>
                   </div>
@@ -344,17 +300,17 @@ Te contactaremos para confirmar.`);
       {/* Modal de Reserva */}
       {showModal && selectedRoom && (
         <div 
-          className="reservation-modal-overlay" 
+          className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5"
           onClick={handleOverlayClick}
         >
           <div 
-            className="reservation-modal"
+            className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[900px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h3>Reservar: {selectedRoom.name}</h3>
+            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+              <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold">Reservar: {selectedRoom.name}</h3>
               <button 
-                className="close-modal" 
+                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
                 onClick={closeModal}
                 type="button"
                 aria-label="Cerrar modal"
@@ -363,49 +319,57 @@ Te contactaremos para confirmar.`);
               </button>
             </div>
             
-            <div className="modal-body">
-              <div className="reservation-summary">
-                <div className="room-summary">
-                  <img src={selectedRoom.imageUrl} alt={selectedRoom.name} />
-                  <div className="room-info">
-                    <h4>{selectedRoom.name}</h4>
-                    <p>{selectedRoom.description}</p>
-                    <div className="room-specs">
-                      <span><Maximize size={14} /> {selectedRoom.area} m²</span>
-                      <span><Users size={14} /> Máx: {selectedRoom.maxCapacity} personas</span>
-                      <span><Bed size={14} /> {selectedRoom.beds} {selectedRoom.beds === 1 ? 'cama' : 'camas'}</span>
+            <div className="px-8 pb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 pb-5 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex gap-5 items-start">
+                  <img src={selectedRoom.imageUrl} alt={selectedRoom.name} className="w-[150px] h-[150px] rounded-lg object-cover" />
+                  <div>
+                    <h4 className="m-0 mb-2.5 text-gray-900 dark:text-white font-semibold">{selectedRoom.name}</h4>
+                    <p className="m-0 mb-2.5 text-gray-600 dark:text-gray-400 text-sm leading-snug">{selectedRoom.description}</p>
+                    <div className="flex flex-wrap gap-2.5 mt-2.5">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
+                        <Maximize size={14} /> {selectedRoom.area} m²
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
+                        <Users size={14} /> Máx: {selectedRoom.maxCapacity} personas
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
+                        <Bed size={14} /> {selectedRoom.beds} {selectedRoom.beds === 1 ? 'cama' : 'camas'}
+                      </span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="price-summary">
-                  <div className="price-item">
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between py-2.5 border-b border-dashed border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                     <span>Precio base/noche:</span>
-                    <span>${selectedRoom.basePrice}</span>
+                    <span className="font-semibold">${selectedRoom.basePrice}</span>
                   </div>
-                  <div className="price-item">
+                  <div className="flex justify-between py-2.5 border-b border-dashed border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                     <span>Noches:</span>
-                    <span>{calculateNights()}</span>
+                    <span className="font-semibold">{calculateNights()}</span>
                   </div>
-                  <div className="price-item">
+                  <div className="flex justify-between py-2.5 text-gray-700 dark:text-gray-300">
                     <span>Huéspedes extra:</span>
-                    <span>${Math.max(0, formData.guestCount - 1) * 30}/noche c/u</span>
+                    <span className="font-semibold">${Math.max(0, formData.guestCount - 1) * 30}/noche c/u</span>
                   </div>
-                  <div className="price-total">
+                  <div className="flex justify-between pt-4 mt-4 border-t-2 border-gray-900 dark:border-gray-400 font-bold text-gray-900 dark:text-white text-lg">
                     <span>Total estimado:</span>
-                    <span className="total-amount">${formData.totalPrice}</span>
+                    <span className="text-[#2a9d8f] text-xl">${formData.totalPrice}</span>
                   </div>
                 </div>
               </div>
               
-              <form onSubmit={handleSubmit} className="reservation-form">
-                {/* Sección 1: Fechas según entity Booking */}
-                <div className="form-section">
-                  <h4><Calendar size={18} /> Fechas de Estadía</h4>
-                  <p className="form-help-text">Los campos marcados con * son obligatorios</p>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="checkInDate">Check-in *</label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Fechas */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="flex items-center gap-2 mb-4 text-gray-900 dark:text-white font-semibold">
+                    <Calendar size={18} /> Fechas de Estadía
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 italic">Los campos marcados con * son obligatorios</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="flex flex-col">
+                      <label htmlFor="checkInDate" className="mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">Check-in *</label>
                       <input
                         type="date"
                         id="checkInDate"
@@ -413,12 +377,13 @@ Te contactaremos para confirmar.`);
                         value={formData.checkInDate}
                         onChange={handleInputChange}
                         min={getTodayDate()}
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-md text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 focus:outline-none focus:border-gray-900 dark:focus:border-gray-400 focus:shadow-[0_0_0_3px_rgba(26,26,46,0.1)]"
                         required
                       />
-                      <small className="form-hint">Fecha de entrada</small>
+                      <small className="text-gray-500 dark:text-gray-400 text-xs mt-1">Fecha de entrada</small>
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="checkOutDate">Check-out *</label>
+                    <div className="flex flex-col">
+                      <label htmlFor="checkOutDate" className="mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">Check-out *</label>
                       <input
                         type="date"
                         id="checkOutDate"
@@ -427,24 +392,28 @@ Te contactaremos para confirmar.`);
                         onChange={handleInputChange}
                         min={getMinCheckoutDate()}
                         disabled={!formData.checkInDate}
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-md text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 focus:outline-none focus:border-gray-900 dark:focus:border-gray-400 focus:shadow-[0_0_0_3px_rgba(26,26,46,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
-                      <small className="form-hint">Fecha de salida</small>
+                      <small className="text-gray-500 dark:text-gray-400 text-xs mt-1">Fecha de salida</small>
                     </div>
                   </div>
                 </div>
                 
-                {/* Sección 2: Huéspedes según entity Booking */}
-                <div className="form-section">
-                  <h4><User size={18} /> Información de Huéspedes</h4>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="guestCount">Número de huéspedes *</label>
+                {/* Huéspedes */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="flex items-center gap-2 mb-4 text-gray-900 dark:text-white font-semibold">
+                    <User size={18} /> Información de Huéspedes
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="flex flex-col">
+                      <label htmlFor="guestCount" className="mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">Número de huéspedes *</label>
                       <select
                         id="guestCount"
                         name="guestCount"
                         value={formData.guestCount}
                         onChange={handleInputChange}
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-md text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 focus:outline-none focus:border-gray-900 dark:focus:border-gray-400 focus:shadow-[0_0_0_3px_rgba(26,26,46,0.1)]"
                         required
                       >
                         {[...Array(selectedRoom.maxCapacity)].map((_, i) => (
@@ -453,18 +422,20 @@ Te contactaremos para confirmar.`);
                           </option>
                         ))}
                       </select>
-                      <small className="form-hint">Máximo: {selectedRoom.maxCapacity} personas</small>
+                      <small className="text-gray-500 dark:text-gray-400 text-xs mt-1">Máximo: {selectedRoom.maxCapacity} personas</small>
                     </div>
                   </div>
                 </div>
                 
-                {/* Sección 3: Notas (opcional) según entity Booking */}
-                <div className="form-section">
-                  <h4><FileText size={18} /> Notas Adicionales</h4>
-                  <div className="form-group">
-                    <label htmlFor="notes">
+                {/* Notas */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="flex items-center gap-2 mb-4 text-gray-900 dark:text-white font-semibold">
+                    <FileText size={18} /> Notas Adicionales
+                  </h4>
+                  <div className="flex flex-col">
+                    <label htmlFor="notes" className="mb-2 font-medium text-gray-700 dark:text-gray-300 text-sm">
                       Notas (opcional)
-                      <span className="optional-label">Opcional</span>
+                      <span className="bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 text-[0.7rem] px-1.5 py-0.5 rounded ml-2 font-normal">Opcional</span>
                     </label>
                     <textarea
                       id="notes"
@@ -473,39 +444,42 @@ Te contactaremos para confirmar.`);
                       onChange={handleInputChange}
                       rows={4}
                       placeholder="Especificaciones especiales, preferencias, solicitudes adicionales..."
+                      className="p-3 border border-gray-300 dark:border-gray-600 rounded-md text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[100px] resize-y leading-snug transition-all duration-200 focus:outline-none focus:border-gray-900 dark:focus:border-gray-400 focus:shadow-[0_0_0_3px_rgba(26,26,46,0.1)]"
                     />
-                    <small className="form-hint">
+                    <small className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                       Aquí puedes agregar cualquier información adicional que consideres importante
                     </small>
                   </div>
                 </div>
                 
-                {/* Sección 4: Precio (calculado automáticamente) */}
-                <div className="form-section">
-                  <h4><CreditCard size={18} /> Resumen de Pago</h4>
-                  <div className="payment-summary">
-                    <div className="payment-row">
+                {/* Resumen de Pago */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="flex items-center gap-2 mb-4 text-gray-900 dark:text-white font-semibold">
+                    <CreditCard size={18} /> Resumen de Pago
+                  </h4>
+                  <div className="bg-gray-100 dark:bg-gray-700/50 p-5 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className="flex justify-between py-2.5 border-b border-dashed border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                       <span>Subtotal:</span>
-                      <span>${selectedRoom.basePrice * calculateNights()}</span>
+                      <span className="font-semibold">${selectedRoom.basePrice * calculateNights()}</span>
                     </div>
                     {formData.guestCount > 1 && (
-                      <div className="payment-row">
+                      <div className="flex justify-between py-2.5 border-b border-dashed border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                       <span>Recargo por huéspedes extra ({formData.guestCount - 1} × $30/noche):</span>
-                        <span>${Math.max(0, formData.guestCount - 1) * 30 * calculateNights()}</span>
+                        <span className="font-semibold">${Math.max(0, formData.guestCount - 1) * 30 * calculateNights()}</span>
                       </div>
                     )}
-                    <div className="payment-total">
+                    <div className="flex justify-between pt-4 mt-4 border-t-2 border-gray-900 dark:border-gray-400 font-bold text-gray-900 dark:text-white text-lg">
                       <span>Total a pagar:</span>
-                      <span className="payment-total-amount">${formData.totalPrice}</span>
+                      <span className="text-[#2a9d8f] text-xl">${formData.totalPrice}</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Botones de acción */}
-                <div className="form-actions">
+                {/* Botones */}
+                <div className="flex justify-between gap-5 mt-8 pt-5 border-t border-gray-200 dark:border-gray-700">
                   <button 
                     type="button" 
-                    className="btn-roomtypes-cancel" 
+                    className="flex-1 px-7 py-3.5 bg-red-600 text-white rounded-md font-semibold cursor-pointer transition-all duration-300 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                     onClick={closeModal}
                     disabled={isSubmitting}
                   >
@@ -513,7 +487,7 @@ Te contactaremos para confirmar.`);
                   </button>
                   <button 
                     type="submit" 
-                    className="btn-roomtypes-confirm"
+                    className="flex-1 px-7 py-3.5 bg-green-600 text-white rounded-md font-semibold cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 hover:bg-green-700 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                     disabled={isSubmitting}
                   >
                     <CreditCard size={18} />
@@ -521,9 +495,9 @@ Te contactaremos para confirmar.`);
                   </button>
                 </div>
                 
-                {/* Información legal */}
-                <div className="legal-notice">
-                  <p>
+                {/* Legal */}
+                <div className="mt-5 p-4 bg-gray-100 dark:bg-gray-800 rounded-md border-l-4 border-[#2a9d8f]">
+                  <p className="m-0 text-gray-600 dark:text-gray-400 text-sm leading-snug">
                     <small>
                       Al confirmar esta reserva, aceptas nuestros términos y condiciones. 
                       La reserva quedará pendiente de confirmación por parte del hotel.
@@ -535,6 +509,19 @@ Te contactaremos para confirmar.`);
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </>
   );
 };

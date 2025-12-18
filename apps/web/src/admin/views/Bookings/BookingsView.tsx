@@ -12,7 +12,7 @@ import type { AdminUserDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
 import BookingForm from './BookingForm';
 import Modal from '../../components/shared/Modal';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Plus } from 'lucide-react';
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
@@ -160,10 +160,10 @@ const BookingsView = () => {
 
                 return (
                     <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-bold text-gray-900 dark:text-white tracking-tight">
                             {firstName} {lastName}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                             {email}
                         </div>
                     </div>
@@ -230,14 +230,14 @@ const BookingsView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Reservas</h1>
-                    <p className="text-gray-600">Gestión de reservaciones del hotel</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reservas</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de reservaciones del hotel</p>
                 </div>
                 {!showForm && (
-                    <Button onClick={() => setShowForm(true)}>
-                        + Crear Reserva
+                    <Button onClick={() => setShowForm(true)} leftIcon={<Plus size={16} />}>
+                        Crear Reserva
                     </Button>
                 )}
             </div>
@@ -272,26 +272,26 @@ const BookingsView = () => {
                 onClose={() => setShowAssignModal(false)}
                 title="Asignar Habitación"
             >
-                <div className="space-y-4">
+                <div className="space-y-4 p-8">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">
                             Seleccione una habitación disponible
                         </label>
                         <select
-                            className="w-full border-gray-300 rounded-md shadow-sm p-2 border"
+                            className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-gold-default focus:border-gold-default outline-none transition-all"
                             value={selectedRoomId}
                             onChange={(e) => setSelectedRoomId(e.target.value)}
                         >
-                            <option value="">-- Seleccionar --</option>
+                            <option value="" className="dark:bg-[#1c1c1c]">-- Seleccionar --</option>
                             {availableRooms.map(room => (
-                                <option key={room.id} value={room.id}>
+                                <option key={room.id} value={room.id} className="dark:bg-[#1c1c1c]">
                                     {room.roomNumber} - {room.roomType.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-                    <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={() => setShowAssignModal(false)}>
+                    <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-gray-100 dark:border-white/5">
+                        <Button variant="ghost" onClick={() => setShowAssignModal(false)}>
                             Cancelar
                         </Button>
                         <Button

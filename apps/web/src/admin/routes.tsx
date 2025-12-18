@@ -1,17 +1,15 @@
 import React from 'react';
 import {
-    LayoutDashboard,
-    BedDouble,
-    CalendarCheck,
-    Utensils,
-    Users,
-    MapPin,
-    Bell,
-    Table2,
-    User,
-    Monitor
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+    Squares2X2Icon,
+    HomeModernIcon,
+    CalendarDaysIcon,
+    SparklesIcon,
+    UsersIcon,
+    MapPinIcon,
+    KeyIcon,
+    UserIcon,
+    ComputerDesktopIcon
+} from '@heroicons/react/24/outline';
 
 // Import views
 import Dashboard from './views/Dashboard/Dashboard';
@@ -21,7 +19,6 @@ import BookingsView from './views/Bookings/BookingsView'; // Imported
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView'; // Imported
 import MapsView from './views/Maps/MapsView';
-import NotificationsView from './views/Notifications/NotificationsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
@@ -30,7 +27,7 @@ import CMSEditor from './views/CMS/CMSEditor';
 export interface RouteConfig {
     path: string;
     name: string;
-    icon: LucideIcon;
+    icon: React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>;
     component: React.ComponentType;
     layout: string;
     hidden?: boolean;
@@ -40,70 +37,63 @@ const routes: RouteConfig[] = [
     {
         path: '/dashboard',
         name: 'Dashboard',
-        icon: LayoutDashboard,
+        icon: Squares2X2Icon,
         component: Dashboard,
         layout: '/admin'
     },
     {
         path: '/rooms',
         name: 'Habitaciones',
-        icon: BedDouble,
+        icon: HomeModernIcon, // Bed/Room icon
         component: RoomsView,
         layout: '/admin'
     },
     {
         path: '/room-types',
         name: 'Tipos Hab.',
-        icon: Table2, // Reusing Table icon or similar for generic config
+        icon: KeyIcon, // Key for room types/categories
         component: RoomTypesView,
         layout: '/admin'
     },
     {
         path: '/bookings',
         name: 'Reservas',
-        icon: CalendarCheck,
+        icon: CalendarDaysIcon,
         component: BookingsView,
         layout: '/admin'
     },
     {
         path: '/services',
         name: 'Servicios',
-        icon: Utensils,
+        icon: SparklesIcon, // Sparkles for hotel services (cleaning, amenities)
         component: ServicesView,
         layout: '/admin'
     },
     {
         path: '/customers',
         name: 'Clientes',
-        icon: Users,
+        icon: UsersIcon,
         component: CustomersView,
         layout: '/admin'
     },
     {
         path: '/maps',
         name: 'Mapas',
-        icon: MapPin,
+        icon: MapPinIcon,
         component: MapsView,
-        layout: '/admin'
-    },
-    {
-        path: '/notifications',
-        name: 'Notificaciones',
-        icon: Bell,
-        component: NotificationsView,
         layout: '/admin'
     },
     {
         path: '/user-profile',
         name: 'Perfil',
-        icon: User,
+        icon: UserIcon,
         component: UserProfileView,
         layout: '/admin'
     },
     {
         path: '/tables',
         name: 'Tablas',
-        icon: Table2,
+        icon: KeyIcon, // Tables/Settings
         component: TablesView,
         layout: '/admin'
     },
@@ -111,7 +101,7 @@ const routes: RouteConfig[] = [
     {
         path: '/cms',
         name: 'Sitio Web', // Nombre en el Sidebar
-        icon: Monitor,     // Icono
+        icon: ComputerDesktopIcon,     // Icono
         component: CMSList,
         layout: '/admin'
     },
@@ -120,7 +110,7 @@ const routes: RouteConfig[] = [
     {
         path: '/cms/edit/:id',
         name: 'Editor CMS',
-        icon: Monitor, 
+        icon: ComputerDesktopIcon, 
         component: CMSEditor,
         layout: '/admin',
         hidden: true // <--- Propiedad clave

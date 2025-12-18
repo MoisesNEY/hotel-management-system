@@ -3,23 +3,19 @@ import {
   ChevronLeft, ChevronRight, MapPin, Star, Phone, Mail,
   Bed, Utensils, Heart, Briefcase, Umbrella, Car
 } from 'lucide-react';
-import '../styles/hotel-gallery.css';
 import { useListContent, useSingleContent } from '../hooks/useContent';
 
 const HotelGallery: React.FC = () => {
-  // --- CONSUMO DE DATOS DINÁMICOS ---
   const { data: galleryItems } = useListContent('HOME_GALLERY');
   const { data: contactItems } = useListContent('CONTACT_INFO');
   const { data: mapItem } = useSingleContent('MAIN_LOCATION');
 
-  // Helpers para encontrar datos específicos de contacto
   const getContactVal = (key: string) => contactItems.find(c => c.title?.toLowerCase().includes(key.toLowerCase()));
   
   const addressItem = getContactVal('address') || getContactVal('dirección');
   const phoneItem = getContactVal('phone') || getContactVal('teléfono');
   const emailItem = getContactVal('email') || getContactVal('correo');
 
-  // Datos combinados (Defaults + Dinámicos)
   const hotelInfo = {
     name: 'Grand Hotel de Lujo Managua',
     address: addressItem?.subtitle || 'Cargando dirección...',
@@ -27,10 +23,8 @@ const HotelGallery: React.FC = () => {
     email: emailItem?.subtitle || '...',
     phoneLink: phoneItem?.actionUrl,
     emailLink: emailItem?.actionUrl,
-    mapSrc: mapItem?.actionUrl || '', // URL del Iframe
+    mapSrc: mapItem?.actionUrl || '',
     features: [
-      // Estos features "pequeños" al lado del mapa podrían ser estáticos o venir de otra lista.
-      // Por simplicidad, los dejo estáticos o podrías crear otro código 'MAP_FEATURES'
       { icon: <Bed size={20} />, text: '120 habitaciones y suites', color: '#4361ee' },
       { icon: <Utensils size={20} />, text: '3 restaurantes gourmet', color: '#e63946' },
       { icon: <Heart size={20} />, text: 'Spa de lujo completo', color: '#f72585' },
@@ -40,11 +34,9 @@ const HotelGallery: React.FC = () => {
     ]
   };
 
-  // --- LÓGICA DEL SLIDER (Igual que antes, pero usando galleryItems) ---
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
 
-  // Fallback si no hay imágenes aún
   const imagesToShow = galleryItems.length > 0 ? galleryItems : [{ id: 0, imageUrl: '', title: 'Cargando...', subtitle: '' }];
 
   const nextSlide = () => {
@@ -65,139 +57,164 @@ const HotelGallery: React.FC = () => {
 
 
   return (
-    <section className="section hotel-gallery" id="galeria">
-      <div className="container">
-        <div className="section-header">
-          <h2 className="section-title">Nuestras Instalaciones</h2>
-          <p className="section-subtitle">
+    <section className="bg-white dark:bg-[#1a1a2e] py-[100px] relative overflow-hidden" id="galeria">
+      <div className="max-w-7xl mx-auto px-5">
+        <div className="text-center mb-[60px]">
+          <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
+            Nuestras Instalaciones
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 text-lg max-w-[600px] mx-auto leading-relaxed">
             Descubre la excelencia y el confort de nuestras instalaciones de 5 estrellas
           </p>
         </div>
 
-        {/* Slider de imágenes Dinámico */}
+        {/* Slider */}
         <div 
-          className="gallery-slider"
+          className="mb-20"
           onMouseEnter={() => setAutoplay(false)}
           onMouseLeave={() => setAutoplay(true)}
         >
           {galleryItems.length > 0 ? (
             <>
-              <div className="slider-container">
-                <button className="slider-btn prev-btn" onClick={prevSlide} aria-label="Anterior"><ChevronLeft size={24} /></button>
+              <div className="relative mb-8 rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+                <button className="absolute top-1/2 -translate-y-1/2 left-5 bg-white/90 dark:bg-gray-800/90 border-none w-[50px] h-[50px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 text-gray-900 dark:text-white z-10 hover:bg-white dark:hover:bg-gray-700 hover:scale-110 hover:shadow-lg" onClick={prevSlide} aria-label="Anterior">
+                  <ChevronLeft size={24} />
+                </button>
                 
-                <div className="main-slide">
+                <div className="relative h-[500px] overflow-hidden">
                   <img 
                     src={imagesToShow[currentIndex].imageUrl} 
                     alt={imagesToShow[currentIndex].title}
-                    className="slide-image"
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
-                  <div className="slide-overlay">
-                    <div className="slide-content">
-                      <h3 className="slide-title">{imagesToShow[currentIndex].title}</h3>
-                      <p className="slide-description">{imagesToShow[currentIndex].subtitle}</p>
-                      <div className="slide-counter">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-10 text-white">
+                    <div className="max-w-[600px]">
+                      <h3 className="text-3xl mb-2.5 text-white font-bold">{imagesToShow[currentIndex].title}</h3>
+                      <p className="text-lg opacity-90 mb-4">{imagesToShow[currentIndex].subtitle}</p>
+                      <div className="inline-block bg-[rgba(212,175,55,0.9)] text-white px-4 py-1 rounded-full text-sm font-semibold">
                         {currentIndex + 1} / {imagesToShow.length}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <button className="slider-btn next-btn" onClick={nextSlide} aria-label="Siguiente"><ChevronRight size={24} /></button>
+                <button className="absolute top-1/2 -translate-y-1/2 right-5 bg-white/90 dark:bg-gray-800/90 border-none w-[50px] h-[50px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 text-gray-900 dark:text-white z-10 hover:bg-white dark:hover:bg-gray-700 hover:scale-110 hover:shadow-lg" onClick={nextSlide} aria-label="Siguiente">
+                  <ChevronRight size={24} />
+                </button>
               </div>
 
               {/* Thumbnails */}
-              <div className="thumbnails">
+              <div className="grid grid-cols-6 gap-4">
                 {imagesToShow.map((image, index) => (
                   <div 
                     key={image.id || index}
-                    className={`thumbnail ${index === currentIndex ? 'active' : ''}`}
+                    className={`relative h-[120px] rounded-lg overflow-hidden cursor-pointer transition-all duration-300 border-[3px] ${index === currentIndex ? 'border-[#d4af37] -translate-y-1' : 'border-transparent hover:-translate-y-1'}`}
                     onClick={() => goToSlide(index)}
                   >
-                    <img src={image.imageUrl} alt={image.title} className="thumbnail-image" />
-                    <div className="thumbnail-overlay">
-                      {/* Mostrar titulo corto en thumbnail */}
-                      <span className="thumbnail-title">{image.title?.split(' ')[0]}</span> 
+                    <img src={image.imageUrl} alt={image.title} className="w-full h-full object-cover" />
+                    <div className={`absolute bottom-0 left-0 right-0 bg-black/70 p-2.5 transition-transform duration-300 ${index === currentIndex ? 'translate-y-0' : 'translate-y-full hover:translate-y-0'}`}>
+                      <span className="text-white text-xs whitespace-nowrap overflow-hidden text-ellipsis block">{image.title?.split(' ')[0]}</span>
                     </div>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="text-center p-5">Cargando galería...</div>
+            <div className="text-center p-5 text-gray-600 dark:text-gray-400">Cargando galería...</div>
           )}
         </div>
 
-        {/* Información de Ubicación y Contacto Dinámica */}
-        <div className="hotel-location">
-          <div className="location-info">
-            <h3 className="location-title">
-              <MapPin className="location-icon" size={24} />
+        {/* Location & Contact */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
+          <div className="bg-white dark:bg-[#1e1e3e] p-10 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards]">
+            <h3 className="flex items-center gap-2.5 text-gray-900 dark:text-white mb-8 text-3xl font-semibold">
+              <MapPin className="text-[#d4af37]" size={24} />
               Nuestra Ubicación
             </h3>
             
-            <div className="hotel-details">
-              <h4 className="hotel-name">{hotelInfo.name}</h4>
+            <div className="flex flex-col gap-6">
+              <h4 className="text-gray-900 dark:text-white text-2xl mb-2.5 font-semibold">{hotelInfo.name}</h4>
               
-              <div className="contact-info">
-                <div className="contact-item">
-                  <MapPin size={20} className="contact-icon" style={{ color: '#e63946' }} />
-                  <span className="contact-text">{hotelInfo.address}</span>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#e63946] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
+                  <div className="p-2 rounded-lg bg-[#e63946]/10 text-[#e63946]">
+                    <MapPin size={20} className="flex-shrink-0" />
+                  </div>
+                  <span className="text-gray-900 dark:text-gray-100 font-semibold">{hotelInfo.address}</span>
                 </div>
-                <div className="contact-item">
-                  <Phone size={20} className="contact-icon" style={{ color: '#4361ee' }} />
-                  {/* Usamos el actionUrl para el href (tel:...) */}
-                  <a href={hotelInfo.phoneLink} className="contact-text">{hotelInfo.phone}</a>
+                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#4361ee] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
+                  <div className="p-2 rounded-lg bg-[#4361ee]/10 text-[#4361ee]">
+                    <Phone size={20} className="flex-shrink-0" />
+                  </div>
+                  <a href={hotelInfo.phoneLink} className="text-gray-900 dark:text-gray-100 font-semibold hover:text-[#4361ee]">{hotelInfo.phone}</a>
                 </div>
-                <div className="contact-item">
-                  <Mail size={20} className="contact-icon" style={{ color: '#2a9d8f' }} />
-                  <a href={hotelInfo.emailLink} className="contact-text">{hotelInfo.email}</a>
+                <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#2a9d8f] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
+                  <div className="p-2 rounded-lg bg-[#2a9d8f]/10 text-[#2a9d8f]">
+                    <Mail size={20} className="flex-shrink-0" />
+                  </div>
+                  <a href={hotelInfo.emailLink} className="text-gray-900 dark:text-gray-100 font-semibold hover:text-[#2a9d8f]">{hotelInfo.email}</a>
                 </div>
               </div>
 
-              <div className="hotel-features">
-                <h5 className="features-title">Características del Hotel:</h5>
-                <div className="features-grid">
+              <div className="mt-4">
+                <h5 className="text-gray-900 dark:text-white mb-5 text-xl font-semibold">Características del Hotel:</h5>
+                <div className="grid grid-cols-2 gap-4">
                   {hotelInfo.features.map((feature, index) => (
-                    <div key={index} className="feature">
-                      <div className="feature-icon-wrapper" style={{ color: feature.color }}>
+                    <div key={index} className="flex items-center gap-3 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 border-b-2 transition-all duration-300 hover:border-current hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: feature.color }}>
+                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:bg-black/10 dark:group-hover:bg-white/10 group-hover:scale-110" style={{ color: feature.color }}>
                         {feature.icon}
                       </div>
-                      <span className="feature-text">{feature.text}</span>
+                      <span className="text-gray-900 dark:text-gray-200 text-sm font-semibold flex-1">{feature.text}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rating-badge">
-                 {/* ... (Rating estático o dinámico si quisieras) ... */}
-                 <div className="rating-stars">
+              <div className="bg-gradient-to-br from-[rgba(212,175,55,0.1)] to-[rgba(212,175,55,0.05)] dark:from-[rgba(212,175,55,0.15)] dark:to-[rgba(212,175,55,0.08)] border-2 border-[rgba(212,175,55,0.3)] p-6 rounded-xl flex items-center gap-5 mt-5">
+                 <div className="flex gap-1">
                     {[...Array(5)].map((_, i) => <Star key={i} size={20} fill="#FFD700" color="#FFD700" />)}
                  </div>
-                 <div className="rating-text"><strong>4.8/5</strong> en TripAdvisor</div>
+                 <div className="text-gray-900 dark:text-gray-100 text-lg font-semibold">
+                   <strong className="text-gray-900 dark:text-white text-xl">4.8/5</strong> en TripAdvisor
+                 </div>
               </div>
             </div>
           </div>
 
-          {/* MAPA DINÁMICO (Iframe) */}
-          <div className="location-map">
-            <div className="map-container">
+          {/* Map */}
+          <div className="bg-white dark:bg-[#1e1e3e] p-3 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards] self-start border border-gray-100 dark:border-white/10">
+            <div className="relative rounded-xl overflow-hidden h-[450px]">
                {hotelInfo.mapSrc ? (
                   <iframe
                     src={hotelInfo.mapSrc}
                     width="100%"
-                    height="400"
+                    height="450"
                     style={{ border: 0 }}
                     allowFullScreen
                     loading="lazy"
                     title="Ubicación"
+                    className="grayscale-[0.2] dark:grayscale-[0.5] invert-[0] dark:invert-[0.1] contrast-[1.1]"
                   />
                ) : (
-                 <div className="map-placeholder">Cargando Mapa...</div>
+                 <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">Cargando Mapa...</div>
                )}
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </section>
   );
 };

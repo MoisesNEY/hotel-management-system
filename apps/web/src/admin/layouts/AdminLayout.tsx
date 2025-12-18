@@ -12,8 +12,6 @@ import routes from '../routes';
 const AdminLayout: React.FC = () => {
     const [bgColor, setBgColor] = useState<string>('black');
     const [activeColor, setActiveColor] = useState<string>('primary');
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
     const mainPanelRef = useRef<HTMLDivElement>(null);
     const location = useLocation();
 
@@ -50,7 +48,6 @@ const AdminLayout: React.FC = () => {
     useEffect(() => {
         if (mainPanelRef.current) {
             mainPanelRef.current.scrollTop = 0;
-            // Also scroll window just in case
             window.scrollTo(0, 0);
         }
     }, [location.pathname]);
@@ -66,70 +63,28 @@ const AdminLayout: React.FC = () => {
     };
 
     const handleToggleSidebar = () => {
-        // Desktop Collapse Logic
-        if (document.documentElement.clientWidth > 991) {
-            setIsCollapsed(!isCollapsed);
-            return;
-        }
-
-        // Mobile Overlay Logic
-        setSidebarOpen(!sidebarOpen);
-        const html = document.documentElement;
-        const body = document.body;
-
-        if (!sidebarOpen) {
-            html.classList.add('nav-open');
-            body.classList.add('nav-open');
-        } else {
-            html.classList.remove('nav-open');
-            body.classList.remove('nav-open');
-        }
+        // Not needed for hover-based sidebar
     };
 
-    // Close sidebar when route changes on mobile
-    useEffect(() => {
-        const html = document.documentElement;
-        const body = document.body;
-        html.classList.remove('nav-open');
-        body.classList.remove('nav-open');
-        setSidebarOpen(false);
-    }, [location.pathname]);
-
     return (
-        <div
-            className={`wrapper ${isCollapsed ? 'sidebar-mini' : ''}`}
-            style={{ backgroundColor: '#f4f3ef', position: 'relative', minHeight: '100vh', display: 'block', top: 0, height: '100vh', overflowX: 'hidden' }}
-        >
+        <div className="min-h-screen bg-gray-50 dark:bg-[#111111] transition-colors duration-300">
+            {/* Supabase-style Sidebar */}
             <Sidebar
                 bgColor={bgColor}
                 activeColor={activeColor}
                 routes={routes}
+                isOpen={true}
+                onToggle={handleToggleSidebar}
             />
 
+            {/* Main Content - Always has left margin for collapsed sidebar */}
             <div
-                className="main-panel"
+                className="main-panel min-h-screen transition-all duration-300 ease-in-out ml-[60px]"
                 ref={mainPanelRef}
-                style={{
-                    position: 'relative',
-                    float: 'right',
-                    backgroundColor: '#f4f3ef',
-                    maxHeight: '100%',
-                    height: '100%',
-                    overflow: 'auto',
-                    // width is handled by CSS (calc(100% - 260px) or calc(100% - 80px) via sidebar-mini)
-                }}
             >
                 <Navbar onToggleSidebar={handleToggleSidebar} />
 
-                {/* Overlay for mobile sidebar closing - visible via CSS when nav-open */}
-                <div
-                    className="close-layer"
-                    onClick={() => {
-                        if (sidebarOpen) handleToggleSidebar();
-                    }}
-                />
-
-                <div className="content" style={{ padding: '0 30px 30px', minHeight: 'calc(100vh - 123px)', marginTop: '80px' }}> {/* Increased margin-top to prevent overlap */}
+                <div className="content px-6 md:px-8 pb-8 pt-24 min-h-[calc(100vh-60px)]">
                     <Routes>
                         {routes.map((route, index) => (
                             <Route
@@ -146,7 +101,7 @@ const AdminLayout: React.FC = () => {
                 <Footer />
             </div>
 
-            {/* Theme Switcher kept for functionality */}
+            {/* Theme Switcher - Minimalist trigger in Admin */}
             <ThemeSwitcher
                 onBgColorChange={handleBgColorChange}
                 onActiveColorChange={handleActiveColorChange}

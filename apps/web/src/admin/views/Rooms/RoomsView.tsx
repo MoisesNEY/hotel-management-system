@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table'; // Shared components are in src/admin/components? NO. src/components?
 // src/admin/views/Rooms/RoomsView.tsx -> ../../components -> src/admin/components.
 // IF components are in src/components, it should be ../../../components.
@@ -101,12 +101,12 @@ const RoomsView = () => {
         { header: 'ID', accessor: (row) => row.id },
         { 
             header: 'Número', 
-            accessor: (row) => <span className="font-bold text-gray-800">{row.roomNumber}</span>
+            accessor: (row) => <span className="font-bold text-gray-900 dark:text-white">{row.roomNumber}</span>
         },
         { 
             header: 'Tipo', 
             accessor: (row) => (
-                <span className="text-sm">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                     {row.roomType?.name || 'Sin asignar'}
                 </span>
             )
@@ -114,7 +114,7 @@ const RoomsView = () => {
         { 
             header: 'Precio', 
             accessor: (row) => (
-                <span className="font-semibold text-gray-700">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
                     ${row.roomType?.basePrice || 0}
                 </span>
             )
@@ -150,12 +150,12 @@ const RoomsView = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Habitaciones</h1>
-                    <p className="text-gray-500 text-sm">Gestión del inventario de habitaciones</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Habitaciones</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión del inventario de habitaciones</p>
                 </div>
-                <Button onClick={() => setShowModal(true)} leftIcon={<Settings size={16} />}>
+                <Button onClick={() => setShowModal(true)} leftIcon={<Plus size={16} />}>
                     Nueva Habitación
                 </Button>
             </div>
