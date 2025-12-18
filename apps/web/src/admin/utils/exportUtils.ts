@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
@@ -11,7 +11,7 @@ export interface ExportColumn {
 }
 
 /**
- * Exports data to a PDF file with a professional table layout
+ * Exports data to a PDF file with a profesional table layout
  * @param filename Name of the file (without extension)
  * @param title Title to show in the PDF document
  * @param columns Array of column definitions
@@ -23,34 +23,43 @@ export const exportToPDF = (
     columns: ExportColumn[],
     data: any[]
 ) => {
-    const doc = new jsPDF();
+    try {
+        const doc = new jsPDF();
 
-    // Add Title
-    doc.setFontSize(18);
-    doc.text(title, 14, 22);
+        // Add Title
+        doc.setFontSize(18);
+        doc.text(title, 14, 22);
 
-    // Add Date
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Fecha de generación: ${new Date().toLocaleString()}`, 14, 30);
+        // Add Date
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Fecha de generación: ${new Date().toLocaleString()}`, 14, 30);
 
-    // Prepare body data
-    const body = data.map(item =>
-        columns.map(col => item[col.dataKey] ?? '')
-    );
+        // Prepare body data - Ensure we extract correct keys
+        const body = data.map(item =>
+            columns.map(col => {
+                const val = item[col.dataKey];
+                return val !== undefined && val !== null ? String(val) : '';
+            })
+        );
 
-    // Generate Table
-    autoTable(doc, {
-        startY: 35,
-        head: [columns.map(col => col.header)],
-        body: body,
-        theme: 'striped',
-        headStyles: { fillColor: [212, 175, 55] }, // Gold color from theme (#d4af37)
-        styles: { fontSize: 9, cellPadding: 3 },
-        alternateRowStyles: { fillColor: [250, 250, 250] }
-    });
+        // Generate Table
+        autoTable(doc, {
+            startY: 35,
+            head: [columns.map(col => col.header)],
+            body: body,
+            theme: 'striped',
+            headStyles: { fillColor: [212, 175, 55] }, // Gold color from theme (#d4af37)
+            styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+            alternateRowStyles: { fillColor: [250, 250, 250] },
+            margin: { top: 35 }
+        });
 
-    doc.save(`${filename}.pdf`);
+        doc.save(`${filename}.pdf`);
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Hubo un error al generar el PDF. Revisa la consola para más detalles.");
+    }
 };
 
 /**

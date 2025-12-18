@@ -7,7 +7,9 @@ import { FileDown, FileSpreadsheet } from 'lucide-react';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllBookings } from '../../../services/admin/bookingService';
 import { getAllRooms } from '../../../services/admin/roomService';
+import { getAllUsers } from '../../../services/admin/userService';
 import type { CustomerDetailsDTO, BookingDTO, RoomDTO } from '../../../types/sharedTypes';
+import type { AdminUserDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getStatusColor, getRoomStatusConfig } from '../../utils/helpers';
 import { exportToPDF, exportToExcel, type ExportColumn } from '../../utils/exportUtils';
 
@@ -15,17 +17,27 @@ const TablesView: React.FC = () => {
     const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
     const [rooms, setRooms] = useState<RoomDTO[]>([]);
+    const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadAllData = async () => {
             try {
                 setLoading(true);
-                const [customersRes, bookingsRes, roomsRes] = await Promise.all([
+                const [customersRes, bookingsRes, roomsRes, usersRes] = await Promise.all([
                     getAllCustomerDetails(),
                     getAllBookings(),
-                    getAllRooms()
+                    getAllRooms(),
+                    getAllUsers(0, 500) // Cargar usuarios para el stitching
                 ]);
+
+                // Create User Map for stitching
+                const map: Record<number, AdminUserDTO> = {};
+                usersRes.data.forEach(u => {
+                    if (u.id) map[u.id] = u;
+                });
+                setUsersMap(map);
+
                 setCustomers(customersRes.data);
                 setBookings(bookingsRes.data);
                 setRooms(roomsRes.data);
@@ -41,7 +53,9 @@ const TablesView: React.FC = () => {
 
     // --- Export Logic ---
     const handleExport = (type: 'pdf' | 'excel', category: 'clientes' | 'reservas' | 'habitaciones') => {
-        let filename = `reporte-${category}-${new Date().toISOString().split('T')[0]}`;
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        let filename = `reporte-${category}-${dateStr}`;
         let title = '';
         let columns: ExportColumn[] = [];
         let data: any[] = [];
@@ -55,11 +69,16 @@ const TablesView: React.FC = () => {
                 { header: 'País', dataKey: 'country' },
                 { header: 'DNI', dataKey: 'licenseId' }
             ];
-            data = customers.map(c => ({
-                ...c,
-                fullName: `${c.user?.firstName || ''} ${c.user?.lastName || ''}`,
-                email: c.user?.email || 'N/A'
-            }));
+            data = customers.map(c => {
+                const user = c.user?.id ? usersMap[c.user.id] : undefined;
+                return {
+                    id: c.id,
+                    fullName: `${user?.firstName || c.user?.firstName || ''} ${user?.lastName || c.user?.lastName || ''}`.trim() || 'Sin Nombre',
+                    email: user?.email || c.user?.email || 'N/A',
+                    country: c.country,
+                    licenseId: c.licenseId
+                };
+            });
         } else if (category === 'reservas') {
             title = 'Reporte de Reservas';
             columns = [
@@ -69,12 +88,16 @@ const TablesView: React.FC = () => {
                 { header: 'Estado', dataKey: 'status' },
                 { header: 'Total', dataKey: 'totalPrice' }
             ];
-            data = bookings.map(b => ({
-                ...b,
-                customerName: `${b.customer?.firstName || ''} ${b.customer?.lastName || ''}`,
-                checkInDate: formatDate(b.checkInDate),
-                totalPrice: formatCurrency(b.totalPrice || 0)
-            }));
+            data = bookings.map(b => {
+                const user = b.customer?.id ? usersMap[b.customer.id] : undefined;
+                return {
+                    id: b.id,
+                    customerName: `${user?.firstName || b.customer?.firstName || ''} ${user?.lastName || b.customer?.lastName || ''}`.trim() || 'Sin Nombre',
+                    checkInDate: formatDate(b.checkInDate),
+                    status: b.status,
+                    totalPrice: formatCurrency(b.totalPrice || 0)
+                };
+            });
         } else {
             title = 'Reporte de Inventario de Habitaciones';
             columns = [
@@ -85,8 +108,10 @@ const TablesView: React.FC = () => {
                 { header: 'Precio Noche', dataKey: 'price' }
             ];
             data = rooms.map(r => ({
-                ...r,
+                id: r.id,
+                roomNumber: r.roomNumber,
                 roomType: r.roomType?.name || 'N/A',
+                status: r.status,
                 price: `$${r.roomType?.basePrice || 0}`
             }));
         }
@@ -125,15 +150,37 @@ const TablesView: React.FC = () => {
     // Column Definitions for Real Data
     const customerColumns: Column<CustomerDetailsDTO>[] = [
         { header: 'ID', accessor: 'id' },
-        { header: 'Nombre', accessor: (row) => `${row.user?.firstName || ''} ${row.user?.lastName || ''}` },
-        { header: 'Email', accessor: (row) => row.user?.email || 'N/A' },
+        {
+            header: 'Nombre',
+            accessor: (row) => {
+                const user = row.user?.id ? usersMap[row.user.id] : undefined;
+                const firstName = user?.firstName || row.user?.firstName || '';
+                const lastName = user?.lastName || row.user?.lastName || '';
+                return <span className="font-semibold">{`${firstName} ${lastName}`.trim() || 'N/A'}</span>;
+            }
+        },
+        {
+            header: 'Email',
+            accessor: (row) => {
+                const user = row.user?.id ? usersMap[row.user.id] : undefined;
+                return user?.email || row.user?.email || 'N/A';
+            }
+        },
         { header: 'País', accessor: 'country' },
         { header: 'DNI', accessor: 'licenseId' }
     ];
 
     const bookingColumns: Column<BookingDTO>[] = [
         { header: 'ID', accessor: 'id' },
-        { header: 'Cliente', accessor: (row) => `${row.customer?.firstName || ''} ${row.customer?.lastName || ''}` },
+        {
+            header: 'Cliente',
+            accessor: (row) => {
+                const user = row.customer?.id ? usersMap[row.customer.id] : undefined;
+                const firstName = user?.firstName || row.customer?.firstName || '';
+                const lastName = user?.lastName || row.customer?.lastName || '';
+                return <span className="font-semibold">{`${firstName} ${lastName}`.trim() || 'N/A'}</span>;
+            }
+        },
         { header: 'Check-In', accessor: (row) => formatDate(row.checkInDate) },
         { header: 'Estado', accessor: (row) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge> },
         { header: 'Total', accessor: (row) => formatCurrency(row.totalPrice || 0), className: 'text-right', headerClassName: 'text-right' }
