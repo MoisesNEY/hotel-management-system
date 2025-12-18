@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Table, { type Column } from '../../components/shared/Table';
 import Card from '../../components/shared/Card';
 import Badge from '../../components/shared/Badge';
 import Button from '../../components/shared/Button';
-import { FileDown, FileSpreadsheet } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Users, Calendar, DoorOpen } from 'lucide-react';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllBookings } from '../../../services/admin/bookingService';
 import { getAllRooms } from '../../../services/admin/roomService';
@@ -13,54 +13,60 @@ import type { AdminUserDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getStatusColor, getRoomStatusConfig } from '../../utils/helpers';
 import { exportToPDF, exportToExcel, type ExportColumn } from '../../utils/exportUtils';
 
+type Category = 'clientes' | 'reservas' | 'habitaciones';
+
 const TablesView: React.FC = () => {
+    const [activeCategory, setActiveCategory] = useState<Category>('clientes');
     const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
     const [rooms, setRooms] = useState<RoomDTO[]>([]);
     const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loadAllData = async () => {
-            try {
-                setLoading(true);
-                const [customersRes, bookingsRes, roomsRes, usersRes] = await Promise.all([
-                    getAllCustomerDetails(),
-                    getAllBookings(),
-                    getAllRooms(),
-                    getAllUsers(0, 500) // Cargar usuarios para el stitching
-                ]);
+    const loadCategoryData = useCallback(async (category: Category) => {
+        try {
+            setLoading(true);
 
-                // Create User Map for stitching
+            if (category === 'clientes' || category === 'reservas') {
+                const usersRes = await getAllUsers(0, 500);
                 const map: Record<number, AdminUserDTO> = {};
                 usersRes.data.forEach(u => {
                     if (u.id) map[u.id] = u;
                 });
                 setUsersMap(map);
-
-                setCustomers(customersRes.data);
-                setBookings(bookingsRes.data);
-                setRooms(roomsRes.data);
-            } catch (error) {
-                console.error("Error loading administration data:", error);
-            } finally {
-                setLoading(false);
             }
-        };
 
-        loadAllData();
+            if (category === 'clientes') {
+                const res = await getAllCustomerDetails();
+                setCustomers(res.data);
+            } else if (category === 'reservas') {
+                const res = await getAllBookings();
+                setBookings(res.data);
+            } else if (category === 'habitaciones') {
+                const res = await getAllRooms();
+                setRooms(res.data);
+            }
+        } catch (error) {
+            console.error(`Error loading ${category}:`, error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
+    useEffect(() => {
+        loadCategoryData(activeCategory);
+    }, [activeCategory, loadCategoryData]);
+
     // --- Export Logic ---
-    const handleExport = (type: 'pdf' | 'excel', category: 'clientes' | 'reservas' | 'habitaciones') => {
+    const handleExport = (type: 'pdf' | 'excel') => {
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];
-        let filename = `reporte-${category}-${dateStr}`;
+        let filename = `reporte-${activeCategory}-${dateStr}`;
         let title = '';
         let columns: ExportColumn[] = [];
         let data: any[] = [];
 
-        if (category === 'clientes') {
+        if (activeCategory === 'clientes') {
             title = 'Reporte de Clientes';
             columns = [
                 { header: 'ID', dataKey: 'id' },
@@ -79,7 +85,7 @@ const TablesView: React.FC = () => {
                     licenseId: c.licenseId
                 };
             });
-        } else if (category === 'reservas') {
+        } else if (activeCategory === 'reservas') {
             title = 'Reporte de Reservas';
             columns = [
                 { header: 'ID', dataKey: 'id' },
@@ -119,33 +125,9 @@ const TablesView: React.FC = () => {
         if (type === 'pdf') {
             exportToPDF(filename, title, columns, data);
         } else {
-            exportToExcel(filename, category, data);
+            exportToExcel(filename, activeCategory, data);
         }
     };
-
-    // --- UI Helpers ---
-    const ExportButtons = ({ category }: { category: 'clientes' | 'reservas' | 'habitaciones' }) => (
-        <div className="flex gap-2">
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleExport('pdf', category)}
-                leftIcon={<FileDown size={14} />}
-                className="text-[10px] uppercase font-bold tracking-widest py-1 h-8"
-            >
-                PDF
-            </Button>
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleExport('excel', category)}
-                leftIcon={<FileSpreadsheet size={14} />}
-                className="text-[10px] uppercase font-bold tracking-widest py-1 h-8 border-green-200 text-green-700 hover:bg-green-50"
-            >
-                Excel
-            </Button>
-        </div>
-    );
 
     // Column Definitions for Real Data
     const customerColumns: Column<CustomerDetailsDTO>[] = [
@@ -203,59 +185,86 @@ const TablesView: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Información General</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Vista completa de los registros del sistema</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Centro de Reportes</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Selecciona una categoría para visualizar y exportar datos</p>
+                </div>
+
+                <div className="flex gap-2">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleExport('pdf')}
+                        leftIcon={<FileDown size={14} />}
+                        className="text-[10px] uppercase font-bold tracking-widest py-1 h-9"
+                    >
+                        Exportar PDF
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleExport('excel')}
+                        leftIcon={<FileSpreadsheet size={14} />}
+                        className="text-[10px] uppercase font-bold tracking-widest py-1 h-9 border-green-200 text-green-700 hover:bg-green-50"
+                    >
+                        Exportar Excel
+                    </Button>
                 </div>
             </div>
 
-            <Card>
-                <div className="flex justify-between items-center mb-4 pr-4">
-                    <div className="p-0">
-                        <h4 className="text-lg font-bold text-gray-800 dark:text-gray-100">Clientes Registrados</h4>
-                        <p className="text-xs text-gray-400">Listado integral de clientes y datos de contacto</p>
-                    </div>
-                    <ExportButtons category="clientes" />
-                </div>
-                <Table<CustomerDetailsDTO>
-                    data={customers}
-                    columns={customerColumns}
-                    keyExtractor={(item) => item.id}
-                    isLoading={loading}
-                />
-            </Card>
+            {/* Category Tabs */}
+            <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl w-fit border border-gray-200 dark:border-white/10">
+                {[
+                    { id: 'clientes', label: 'Clientes', icon: <Users size={16} /> },
+                    { id: 'reservas', label: 'Reservas', icon: <Calendar size={16} /> },
+                    { id: 'habitaciones', label: 'Habitaciones', icon: <DoorOpen size={16} /> }
+                ].map((cat) => (
+                    <button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id as Category)}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${activeCategory === cat.id
+                                ? 'bg-white dark:bg-navy-light text-gold-dark shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            }`}
+                    >
+                        {cat.icon}
+                        {cat.label}
+                    </button>
+                ))}
+            </div>
 
-            <Card>
-                <div className="flex justify-between items-center mb-4 pr-4">
-                    <div className="p-0">
-                        <h4 className="text-lg font-bold text-gray-800 dark:text-gray-100">Reservas Actuales</h4>
-                        <p className="text-xs text-gray-400">Control de ingresos, salidas y estados de reserva</p>
-                    </div>
-                    <ExportButtons category="reservas" />
-                </div>
-                <Table<BookingDTO>
-                    data={bookings}
-                    columns={bookingColumns}
-                    keyExtractor={(item) => item.id}
-                    isLoading={loading}
-                />
-            </Card>
-
-            <Card>
-                <div className="flex justify-between items-center mb-4 pr-4">
-                    <div className="p-0">
-                        <h4 className="text-lg font-bold text-gray-800 dark:text-gray-100">Inventario de Habitaciones</h4>
-                        <p className="text-xs text-gray-400">Estado actual y tipos de habitaciones disponibles</p>
-                    </div>
-                    <ExportButtons category="habitaciones" />
-                </div>
-                <Table<RoomDTO>
-                    data={rooms}
-                    columns={roomColumns}
-                    keyExtractor={(item) => item.id}
-                    isLoading={loading}
-                />
+            <Card className="mt-4">
+                {activeCategory === 'clientes' && (
+                    <Table<CustomerDetailsDTO>
+                        title="Clientes Registrados"
+                        subtitle="Listado integral de clientes y datos de contacto"
+                        data={customers}
+                        columns={customerColumns}
+                        keyExtractor={(item) => item.id}
+                        isLoading={loading}
+                    />
+                )}
+                {activeCategory === 'reservas' && (
+                    <Table<BookingDTO>
+                        title="Reservas Actuales"
+                        subtitle="Control de ingresos, salidas y estados de reserva"
+                        data={bookings}
+                        columns={bookingColumns}
+                        keyExtractor={(item) => item.id}
+                        isLoading={loading}
+                    />
+                )}
+                {activeCategory === 'habitaciones' && (
+                    <Table<RoomDTO>
+                        title="Inventario de Habitaciones"
+                        subtitle="Estado actual y tipos de habitaciones disponibles"
+                        data={rooms}
+                        columns={roomColumns}
+                        keyExtractor={(item) => item.id}
+                        isLoading={loading}
+                    />
+                )}
             </Card>
         </div>
     );
