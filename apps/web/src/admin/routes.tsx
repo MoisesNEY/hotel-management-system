@@ -8,7 +8,8 @@ import {
     MapPin,
     Bell,
     Table2,
-    User
+    User,
+    Monitor
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -23,6 +24,8 @@ import MapsView from './views/Maps/MapsView';
 import NotificationsView from './views/Notifications/NotificationsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
+import CMSList from './views/CMS/CMSList';
+import CMSEditor from './views/CMS/CMSEditor';
 
 export interface RouteConfig {
     path: string;
@@ -103,7 +106,25 @@ const routes: RouteConfig[] = [
         icon: Table2,
         component: TablesView,
         layout: '/admin'
-    }
+    },
+    // --- NUEVA SECCIÓN DE CMS ---
+    {
+        path: '/cms',
+        name: 'Sitio Web', // Nombre en el Sidebar
+        icon: Monitor,     // Icono
+        component: CMSList,
+        layout: '/admin'
+    },
+    // --- RUTA OCULTA PARA EDICIÓN ---
+    // Esta ruta existe para el Router, pero debemos ocultarla del Sidebar
+    {
+        path: '/cms/edit/:id',
+        name: 'Editor CMS',
+        icon: Monitor, 
+        component: CMSEditor,
+        layout: '/admin',
+        hidden: true // <--- Propiedad clave
+    },
 ];
 
 export default routes;
