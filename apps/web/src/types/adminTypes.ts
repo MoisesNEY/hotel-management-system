@@ -1,17 +1,4 @@
-import { type UserDTO } from './sharedTypes';
-
-export interface AdminUserDTO extends UserDTO {
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  activated: boolean;
-  langKey?: string;
-  authorities: string[];
-  createdBy?: string;
-  createdDate?: string; // ISO Date
-  lastModifiedBy?: string;
-  lastModifiedDate?: string; // ISO Date
-}
+import { type UserDTO, type AdminUserDTO } from './sharedTypes';
 export const CollectionType = {
   SINGLE_IMAGE: 'SINGLE_IMAGE', // Editor de una sola foto (Hero)
   GALLERY: 'GALLERY',           // Subida múltiple (Carrusel)

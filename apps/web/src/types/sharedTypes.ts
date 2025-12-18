@@ -7,10 +7,20 @@ export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 export interface UserDTO {
   id: number;
   login?: string;
+}
+
+export interface AdminUserDTO extends UserDTO {
   firstName?: string;
   lastName?: string;
   email?: string;
   imageUrl?: string;
+  activated?: boolean;
+  langKey?: string;
+  authorities?: string[];
+  createdBy?: string;
+  createdDate?: string; // ISO Date
+  lastModifiedBy?: string;
+  lastModifiedDate?: string; // ISO Date
 }
 
 export interface CustomerDetailsDTO {
@@ -23,7 +33,7 @@ export interface CustomerDetailsDTO {
   country: string;
   licenseId: string;
   birthDate: string; // ISO Date String
-  user?: UserDTO;
+  user?: AdminUserDTO;
 }
 
 
@@ -56,7 +66,7 @@ export interface BookingDTO {
   notes?: string;
   roomType: RoomTypeDTO;
   assignedRoom?: RoomDTO;
-  customer: UserDTO;
+  customer: AdminUserDTO;
 }
 
 export interface HotelServiceDTO {

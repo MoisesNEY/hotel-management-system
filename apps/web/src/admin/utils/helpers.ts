@@ -59,6 +59,16 @@ export const getBookingStatusConfig = (status: string) => {
     }
 };
 
+export const getRequestStatusConfig = (status: string) => {
+    switch (status) {
+        case 'OPEN': return { label: 'Abierta', variant: 'warning' };
+        case 'IN_PROGRESS': return { label: 'Procesando', variant: 'info' };
+        case 'COMPLETED': return { label: 'Completada', variant: 'success' };
+        case 'REJECTED': return { label: 'Rechazada', variant: 'danger' };
+        default: return { label: status, variant: 'primary' };
+    }
+};
+
 export const truncateText = (text: string, maxLength: number): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';

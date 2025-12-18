@@ -126,7 +126,6 @@ const RoomsView = () => {
                 return (
                     <span 
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${config.className}`}
-                        style={config.style}
                     >
                         {config.label}
                     </span>

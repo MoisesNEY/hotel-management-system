@@ -15,9 +15,9 @@ import type {
     BookingDTO, 
     RoomTypeDTO, 
     CustomerDetailsDTO as CustomerDTO,
-    BookingStatus 
+    BookingStatus,
+    AdminUserDTO
 } from '../../../types/sharedTypes';
-import type { AdminUserDTO } from '../../../types/adminTypes';
 
 interface BookingFormProps {
     initialData?: BookingDTO | null;
@@ -181,11 +181,9 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                 type="text"
                                 readOnly
                                 value={
-                                    initialData.customer?.id && usersMap[initialData.customer.id] 
-                                        ? `${usersMap[initialData.customer.id].firstName} ${usersMap[initialData.customer.id].lastName} (${usersMap[initialData.customer.id].email})`
-                                        : (initialData.customer?.firstName 
-                                            ? `${initialData.customer.firstName} ${initialData.customer.lastName} (${initialData.customer.email})`
-                                            : 'Cargando información del cliente...')
+                                    initialData.customer?.firstName 
+                                        ? `${initialData.customer.firstName} ${initialData.customer.lastName} (${initialData.customer.email})`
+                                        : 'Cargando información del cliente...'
                                 }
                                 className={`${inputStyle} pl-12 bg-gray-50/50 dark:bg-white/5 cursor-not-allowed border-dashed text-gray-500 dark:text-gray-400`}
                             />

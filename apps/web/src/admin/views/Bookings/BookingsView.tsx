@@ -7,8 +7,7 @@ import { getAllBookings, deleteBooking } from '../../../services/admin/bookingSe
 import { checkIn, checkOut, assignRoom } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
 import { getAllUsers } from '../../../services/admin/userService';
-import type { BookingDTO, RoomDTO } from '../../../types/sharedTypes';
-import type { AdminUserDTO } from '../../../types/adminTypes';
+import type { BookingDTO, RoomDTO, AdminUserDTO } from '../../../types/sharedTypes';
 import { formatCurrency, formatDate, getBookingStatusConfig } from '../../utils/helpers';
 import BookingForm from './BookingForm';
 import Modal from '../../components/shared/Modal';
@@ -171,11 +170,9 @@ const BookingsView = () => {
         {
             header: 'Cliente',
             accessor: (row) => {
-                // Stitch user data
-                const user = usersMap[row.customer.id];
-                const firstName = user?.firstName || row.customer?.firstName || 'Sin Nombre';
-                const lastName = user?.lastName || row.customer?.lastName || '';
-                const email = user?.email || row.customer?.email || 'Sin Email';
+                const firstName = row.customer?.firstName || 'Sin Nombre';
+                const lastName = row.customer?.lastName || '';
+                const email = row.customer?.email || 'Sin Email';
 
                 return (
                     <div>
@@ -234,7 +231,7 @@ const BookingsView = () => {
                         </Button>
                     )}
                     {row.status === 'CONFIRMED' && row.assignedRoom && (
-                        <Button size="sm" variant="primary" onClick={() => handleCheckIn(row.id)}>
+                        <Button size="sm" variant="warning" onClick={() => handleCheckIn(row.id)}>
                             Check-In
                         </Button>
                     )}
