@@ -1,0 +1,52 @@
+{
+  "annotations": {
+    "changelogDate": "20251218004955"
+  },
+  "applications": ["hotelBackend"],
+  "clientRootFolder": "hotelBackend",
+  "databaseType": "sql",
+  "documentation": "Define una \"Sección\" en la web pública.\\nEj: 'CONTACT_INFO', 'HOME_HERO', 'FOOTER_MAP'",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "code",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique", "minlength", "maxlength"],
+      "fieldValidateRulesMaxlength": "50",
+      "fieldValidateRulesMinlength": "2"
+    },
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "100"
+    },
+    {
+      "fieldName": "type",
+      "fieldType": "CollectionType",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "SINGLE_IMAGE,GALLERY,TEXT_LIST,MAP_EMBED"
+    },
+    {
+      "fieldName": "description",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    }
+  ],
+  "jpaMetamodelFiltering": true,
+  "microserviceName": "hotelBackend",
+  "name": "AssetCollection",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "webContent",
+      "otherEntityRelationshipName": "collection",
+      "relationshipName": "items",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}
