@@ -185,9 +185,9 @@ Recibirás una confirmación por correo electrónico.`);
                  {error}
                </div>
             ) : services.length === 0 ? (
-               <div className="col-span-full text-center py-20 bg-gray-50 rounded-xl">
-                  <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-xl text-gray-600 font-medium">No hay servicios premium disponibles</h3>
+               <div className="col-span-full text-center py-20 no-services-card">
+                  <AlertCircle className="mx-auto h-12 w-12 no-services-icon mb-4" />
+                  <h3 className="no-services-title">No hay servicios premium disponibles</h3>
                </div>
             ) : (
               services.map((service) => (

@@ -506,7 +506,7 @@ Te contactaremos para confirmar.`);
                 <div className="form-actions">
                   <button 
                     type="button" 
-                    className="btn-cancel" 
+                    className="btn-roomtypes-cancel" 
                     onClick={closeModal}
                     disabled={isSubmitting}
                   >
@@ -514,7 +514,7 @@ Te contactaremos para confirmar.`);
                   </button>
                   <button 
                     type="submit" 
-                    className="btn-submit"
+                    className="btn-roomtypes-confirm"
                     disabled={isSubmitting}
                   >
                     <CreditCard size={18} />

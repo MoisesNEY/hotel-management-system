@@ -1,5 +1,5 @@
 .hotel-gallery {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: var(--bg-primary);
     padding: 100px 0;
     position: relative;
     overflow: hidden;
@@ -12,7 +12,7 @@
 
 .section-title {
     font-size: 2.5rem;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 15px;
     position: relative;
     padding-bottom: 15px;
@@ -31,7 +31,7 @@
 }
 
 .section-subtitle {
-    color: #666;
+    color: var(--text-secondary);
     font-size: 1.1rem;
     max-width: 600px;
     margin: 0 auto;
@@ -123,12 +123,12 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: #1a1a2e;
+    color: var(--text-primary);
     z-index: 10;
 }
 
 .slider-btn:hover {
-    background: white;
+    background: var(--card-bg);
     transform: translateY(-50%) scale(1.1);
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 }
@@ -209,7 +209,7 @@
 }
 
 .location-info {
-    background: white;
+    background: var(--card-bg);
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
@@ -219,7 +219,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 30px;
     font-size: 1.8rem;
 }
@@ -235,7 +235,7 @@
 }
 
 .hotel-name {
-    color: #1a1a2e;
+    color: var(--text-primary);
     font-size: 1.5rem;
     margin-bottom: 10px;
 }
@@ -250,8 +250,12 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 0.95rem;
+    background: var(--bg-secondary);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
 }
 
 .contact-item svg {
@@ -260,7 +264,7 @@
 }
 
 .hotel-features h5 {
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 15px;
     font-size: 1.1rem;
 }
@@ -275,8 +279,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 0.9rem;
+    background: var(--bg-secondary);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
 }
 
 .feature svg {
@@ -308,7 +316,7 @@
 /* Map Section */
 
 .location-map {
-    background: white;
+    background: var(--card-bg);
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
@@ -328,8 +336,8 @@
 }
 
 .map-link {
-    background: white;
-    color: #1a1a2e;
+    background: var(--card-bg);
+    color: var(--text-primary);
     padding: 10px 20px;
     border-radius: 6px;
     text-decoration: none;
@@ -626,4 +634,38 @@
     .rating-text {
         font-size: 1rem;
     }
+}
+
+
+/* Dark mode overrides for hotel gallery */
+
+[data-theme="dark"] .location-info {
+    background: #1e1e3e;
+}
+
+[data-theme="dark"] .location-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .hotel-name {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .contact-item {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .hotel-features h5 {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .feature {
+    color: #e0e0e0;
+    background: #16213e;
+    border-color: #2a2a3e;
+}
+
+[data-theme="dark"] .contact-item {
+    background: #16213e;
+    border-color: #2a2a3e;
 }

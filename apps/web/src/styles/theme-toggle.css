@@ -1,0 +1,90 @@
+.theme-toggle-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.theme-toggle-button:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--text-tertiary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .theme-toggle-button:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.theme-toggle-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.theme-toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+}
+
+.theme-toggle-icon:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--text-tertiary);
+    transform: scale(1.05);
+}
+
+.theme-toggle-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 14px;
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.3s ease;
+}
+
+.theme-toggle-dropdown:hover {
+    background-color: var(--bg-secondary);
+}
+
+.theme-toggle-button svg,
+.theme-toggle-icon svg,
+.theme-toggle-dropdown svg {
+    transition: transform 0.3s ease, color 0.3s ease;
+    color: var(--text-primary);
+}
+
+.theme-toggle-button:hover svg,
+.theme-toggle-icon:hover svg {
+    transform: rotate(15deg);
+}
+
+.theme-toggle-dropdown svg {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .theme-toggle-dropdown svg {
+    color: var(--gold-accent);
+}

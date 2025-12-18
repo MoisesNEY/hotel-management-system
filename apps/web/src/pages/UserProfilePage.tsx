@@ -13,6 +13,7 @@ import '../styles/user-profile.css';
 import { getMyBookings } from '../services/client/bookingService';
 import ServiceRequestModal from '../components/ServiceRequestModal';
 import { ConciergeBell } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 // Interfaces para los datos
 interface UserData {
@@ -52,7 +53,7 @@ const UserProfilePage: React.FC = () => {
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
-  
+
   // Estados para los modales
   const [showBookingsModal, setShowBookingsModal] = useState(false);
   const [showServicesModal, setShowServicesModal] = useState(false);
@@ -520,6 +521,7 @@ const UserProfilePage: React.FC = () => {
 
 
           <div className="header-actions">
+            <ThemeToggle variant="button" className="theme-toggle-profile" />
             {activeTab === 'profile' && (
               !isEditing ? (
                 <>
