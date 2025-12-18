@@ -1,5 +1,5 @@
 // ==========================================
-// CONFIGURACIÓN DE LA APLICACIÓN
+// 1. CONFIGURACIÓN DE LA APLICACIÓN
 // ==========================================
 application {
   config {
@@ -18,11 +18,11 @@ application {
 }
 
 // ==========================================
-// ENUMS
+// 2. ENUMS (Negocio y CMS)
 // ==========================================
 
 enum BookingStatus {
-  PENDING,    // Reserva creada, espera confirmación
+  PENDING,    // Reserva creada, espera pago/confirmación
   CONFIRMED,  // Confirmada
   CHECKED_IN, // Huésped en casa
   CHECKED_OUT,// Huésped salió
@@ -33,28 +33,36 @@ enum RoomStatus {
   AVAILABLE,   // Lista
   OCCUPIED,    // Ocupada
   DIRTY,       // A limpiar
-  MAINTENANCE,  // Reparaciones
-  UNAVAILABLE //No disponible
+  MAINTENANCE, // Reparaciones
+  UNAVAILABLE  // Bloqueada administrativamente
 }
 
 enum RequestStatus {
-  OPEN,
-  IN_PROGRESS,
-  COMPLETED,
-  REJECTED
+  OPEN,        // Solicitud creada
+  IN_PROGRESS, // Staff trabajando en ello
+  COMPLETED,   // Entregado
+  REJECTED     // No se pudo cumplir
 }
 
 enum Gender {
   MALE, FEMALE, OTHER
 }
 
+// Enum para el CMS: Define cómo se comporta el editor en el Frontend
+enum CollectionType {
+  SINGLE_IMAGE,   // Hero, Banners (1 sola foto)
+  GALLERY,        // Carruseles, Grids (N fotos)
+  TEXT_LIST,      // Lista de datos (Teléfonos, Features, Redes Sociales)
+  MAP_EMBED       // Mapas o Iframes
+}
+
 // ==========================================
-// ENTIDADES
+// 3. ENTIDADES DEL NÚCLEO (CORE)
 // ==========================================
 
 /**
- * Datos extendidos del cliente (Perfil).D
- * Se llena DESPUÉS del registro en Keycloak.
+ * Perfil extendido del cliente.
+ * Vinculado al User de Keycloak/Identity.
  */
 entity CustomerDetails {
   gender Gender required,
@@ -62,17 +70,16 @@ entity CustomerDetails {
   addressLine1 String required,
   city String required,
   country String required,
-  // DNI o Pasaporte (Crucial para hoteles)
-  licenseId String required,
+  licenseId String required, // DNI o Pasaporte
   birthDate LocalDate required
 }
 
 entity RoomType {
   name String required minlength(3),
   description TextBlob,
-  basePrice BigDecimal required min(0),
+  basePrice BigDecimal required min(0), // Precio por noche base
   maxCapacity Integer required min(1),
-  imageUrl String,
+  imageUrl String,                      // Thumbnail principal para el Backoffice
   area BigDecimal min(0),
   beds Integer min(1)
 }
@@ -98,7 +105,7 @@ entity HotelService {
   isAvailable Boolean required,
   isDeleted Boolean,
   cost BigDecimal required min(0),
-  imageUrl String
+  imageUrl String // Icono o foto pequeña del servicio
 }
 
 entity ServiceRequest {
@@ -108,34 +115,80 @@ entity ServiceRequest {
 }
 
 // ==========================================
-// RELACIONES
+// 4. ENTIDADES DEL CMS (CONTENIDO WEB)
+// ==========================================
+
+/**
+ * Define una "Sección" en la web pública.
+ * Ej: 'CONTACT_INFO', 'HOME_HERO', 'FOOTER_MAP'
+ */
+entity AssetCollection {
+  code String required unique minlength(2) maxlength(50), // ID para el programador
+  name String required maxlength(100),                    // Nombre legible para el Admin
+  type CollectionType required,                           // Controla la vista del editor
+  description String maxlength(500)                       // Ayuda para el admin
+}
+
+/**
+ * El contenido real. Puede ser una imagen, un teléfono o una coordenada.
+ */
+entity WebContent {
+  // Metadatos Visuales (Texto)
+  title String maxlength(100),       // Label: "Teléfono", "Título Slide"
+  subtitle String maxlength(500),    // Value: "+505 22...", "Bajada del Slide"
+
+  // Metadatos Multimedia/Acción
+  imageUrl String maxlength(2048),   // URL de la imagen (S3/Cloudinary)
+  actionUrl String maxlength(2048),  // Link, tel:, mailto:, o src del Iframe Map
+
+  // Control
+  sortOrder Integer required,        // Para ordenar el carrusel o lista
+  isActive Boolean                   // Para ocultar sin borrar
+}
+
+// ==========================================
+// 5. RELACIONES
 // ==========================================
 
 relationship OneToOne {
-  // Vincula los datos extra con el usuario de Keycloak
+  // Un usuario de sistema (Login) tiene un único perfil de cliente
   CustomerDetails{user(login) required} to User with builtInEntity
 }
 
 relationship OneToMany {
+  // Inventario
   RoomType{rooms} to Room{roomType(name) required},
-  Booking{serviceRequests} to ServiceRequest{booking(id) required}
+
+  // Operaciones
+  Booking{serviceRequests} to ServiceRequest{booking(id) required},
+
+  // CMS: Una colección tiene muchos items de contenido
+  AssetCollection{items} to WebContent{collection(name) required}
 }
 
 relationship ManyToOne {
+  // Reserva vinculada al tipo de habitación (Precios/Capacidad)
   Booking{roomType(name) required} to RoomType,
 
-  // Asignación de habitación física (Puede ser null al principio)
+  // Reserva asignada a una habitación física (Opcional al inicio)
   Booking{assignedRoom(roomNumber)} to Room,
 
-  // Vincula la reserva con el Usuario (Login) para seguridad
+  // Reserva pertenece a un cliente (Usuario logueado)
   Booking{customer(login) required} to User with builtInEntity,
 
+  // Solicitud vinculada al servicio del catálogo
   ServiceRequest{service(name) required} to HotelService
 }
 
-// Paginación
-paginate Booking, ServiceRequest, Room, CustomerDetails with pagination
+// ==========================================
+// 6. OPCIONES DE GENERACIÓN
+// ==========================================
 
-// DTOs (Data Transfer Objects)
+// El filtro es VITAL para el CMS (buscar por 'code')
+filter AssetCollection, WebContent
+
+// Paginación para todos
+paginate Booking, ServiceRequest, Room, CustomerDetails, RoomType, HotelService, AssetCollection, WebContent with pagination
+
+// DTOs para exponer solo lo necesario
 dto * with mapstruct
-
