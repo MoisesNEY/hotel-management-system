@@ -1,5 +1,5 @@
 import { apiClient } from '../api';
-import { type RoomDTO } from '../../types/sharedTypes';
+import { type RoomDTO } from '../../types/adminTypes';
 
 const API_URL = '/api/rooms';
 

@@ -138,7 +138,7 @@ const Header: React.FC = () => {
               <Hotel size={36} color="#d4af37" />
               <div>
                 <div className={`font-['Playfair_Display'] text-2xl font-bold tracking-wide ${isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'}`}>
-                  Grand Hotel
+                  HOTEL
                 </div>
               </div>
             </div>

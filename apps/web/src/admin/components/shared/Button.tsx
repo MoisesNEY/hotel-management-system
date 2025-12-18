@@ -28,7 +28,7 @@ const Button: React.FC<ButtonProps> = ({
     ...props
 }) => {
     // Base M3 classes: Flex center, transitions, pill or rounded shape, font medium
-    let btnClass = 'inline-flex items-center justify-center font-medium transition-all duration-200 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+    let btnClass = 'inline-flex items-center justify-center font-medium transition-all duration-200 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap';
 
     // Size mappings
     const sizeClasses = {

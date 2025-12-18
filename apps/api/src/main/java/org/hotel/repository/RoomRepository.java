@@ -40,4 +40,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     Optional<Room> findOneWithToOneRelationships(@Param("id") Long id);
 
     boolean existsByRoomNumber(@NotNull String roomNumber);
+
+    boolean existsByRoomNumberAndIdNot(@NotNull String roomNumber, Long id);
 }

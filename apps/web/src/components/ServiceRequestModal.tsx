@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Check, AlertCircle, Loader, Hotel, Bed } from 'lucide-react';
 import { getAllHotelServices } from '../services/admin/hotelServiceService';
 import { createServiceRequest } from '../services/client/serviceRequestService';
-import type { HotelServiceDTO } from '../types/sharedTypes';
+import type { HotelServiceDTO } from '../types/adminTypes';
 
 interface ServiceRequestModalProps {
   bookingId: number;

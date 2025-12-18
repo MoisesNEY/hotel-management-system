@@ -1,4 +1,4 @@
-import { type RequestStatus } from './sharedTypes';
+import { type RequestStatus } from './adminTypes';
 
 export interface AssignRoomRequest {
   roomId: number;

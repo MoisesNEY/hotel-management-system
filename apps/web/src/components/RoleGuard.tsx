@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthProvider';
 import type { UserRole } from '../contexts/AuthProvider';
+import LoadingScreen from './shared/LoadingScreen';
 
 interface RoleGuardProps {
   requiredRole?: UserRole;
@@ -20,11 +21,11 @@ const RoleGuard: React.FC<RoleGuardProps> = ({ requiredRole, allowedRoles, child
   }, [isInitialized, isAuthenticated, login]);
 
   if (!isInitialized) {
-    return <div className="loading-screen">Cargando...</div>;
+    return <LoadingScreen message="Verificando permisos..." />;
   }
 
   if (!isAuthenticated) {
-    return <div className="loading-screen">Redirigiendo al login (Role)...</div>;
+    return <LoadingScreen message="Acceso restringido..." />;
   }
 
   // Verificar rol

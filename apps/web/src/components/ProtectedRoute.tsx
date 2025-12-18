@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthProvider';
+import LoadingScreen from './shared/LoadingScreen';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -17,11 +18,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [isInitialized, isAuthenticated, login]);
 
   if (!isInitialized) {
-    return <div className="loading-screen">Cargando...</div>;
+    return <LoadingScreen message="Inicializando sistema..." />;
   }
 
   if (!isAuthenticated) {
-    return <div className="loading-screen">Redirigiendo al login...</div>;
+    return <LoadingScreen message="Redirigiendo al portal..." />;
   }
 
   return children ? <>{children}</> : <Outlet />;

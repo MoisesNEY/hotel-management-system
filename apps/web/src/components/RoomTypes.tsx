@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import { createBooking } from '../services/client/bookingService';
 import { getAllRoomTypes } from '../services/admin/roomTypeService';
-import type { RoomTypeDTO } from '../types/sharedTypes';
+import type { RoomTypeDTO } from '../types/adminTypes';
 
 type RoomType = RoomTypeDTO;
 

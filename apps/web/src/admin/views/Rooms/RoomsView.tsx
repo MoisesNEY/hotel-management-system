@@ -33,7 +33,7 @@ import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
 import { getAllRooms, deleteRoom } from '../../../services/admin/roomService';
 import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
-import type { RoomDTO, RoomTypeDTO } from '../../../types/sharedTypes';
+import type { RoomDTO, RoomTypeDTO } from '../../../types/adminTypes';
 import { getRoomStatusConfig } from '../../utils/helpers';
 import RoomForm from './RoomForm';
 
@@ -126,7 +126,6 @@ const RoomsView = () => {
                 return (
                     <span 
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${config.className}`}
-                        style={config.style}
                     >
                         {config.label}
                     </span>
