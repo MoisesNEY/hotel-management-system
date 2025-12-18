@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '../api';
 import type { WebContent } from '../../types/webContentTypes';
 
 const API_URL = 'api/public/content';
@@ -14,7 +14,7 @@ export const PublicContentService = {
    * Ej: getList('HOME_GALLERY')
    */
   getList: async (code: string) => {
-    const response = await axios.get<WebContent[]>(`${API_URL}/${code}`);
+    const response = await apiClient.get<WebContent[]>(`${API_URL}/${code}`);
     return response.data;
   },
 
@@ -23,7 +23,7 @@ export const PublicContentService = {
    * Ej: getSingle('HOME_HERO')
    */
   getSingle: async (code: string) => {
-    const response = await axios.get<WebContent>(`${API_URL}/${code}/single`);
+    const response = await apiClient.get<WebContent>(`${API_URL}/${code}/single`);
     return response.data;
   },
 

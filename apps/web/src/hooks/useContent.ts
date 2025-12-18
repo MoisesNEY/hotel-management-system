@@ -12,10 +12,12 @@ export function useSingleContent(code: string) {
     const fetch = async () => {
       try {
         const result = await PublicContentService.getSingle(code);
+        console.log(result);
         if (isMounted) setData(result);
       } catch (err) {
         console.error(`Error fetching single content [${code}]:`, err);
       } finally {
+        console.log('Loading finished');
         if (isMounted) setLoading(false);
       }
     };
@@ -37,6 +39,7 @@ export function useListContent(code: string) {
       try {
         const result = await PublicContentService.getList(code);
         if (isMounted) setData(result);
+        console.log(result);
       } catch (err) {
         console.error(`Error fetching list content [${code}]:`, err);
       } finally {
