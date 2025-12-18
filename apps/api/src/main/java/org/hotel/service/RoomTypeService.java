@@ -44,6 +44,9 @@ public class RoomTypeService {
      */
     public RoomTypeDTO save(RoomTypeDTO roomTypeDTO) {
         LOG.debug("Request to save RoomType : {}", roomTypeDTO);
+        if (roomTypeRepository.existsByName(roomTypeDTO.getName())) {
+            throw new BusinessRuleException("Ya existe un tipo de habitación con el nombre: " + roomTypeDTO.getName());
+        }
         RoomType roomType = roomTypeMapper.toEntity(roomTypeDTO);
         roomType = roomTypeRepository.save(roomType);
         return roomTypeMapper.toDto(roomType);
@@ -57,6 +60,9 @@ public class RoomTypeService {
      */
     public RoomTypeDTO update(RoomTypeDTO roomTypeDTO) {
         LOG.debug("Request to update RoomType : {}", roomTypeDTO);
+        if (roomTypeRepository.existsByNameAndIdNot(roomTypeDTO.getName(), roomTypeDTO.getId())) {
+            throw new BusinessRuleException("Ya existe un tipo de habitación con el nombre: " + roomTypeDTO.getName());
+        }
         RoomType roomType = roomTypeMapper.toEntity(roomTypeDTO);
         roomType = roomTypeRepository.save(roomType);
         return roomTypeMapper.toDto(roomType);
@@ -70,6 +76,10 @@ public class RoomTypeService {
      */
     public Optional<RoomTypeDTO> partialUpdate(RoomTypeDTO roomTypeDTO) {
         LOG.debug("Request to partially update RoomType : {}", roomTypeDTO);
+
+        if (roomTypeDTO.getName() != null && roomTypeRepository.existsByNameAndIdNot(roomTypeDTO.getName(), roomTypeDTO.getId())) {
+            throw new BusinessRuleException("Ya existe un tipo de habitación con el nombre: " + roomTypeDTO.getName());
+        }
 
         return roomTypeRepository
             .findById(roomTypeDTO.getId())

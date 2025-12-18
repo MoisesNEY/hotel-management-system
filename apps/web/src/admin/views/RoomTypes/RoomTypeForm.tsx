@@ -52,9 +52,13 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
                 await createRoomType(formData as RoomTypeDTO);
             }
             onSuccess();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError('Error al guardar el tipo de habitación');
+            if (err.response?.status === 409) {
+                setError(err.response.data?.detail || 'Ya existe un tipo de habitación con este nombre');
+            } else {
+                setError('Error al guardar el tipo de habitación. Por favor, intente de nuevo.');
+            }
         } finally {
             setLoading(false);
         }
@@ -81,6 +85,7 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    minLength={3}
                     placeholder="Ej: Suite Junior, Doble Estándar"
                     className={inputStyle}
                 />
