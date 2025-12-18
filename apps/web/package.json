@@ -13,6 +13,8 @@
     "@heroicons/react": "^2.2.0",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "keycloak-js": "^26.2.2",
     "lucide-react": "^0.560.0",
     "next-themes": "^0.4.6",
@@ -21,7 +23,8 @@
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.1",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
