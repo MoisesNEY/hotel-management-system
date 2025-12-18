@@ -7,10 +7,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
     size?: ButtonSize;
     icon?: React.ReactNode;
-    leftIcon?: React.ReactNode; 
+    leftIcon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
     isLoading?: boolean;
-    block?: boolean; 
-    iconOnly?: boolean; 
+    block?: boolean;
+    iconOnly?: boolean;
     children?: React.ReactNode;
 }
 
@@ -21,6 +22,7 @@ const Button: React.FC<ButtonProps> = ({
     className = '',
     icon,
     leftIcon,
+    rightIcon,
     isLoading = false,
     block = false,
     iconOnly = false,
@@ -43,19 +45,19 @@ const Button: React.FC<ButtonProps> = ({
     // Secondary -> Tonal/Filled Tonal
     // Outline -> Outlined
     // Ghost/Link -> Text
-    
+
     const variantClasses = {
         primary: 'bg-gold-default text-white shadow-sm hover:shadow-md hover:bg-gold-hover rounded-xl',
         secondary: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl',
         outline: 'border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl',
         ghost: 'bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl',
-        
+
         danger: 'bg-rose-500 text-white shadow-sm hover:shadow-md hover:bg-rose-600 rounded-xl',
         success: 'bg-emerald-500 text-white shadow-sm hover:shadow-md hover:bg-emerald-600 rounded-xl',
         warning: 'bg-amber-500 text-white shadow-sm hover:shadow-md hover:bg-amber-600 rounded-xl',
         info: 'bg-cyan-500 text-white shadow-sm hover:shadow-md hover:bg-cyan-600 rounded-xl',
         light: 'bg-white dark:bg-white/10 text-gray-800 dark:text-white shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-white/20 rounded-xl',
-        
+
         error: 'bg-rose-500 text-white shadow-sm hover:shadow-md rounded-xl',
         link: 'bg-transparent text-gold-default hover:underline p-0 h-auto shadow-none',
     };
@@ -96,6 +98,8 @@ const Button: React.FC<ButtonProps> = ({
             {!isLoading && iconContent && <span className={`${children ? 'mr-2' : ''} flex items-center justify-center`}>{iconContent}</span>}
 
             {children}
+
+            {!isLoading && rightIcon && <span className={`${children ? 'ml-2' : ''} flex items-center justify-center`}>{rightIcon}</span>}
         </button>
     );
 };
