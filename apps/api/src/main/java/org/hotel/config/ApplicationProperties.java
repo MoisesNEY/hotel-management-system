@@ -11,15 +11,64 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 public class ApplicationProperties {
 
+    private final S3 s3 = new S3();
     private final Liquibase liquibase = new Liquibase();
-
-    // jhipster-needle-application-properties-property
 
     public Liquibase getLiquibase() {
         return liquibase;
     }
 
-    // jhipster-needle-application-properties-property-getter
+    public S3 getS3() {
+        return s3;
+    }
+
+    public static class S3 {
+        private String bucket;
+        private String region;
+        private String accessKey;
+        private String secretKey;
+        private String endpoint;
+
+        public String getBucket() {
+            return bucket;
+        }
+
+        public void setBucket(String bucket) {
+            this.bucket = bucket;
+        }
+
+        public String getRegion() {
+            return region;
+        }
+
+        public void setRegion(String region) {
+            this.region = region;
+        }
+
+        public String getAccessKey() {
+            return accessKey;
+        }
+
+        public void setAccessKey(String accessKey) {
+            this.accessKey = accessKey;
+        }
+
+        public String getSecretKey() {
+            return secretKey;
+        }
+
+        public void setSecretKey(String secretKey) {
+            this.secretKey = secretKey;
+        }
+
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
+        }
+    }
 
     public static class Liquibase {
 
