@@ -310,22 +310,22 @@ const UserProfilePage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED': return 'bg-green-100 text-green-800';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'CONFIRMED': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border dark:border-green-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border dark:border-blue-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border dark:border-yellow-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border dark:border-red-800';
+      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:border dark:border-purple-800';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 dark:border dark:border-gray-700';
     }
   };
 
   const renderBookingStatus = (status: string) => {
     switch (status) {
-      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Confirmada</span>;
-      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
-      case 'CANCELLED': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
-      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Completada</span>;
-      default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{status}</span>;
+      case 'CONFIRMED': return <span className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border dark:border-green-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Confirmada</span>;
+      case 'PENDING': return <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border dark:border-yellow-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
+      case 'CANCELLED': return <span className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border dark:border-red-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
+      case 'COMPLETED': return <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border dark:border-blue-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle size={12} /> Completada</span>;
+      default: return <span className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 dark:border dark:border-gray-700 px-2 py-1 rounded text-xs font-bold">{status}</span>;
     }
   };
 
