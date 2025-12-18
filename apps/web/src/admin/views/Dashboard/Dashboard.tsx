@@ -158,10 +158,10 @@ const Dashboard = () => {
                     <StatsCard
                         type="danger"
                         icon={Users}
-                        title="Errores"
-                        value={23}
+                        title="Clientes"
+                        value={stats?.usersCount || 0}
                         footerInitIcon={Clock}
-                        footerText="En la última hora"
+                        footerText="Total registrados"
                     />
                 </div>
                 <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
