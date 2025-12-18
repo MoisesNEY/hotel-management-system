@@ -9,10 +9,10 @@ import { getAllRooms } from '../../../services/admin/roomService';
 import { getAllUsers } from '../../../services/admin/userService';
 import type { BookingDTO, RoomDTO } from '../../../types/sharedTypes';
 import type { AdminUserDTO } from '../../../types/adminTypes';
-import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
+import { formatCurrency, formatDate, getBookingStatusConfig } from '../../utils/helpers';
 import BookingForm from './BookingForm';
 import Modal from '../../components/shared/Modal';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
@@ -27,6 +27,22 @@ const BookingsView = () => {
     const [availableRooms, setAvailableRooms] = useState<RoomDTO[]>([]);
     const [selectedRoomId, setSelectedRoomId] = useState<number | string>('');
     const [assignLoading, setAssignLoading] = useState(false);
+
+    // Feedback State
+    const [feedback, setFeedback] = useState<{
+        show: boolean;
+        title: string;
+        message: string;
+        type: 'success' | 'error' | 'warning';
+    }>({ show: false, title: '', message: '', type: 'success' });
+
+    const showSuccess = (title: string, message: string) => {
+        setFeedback({ show: true, title, message, type: 'success' });
+    };
+
+    const showError = (title: string, message: string) => {
+        setFeedback({ show: true, title, message, type: 'error' });
+    };
 
     // Handlers
     const openAssignModal = async (bookingId: number) => {
@@ -59,34 +75,37 @@ const BookingsView = () => {
             await assignRoom(assigningBookingId, Number(selectedRoomId));
             setShowAssignModal(false);
             loadBookings();
-            alert('Habitación asignada correctamente');
-        } catch (error) {
+            showSuccess('Habitación Asignada', 'La habitación se ha vinculado correctamente a la reserva.');
+        } catch (error: any) {
             console.error("Error assigning room", error);
-            alert('Error al asignar habitación');
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo asignar la habitación seleccionada.';
+            showError('Error de Asignación', serverMsg);
         } finally {
             setAssignLoading(false);
         }
     };
 
     const handleCheckIn = async (bookingId: number) => {
-        if (!confirm('¿Confirmar Check-In?')) return;
         try {
             await checkIn(bookingId);
             loadBookings();
-        } catch (error) {
+            showSuccess('Check-In Exitoso', 'El huésped ha sido registrado en el hotel.');
+        } catch (error: any) {
             console.error("Error during check-in", error);
-            alert('Error al realizar Check-In');
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'Hubo un problema al procesar la entrada del huésped.';
+            showError('Error al Realizar Check-In', serverMsg);
         }
     };
 
     const handleCheckOut = async (bookingId: number) => {
-        if (!confirm('¿Confirmar Check-Out?')) return;
         try {
             await checkOut(bookingId);
             loadBookings();
-        } catch (error) {
+            showSuccess('Check-Out Completado', 'La estancia ha finalizado correctamente.');
+        } catch (error: any) {
             console.error("Error during check-out", error);
-            alert('Error al realizar Check-Out');
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'Hubo un problema al procesar la salida del huésped.';
+            showError('Error al Realizar Check-Out', serverMsg);
         }
     };
 
@@ -96,14 +115,14 @@ const BookingsView = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar esta reserva?')) {
-            try {
-                await deleteBooking(id);
-                setBookings(prev => prev.filter(b => b.id !== id));
-            } catch (error) {
-                console.error("Error deleting booking", error);
-                alert('No se pudo eliminar la reserva');
-            }
+        try {
+            await deleteBooking(id);
+            setBookings(prev => prev.filter(b => b.id !== id));
+            showSuccess('Reserva Eliminada', 'El registro ha sido removido del sistema permanentemente.');
+        } catch (error: any) {
+            console.error("Error deleting booking", error);
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo completar la eliminación del registro.';
+            showError('Error al Eliminar', serverMsg);
         }
     };
 
@@ -188,7 +207,14 @@ const BookingsView = () => {
         },
         {
             header: 'Estado',
-            accessor: (row) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge>
+            accessor: (row) => {
+                const config = getBookingStatusConfig(row.status);
+                return (
+                    <Badge variant={config.variant} className="whitespace-nowrap px-4 py-1">
+                        {config.label}
+                    </Badge>
+                );
+            }
         },
         {
             header: 'Total',
@@ -282,7 +308,7 @@ const BookingsView = () => {
                             value={selectedRoomId}
                             onChange={(e) => setSelectedRoomId(e.target.value)}
                         >
-                            <option value="" className="dark:bg-[#1c1c1c]">-- Seleccionar --</option>
+                            <option value="" className="dark:bg-[#1c1c1c]">Seleccionar habitación</option>
                             {availableRooms.map(room => (
                                 <option key={room.id} value={room.id} className="dark:bg-[#1c1c1c]">
                                     {room.roomNumber} - {room.roomType.name}
@@ -301,6 +327,38 @@ const BookingsView = () => {
                             {assignLoading ? 'Asignando...' : 'Guardar'}
                         </Button>
                     </div>
+                </div>
+            </Modal>
+
+            {/* Modal de Feedback Vistoso (Toast alternative) */}
+            <Modal
+                isOpen={feedback.show}
+                onClose={() => setFeedback({ ...feedback, show: false })}
+                size="sm"
+            >
+                <div className="p-10 flex flex-col items-center text-center space-y-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                        feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                        feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                        'bg-amber-500/10 text-amber-500'
+                    }`}>
+                        {feedback.type === 'success' && <CheckCircle2 size={40} />}
+                        {feedback.type === 'error' && <XCircle size={40} />}
+                        {feedback.type === 'warning' && <AlertTriangle size={40} />}
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{feedback.title}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
+                            {feedback.message}
+                        </p>
+                    </div>
+                    <Button 
+                        variant={feedback.type === 'success' ? 'primary' : 'danger'} 
+                        className="w-full rounded-2xl py-4"
+                        onClick={() => setFeedback({ ...feedback, show: false })}
+                    >
+                        Entendido
+                    </Button>
                 </div>
             </Modal>
         </div>

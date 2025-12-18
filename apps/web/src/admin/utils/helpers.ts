@@ -40,11 +40,22 @@ export const getStatusColor = (status: string, type: 'booking' | 'room' = 'booki
 
 export const getRoomStatusConfig = (status: string) => {
     switch (status) {
-        case 'AVAILABLE': return { label: 'Disponible', className: 'bg-green-100 text-green-800', style: {} };
-        case 'OCCUPIED': return { label: 'Ocupada', className: 'bg-red-100 text-red-800', style: {} };
-        case 'MAINTENANCE': return { label: 'Mantenimiento', className: 'bg-yellow-100 text-yellow-800', style: {} };
-        case 'CLEANING': return { label: 'Limpieza', className: 'bg-blue-100 text-blue-800', style: {} };
-        default: return { label: status, className: 'bg-gray-100 text-gray-800', style: {} };
+        case 'AVAILABLE': return { label: 'Disponible', className: 'bg-green-100/10 text-green-600 border border-green-200/20' };
+        case 'OCCUPIED': return { label: 'Ocupada', className: 'bg-red-100/10 text-red-600 border border-red-200/20' };
+        case 'MAINTENANCE': return { label: 'Mantenimiento', className: 'bg-yellow-100/10 text-yellow-600 border border-yellow-200/20' };
+        case 'CLEANING': return { label: 'Limpieza', className: 'bg-blue-100/10 text-blue-600 border border-blue-200/20' };
+        default: return { label: status, className: 'bg-gray-100/10 text-gray-600 border border-gray-200/20' };
+    }
+};
+
+export const getBookingStatusConfig = (status: string) => {
+    switch (status) {
+        case 'CONFIRMED': return { label: 'Confirmada', variant: 'success' };
+        case 'PENDING': return { label: 'Pendiente', variant: 'warning' };
+        case 'CANCELLED': return { label: 'Cancelada', variant: 'danger' };
+        case 'CHECKED_IN': return { label: 'En Casa', variant: 'info' };
+        case 'CHECKED_OUT': return { label: 'Finalizada', variant: 'secondary' };
+        default: return { label: status, variant: 'primary' };
     }
 };
 

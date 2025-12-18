@@ -71,3 +71,24 @@ h1, h2, h3, h4, h5, h6 {
 .dark * {
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Date picker icon visibility */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.dark input[type="date"] {
+  color-scheme: dark;
+}

@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.hotel.web.rest.errors.ErrorConstants.ID_NOT_FOUND;
 
 /**
  * Service Implementation for managing {@link org.hotel.domain.Room}.

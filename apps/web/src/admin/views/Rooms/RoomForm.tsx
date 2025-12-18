@@ -78,7 +78,7 @@ const RoomForm = ({ initialData, roomTypes, onSuccess, onCancel }: RoomFormProps
     return (
         <form onSubmit={handleSubmit} className="space-y-8 p-10">
             {error && (
-                <div className="flex items-start gap-4 p-5 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-3xl animate-[shake_0.5s_ease-in-out]">
+                <div className="flex items-start gap-4 p-5 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-3xl animate-shake">
                     <div className="p-2 rounded-xl bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400">
                         <AlertCircle size={20} />
                     </div>
@@ -204,13 +204,6 @@ const RoomForm = ({ initialData, roomTypes, onSuccess, onCancel }: RoomFormProps
                 </div>
             </div>
             
-            <style>{`
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-4px); }
-                    75% { transform: translateX(4px); }
-                }
-            `}</style>
         </form>
     );
 };

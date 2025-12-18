@@ -12,12 +12,12 @@ const Badge: React.FC<BadgeProps> = ({ variant = 'primary', children, className 
 
     const getBadgeStyles = (variant: string) => {
         const styles: Record<string, string> = {
-            primary: 'bg-blue-100 text-blue-800',
-            secondary: 'bg-gray-100 text-gray-800',
-            success: 'bg-green-100 text-green-800',
-            danger: 'bg-red-100 text-red-800',
-            warning: 'bg-yellow-100 text-yellow-800',
-            info: 'bg-cyan-100 text-cyan-800'
+            primary: 'bg-blue-500/10 text-blue-500 border border-blue-500/20',
+            secondary: 'bg-gray-500/10 text-gray-400 border border-gray-500/20',
+            success: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20',
+            danger: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
+            warning: 'bg-amber-500/10 text-amber-500 border border-amber-500/20',
+            info: 'bg-sky-500/10 text-sky-500 border border-sky-500/20'
         };
 
         return styles[variant] || styles.primary;
