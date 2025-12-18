@@ -3,7 +3,7 @@ import Table, { type Column } from '../../components/shared/Table';
 import Card from '../../components/shared/Card';
 import Badge from '../../components/shared/Badge';
 import Button from '../../components/shared/Button';
-import { FileDown, FileSpreadsheet, Users, Calendar, DoorOpen } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Users, Calendar, DoorOpen, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllBookings } from '../../../services/admin/bookingService';
 import { getAllRooms } from '../../../services/admin/roomService';
@@ -23,12 +23,17 @@ const TablesView: React.FC = () => {
     const [usersMap, setUsersMap] = useState<Record<number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
 
-    const loadCategoryData = useCallback(async (category: Category) => {
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+
+    const loadCategoryData = useCallback(async (category: Category, page: number, size: number) => {
         try {
             setLoading(true);
 
             if (category === 'clientes' || category === 'reservas') {
-                const usersRes = await getAllUsers(0, 500);
+                const usersRes = await getAllUsers(0, 500); // User stitching still needs a wide fetch or per-page fetch
                 const map: Record<number, AdminUserDTO> = {};
                 usersRes.data.forEach(u => {
                     if (u.id) map[u.id] = u;
@@ -36,16 +41,18 @@ const TablesView: React.FC = () => {
                 setUsersMap(map);
             }
 
+            let result: { data: any[], total: number };
             if (category === 'clientes') {
-                const res = await getAllCustomerDetails();
-                setCustomers(res.data);
+                result = await getAllCustomerDetails(page, size);
+                setCustomers(result.data as CustomerDetailsDTO[]);
             } else if (category === 'reservas') {
-                const res = await getAllBookings();
-                setBookings(res.data);
-            } else if (category === 'habitaciones') {
-                const res = await getAllRooms();
-                setRooms(res.data);
+                result = await getAllBookings(page, size);
+                setBookings(result.data as BookingDTO[]);
+            } else {
+                result = await getAllRooms(page, size);
+                setRooms(result.data as RoomDTO[]);
             }
+            setTotalItems(result.total);
         } catch (error) {
             console.error(`Error loading ${category}:`, error);
         } finally {
@@ -54,8 +61,13 @@ const TablesView: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        loadCategoryData(activeCategory);
-    }, [activeCategory, loadCategoryData]);
+        loadCategoryData(activeCategory, currentPage, pageSize);
+    }, [activeCategory, currentPage, pageSize, loadCategoryData]);
+
+    const handleCategoryChange = (cat: Category) => {
+        setActiveCategory(cat);
+        setCurrentPage(0); // Reset pagination on category change
+    };
 
     // --- Export Logic ---
     const handleExport = (type: 'pdf' | 'excel') => {
@@ -222,10 +234,10 @@ const TablesView: React.FC = () => {
                 ].map((cat) => (
                     <button
                         key={cat.id}
-                        onClick={() => setActiveCategory(cat.id as Category)}
+                        onClick={() => handleCategoryChange(cat.id as Category)}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${activeCategory === cat.id
-                                ? 'bg-white dark:bg-navy-light text-gold-dark shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            ? 'bg-white dark:bg-navy-light text-gold-dark shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                     >
                         {cat.icon}
@@ -234,7 +246,78 @@ const TablesView: React.FC = () => {
                 ))}
             </div>
 
-            <Card className="mt-4">
+            {/* Pagination & Table Header Controls */}
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white dark:bg-navy-light p-4 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm mt-4">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Filas:</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                setPageSize(Number(e.target.value));
+                                setCurrentPage(0);
+                            }}
+                            className="bg-gray-50 dark:bg-navy-default border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-gold-default focus:border-gold-default block p-1.5 transition-colors cursor-pointer"
+                        >
+                            {[10, 20, 50, 100].map(sz => (
+                                <option key={sz} value={sz}>{sz}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="h-4 w-[1px] bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                        Mostrando <span className="font-bold text-gray-900 dark:text-white">{currentPage * pageSize + 1}</span> - <span className="font-bold text-gray-900 dark:text-white">{Math.min((currentPage + 1) * pageSize, totalItems)}</span> de <span className="font-bold text-gray-900 dark:text-white">{totalItems}</span>
+                    </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(0)}
+                        disabled={currentPage === 0 || loading}
+                        className="px-2 border-gray-200 dark:border-white/10"
+                    >
+                        <ChevronsLeft size={16} />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        disabled={currentPage === 0 || loading}
+                        leftIcon={<ChevronLeft size={16} />}
+                        className="border-gray-200 dark:border-white/10"
+                    >
+                        Anterior
+                    </Button>
+
+                    <div className="flex items-center justify-center min-w-[36px] h-8 bg-gold-default/10 text-gold-dark dark:text-gold-light font-bold rounded-lg text-sm border border-gold-default/20">
+                        {currentPage + 1}
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        disabled={(currentPage + 1) * pageSize >= totalItems || loading}
+                        rightIcon={<ChevronRight size={16} />}
+                        className="border-gray-200 dark:border-white/10"
+                    >
+                        Siguiente
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.ceil(totalItems / pageSize) - 1)}
+                        disabled={(currentPage + 1) * pageSize >= totalItems || loading}
+                        className="px-2 border-gray-200 dark:border-white/10"
+                    >
+                        <ChevronsRight size={16} />
+                    </Button>
+                </div>
+            </div>
+
+            <Card className="mt-2">
                 {activeCategory === 'clientes' && (
                     <Table<CustomerDetailsDTO>
                         title="Clientes Registrados"
