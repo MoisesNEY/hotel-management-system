@@ -146,14 +146,12 @@ const HotelGallery: React.FC = () => {
         {/* Location & Contact */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
           <div className="bg-white dark:bg-[#1c1c1c] p-10 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards]">
-            <h3 className="flex items-center gap-2.5 text-gray-900 dark:text-white mb-8 text-3xl font-semibold">
+            <h3 className="flex items-center gap-2.5 text-gray-900 dark:text-white mb-8 text-3xl font-bold font-serif">
               <MapPin className="text-[#d4af37]" size={24} />
               Nuestra Ubicación
             </h3>
             
             <div className="flex flex-col gap-6">
-              <h4 className="text-gray-900 dark:text-white text-2xl mb-2.5 font-semibold">{hotelInfo.name}</h4>
-              
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#e63946] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
                   <div className="p-2 rounded-lg bg-[#e63946]/10 text-[#e63946]">
@@ -175,27 +173,25 @@ const HotelGallery: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4">
-                <h5 className="text-gray-900 dark:text-white mb-5 text-xl font-semibold">Características del Hotel:</h5>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="mt-8">
+                <h4 className="text-gray-900 dark:text-white text-3xl mb-6 font-bold font-serif tracking-tight">Características del Hotel:</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {hotelInfo.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 border-b-2 transition-all duration-300 hover:border-current hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: feature.color }}>
-                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:bg-black/10 dark:group-hover:bg-white/10 group-hover:scale-110" style={{ color: feature.color }}>
+                    <div 
+                      key={index} 
+                      className="flex items-center gap-4 p-5 bg-white/5 dark:bg-white/[0.03] rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group" 
+                      style={{ borderColor: feature.color + '40' }} // Subtle alpha for border
+                    >
+                      <div 
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:scale-110 shadow-inner" 
+                        style={{ color: feature.color, border: `1px solid ${feature.color}30` }}
+                      >
                         {feature.icon}
                       </div>
-                      <span className="text-gray-900 dark:text-gray-200 text-sm font-semibold flex-1">{feature.text}</span>
+                      <span className="text-gray-900 dark:text-gray-100 text-base font-semibold tracking-tight">{feature.text}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-[rgba(212,175,55,0.1)] to-[rgba(212,175,55,0.05)] dark:from-[rgba(212,175,55,0.15)] dark:to-[rgba(212,175,55,0.08)] border-2 border-[rgba(212,175,55,0.3)] p-6 rounded-xl flex items-center gap-5 mt-5">
-                 <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => <Star key={i} size={20} fill="#FFD700" color="#FFD700" />)}
-                 </div>
-                 <div className="text-gray-900 dark:text-gray-100 text-lg font-semibold">
-                   <strong className="text-gray-900 dark:text-white text-xl">4.8/5</strong> en TripAdvisor
-                 </div>
               </div>
             </div>
           </div>
