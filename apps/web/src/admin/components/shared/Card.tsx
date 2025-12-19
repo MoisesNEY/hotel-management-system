@@ -1,7 +1,7 @@
 import React from 'react';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-    title?: string;
+interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+    title?: React.ReactNode;
     subtitle?: string;
     children: React.ReactNode;
     className?: string; // Explicitly kept for clarity

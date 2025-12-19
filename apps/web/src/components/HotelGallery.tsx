@@ -7,14 +7,29 @@ import { useListContent, useSingleContent } from '../hooks/useContent';
 
 const HotelGallery: React.FC = () => {
   const { data: galleryItems } = useListContent('HOME_GALLERY');
+  const { data: facilities } = useListContent('HOTEL_FACILITIES');
   const { data: contactItems } = useListContent('CONTACT_INFO');
   const { data: mapItem } = useSingleContent('MAIN_LOCATION');
+  const { data: galleryHeader } = useSingleContent('HEADER_GALLERY');
 
   const getContactVal = (key: string) => contactItems.find(c => c.title?.toLowerCase().includes(key.toLowerCase()));
   
   const addressItem = getContactVal('address') || getContactVal('dirección');
   const phoneItem = getContactVal('phone') || getContactVal('teléfono');
   const emailItem = getContactVal('email') || getContactVal('correo');
+
+  const iconColors = ['#4361ee', '#e63946', '#f72585', '#2a9d8f', '#4cc9f0', '#7209b7'];
+  
+  const getFacilityIcon = (text: string) => {
+    const t = text.toLowerCase();
+    if (t.includes('hab') || t.includes('cuarto')) return <Bed size={20} />;
+    if (t.includes('restaurante') || t.includes('comida')) return <Utensils size={20} />;
+    if (t.includes('spa') || t.includes('relax')) return <Heart size={20} />;
+    if (t.includes('negocios') || t.includes('business')) return <Briefcase size={20} />;
+    if (t.includes('piscina') || t.includes('pool')) return <Umbrella size={20} />;
+    if (t.includes('car') || t.includes('estacionamiento') || t.includes('parking')) return <Car size={20} />;
+    return <Star size={20} />;
+  };
 
   const hotelInfo = {
     name: 'Hotel de Lujo Managua',
@@ -24,7 +39,11 @@ const HotelGallery: React.FC = () => {
     phoneLink: phoneItem?.actionUrl,
     emailLink: emailItem?.actionUrl,
     mapSrc: mapItem?.actionUrl || '',
-    features: [
+    features: facilities.length > 0 ? facilities.map((f, i) => ({
+        icon: getFacilityIcon(f.title || ''),
+        text: f.title || '',
+        color: iconColors[i % iconColors.length]
+    })) : [
       { icon: <Bed size={20} />, text: '120 habitaciones y suites', color: '#4361ee' },
       { icon: <Utensils size={20} />, text: '3 restaurantes gourmet', color: '#e63946' },
       { icon: <Heart size={20} />, text: 'Spa de lujo completo', color: '#f72585' },
@@ -61,10 +80,10 @@ const HotelGallery: React.FC = () => {
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-[60px]">
           <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
-            Nuestras Instalaciones
+            {galleryHeader?.title || 'Nuestras Instalaciones'}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 text-lg max-w-[600px] mx-auto leading-relaxed">
-            Descubre la excelencia y el confort de nuestras instalaciones de 5 estrellas
+            {galleryHeader?.subtitle || 'Descubre la excelencia y el confort de nuestras instalaciones de 5 estrellas'}
           </p>
         </div>
 
