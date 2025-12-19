@@ -67,11 +67,11 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         <nav className={`
             sticky top-0 z-[1000] w-full transition-all duration-300
             ${isScrolled 
-                ? 'bg-white/80 dark:bg-[#111111]/80 backdrop-blur-lg border-b border-gray-100 dark:border-white/5 shadow-sm' 
-                : 'bg-transparent border-transparent'
+                ? 'bg-white/90 dark:bg-[#0f1115]/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 shadow-sm' 
+                : 'bg-transparent border-b border-transparent'
             }
         `}>
-            <div className="px-6 py-3 flex items-center justify-between">
+            <div className="px-6 h-16 flex items-center justify-between">
                 {/* Left Side: Page Title & Mobile Toggle */}
                 <div className="flex items-center gap-4">
                     <button

@@ -1,32 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import Table, { type Column } from '../../components/shared/Table'; // Shared components are in src/admin/components? NO. src/components?
-// src/admin/views/Rooms/RoomsView.tsx -> ../../components -> src/admin/components.
-// IF components are in src/components, it should be ../../../components.
-// But check original file. Original had ../../components/shared/Table.
-// So src/admin/components/shared/Table exists? Or alias?
-// Let's assume shared components are in src/components BUT check if admin has its own.
-// Original file had ../../components/shared/Table. 
-// If src/admin/views/Rooms/RoomsView.tsx is the file. ../../ is src/admin.
-// Does src/admin/components exist?
-// Previous context mentions "New Service: apps/web/src/services/admin/dashboardService.ts".
-// User Profile Page was in "apps/web/src/pages/UserProfilePage.tsx".
-// "Created ServiceRequestModal.tsx in apps/web/src/components".
-// So components are in src/components.
-// So imports should be ../../../components.
-// BUT existing imports were ../../components.
-// Maybe src/admin/components exists?
-// Let's check with list_dir? No time. Trusted original imports, assuming they work relative to admin root or something.
-// But let's check one file's relative path.
-// src/admin/views/Rooms is depth 4 (src=1, admin=2, views=3, Rooms=4).
-// ../../ goes to src/admin.
-// If components are in src/components, it needs ../../../.
-// Unless tsconfig paths or similar.
-// But "services/api" was imported as ../../services/api.
-// which means src/admin/services/api. Correct.
-// So ../../components means src/admin/components.
-// If src/admin/components exists, then fine.
-// But if I want to use GLOBAL services in src/services, I definitely need ../../../.
+import Table, { type Column } from '../../components/shared/Table';
 
 import Button from '../../components/shared/Button';
 import Card from '../../components/shared/Card';

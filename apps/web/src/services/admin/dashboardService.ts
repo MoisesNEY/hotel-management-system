@@ -1,4 +1,6 @@
 import { apiClient, extractPaginationInfo } from '../../services/api';
+import api from '../api';
+
 
 export interface DashboardStats {
     totalBookings: number;
@@ -62,6 +64,12 @@ export const getStats = async (): Promise<DashboardStats> => {
         };
     }
 };
+
+export const getUsersChartData = async (): Promise<ChartData> => {
+    const response = await api.get('/admin/users/chart'); // Endpoint que devuelve histórico de usuarios
+    return response.data;
+};
+
 
 export const getRevenueChartData = async (): Promise<ChartData> => {
      try {

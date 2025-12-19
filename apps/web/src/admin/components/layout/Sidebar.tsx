@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
 
     return (
         <aside
-            className={`admin-sidebar fixed top-0 left-0 h-screen bg-[#1c1c1c] border-r border-gray-800 transition-all duration-300 ease-in-out z-[1030] ${
+            className={`admin-sidebar fixed top-0 left-0 h-screen bg-[#1c1c1c] dark:bg-[#1c1c1c] border-r border-gray-800 transition-all duration-300 ease-in-out z-[1030] ${
                 isExpanded ? 'w-[220px]' : 'w-[60px]'
             }`}
             onMouseEnter={() => setIsExpanded(true)}

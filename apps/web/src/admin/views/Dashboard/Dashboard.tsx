@@ -1,31 +1,33 @@
 import { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    ArcElement
 } from 'chart.js';
 import {
     Users,
-    BedDouble,
     CalendarCheck,
     DollarSign,
     RefreshCw,
     Calendar,
     Clock,
-    Activity,
-    Circle
+    Wrench
 } from 'lucide-react';
 
 import StatsCard from '../../components/shared/StatsCard';
 import Card from '../../components/shared/Card';
 import * as dashboardService from '../../../services/admin/dashboardService';
+import { getRoomsChartData, type RoomsChartData } from '../../../services/admin/roomService';
+import { getServicesChartData, type ServicesChartData } from '../../../services/admin/serviceRequestService';
 import type { DashboardStats, ChartData } from '../../../services/admin/dashboardService';
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
@@ -37,10 +39,12 @@ ChartJS.register(
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    ArcElement
 );
 
 const Dashboard = () => {
@@ -49,14 +53,22 @@ const Dashboard = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<ChartData | null>(null);
+    const [roomsChartData, setRoomsChartData] = useState<RoomsChartData | null>(null);
+    const [servicesChartData, setServicesChartData] = useState<ServicesChartData | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const dashboardData = await dashboardService.getStats();
+                const [dashboardData, revenueData, roomsData, servicesData] = await Promise.all([
+                    dashboardService.getStats(),
+                    dashboardService.getRevenueChartData(),
+                    getRoomsChartData(),
+                    getServicesChartData()
+                ]);
                 setStats(dashboardData);
-                const revenueData = await dashboardService.getRevenueChartData();
                 setChartData(revenueData);
+                setRoomsChartData(roomsData);
+                setServicesChartData(servicesData);
             } catch (error) {
                 console.error("Error fetching dashboard data", error);
             } finally {
@@ -99,15 +111,21 @@ const Dashboard = () => {
     };
 
     const revenueChartData = chartData ? {
-        ...chartData,
+        labels: chartData.labels,
         datasets: chartData.datasets.map(ds => ({
             ...ds,
             tension: 0.45,
             fill: true,
             borderColor: '#d4af37',
             backgroundColor: (context: any) => {
-                const ctx = context.chart.ctx;
-                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                const chart = context.chart;
+                const { ctx, chartArea } = chart;
+                
+                if (!chartArea) {
+                    return 'rgba(212, 175, 55, 0.1)';
+                }
+                
+                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
                 gradient.addColorStop(0, 'rgba(212, 175, 55, 0.15)');
                 gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
                 return gradient;
@@ -122,17 +140,222 @@ const Dashboard = () => {
         }))
     } : { labels: [], datasets: [] };
 
+    // Datos para el gráfico de pastel de clientes
+    const clientsChartData = stats ? {
+        labels: ['Clientes Activos', 'Clientes Inactivos'],
+        datasets: [
+            {
+                label: 'Distribución de Clientes',
+                data: [
+                    Math.floor(stats.usersCount * 0.7), // 70% activos (ejemplo)
+                    Math.floor(stats.usersCount * 0.3)  // 30% inactivos (ejemplo)
+                ],
+                backgroundColor: [
+                    '#34d399', // Verde para activos
+                    '#ef4444'  // Rojo para inactivos
+                ],
+                borderColor: isDark ? '#1c1c1c' : '#ffffff',
+                borderWidth: 2,
+                hoverBackgroundColor: [
+                    '#10b981', // Verde más oscuro al hover
+                    '#dc2626'  // Rojo más oscuro al hover
+                ],
+                hoverOffset: 4
+            }
+        ]
+    } : { labels: [], datasets: [] };
+
+    // Datos para el gráfico de habitaciones usando tu servicio
+    const roomsPieChartData = roomsChartData ? {
+        labels: roomsChartData.labels,
+        datasets: roomsChartData.datasets.map(ds => ({
+            ...ds,
+            borderColor: isDark ? '#1c1c1c' : '#ffffff',
+            borderWidth: 2,
+            hoverOffset: 8,
+            hoverBackgroundColor: ds.backgroundColor.map(color => 
+                color === '#d4af37' ? '#b5942c' : 
+                color === '#51cbce' ? '#45b4b6' : color
+            )
+        }))
+    } : { labels: [], datasets: [] };
+
+    // Datos para el gráfico de barras de servicios
+    const servicesBarChartData = servicesChartData ? {
+        labels: ['Abiertos', 'En Progreso', 'Completados', 'Rechazados'],
+        datasets: [
+            {
+                label: 'Servicios',
+                data: [
+                    servicesChartData.open,
+                    servicesChartData.inProgress,
+                    servicesChartData.completed,
+                    servicesChartData.rejected
+                ],
+                backgroundColor: [
+                    '#3b82f6', // Azul para abiertos
+                    '#f59e0b', // Ámbar para en progreso
+                    '#10b981', // Verde para completados
+                    '#ef4444'  // Rojo para rechazados
+                ],
+                borderColor: isDark ? '#1c1c1c' : '#ffffff',
+                borderWidth: 1,
+                borderRadius: 6,
+                hoverBackgroundColor: [
+                    '#2563eb', // Azul más oscuro
+                    '#d97706', // Ámbar más oscuro
+                    '#059669', // Verde más oscuro
+                    '#dc2626'  // Rojo más oscuro
+                ]
+            }
+        ]
+    } : { labels: [], datasets: [] };
+
+    const servicesChartOptions: any = {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+                titleColor: isDark ? '#ffffff' : '#111827',
+                bodyColor: isDark ? '#94a3b8' : '#4b5563',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12 },
+                callbacks: {
+                    label: function(context: any) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        return `${label}: ${value} servicios`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { 
+                    color: isDark ? "#64748b" : "#94a3b8", 
+                    font: { size: 11, weight: '500' },
+                    stepSize: 1
+                },
+                grid: { 
+                    color: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", 
+                    drawBorder: false 
+                }
+            },
+            x: {
+                grid: { display: false, drawBorder: false },
+                ticks: { 
+                    color: isDark ? "#64748b" : "#94a3b8", 
+                    font: { size: 11, weight: '500' },
+                    maxRotation: 45
+                }
+            }
+        }
+    };
+
+    const clientsChartOptions: any = {
+        maintainAspectRatio: false,
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'bottom' as const,
+                labels: {
+                    color: isDark ? '#94a3b8' : '#4b5563',
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    },
+                    padding: 20,
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                }
+            },
+            tooltip: {
+                backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+                titleColor: isDark ? '#ffffff' : '#111827',
+                bodyColor: isDark ? '#94a3b8' : '#4b5563',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12 },
+                callbacks: {
+                    label: function(context: any) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    };
+
+    const roomsChartOptions: any = {
+        maintainAspectRatio: false,
+        responsive: true,
+        cutout: '55%',
+        plugins: {
+            legend: {
+                position: 'bottom' as const,
+                labels: {
+                    color: isDark ? '#94a3b8' : '#4b5563',
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    },
+                    padding: 20,
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                }
+            },
+            tooltip: {
+                backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
+                titleColor: isDark ? '#ffffff' : '#111827',
+                bodyColor: isDark ? '#94a3b8' : '#4b5563',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12 },
+                callbacks: {
+                    label: function(context: any) {
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    };
+
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-full min-h-[400px]">
+            <div className="flex justify-center items-center h-full min-h-100">
                 <Loader />
             </div>
         );
     }
 
+    // Calcular el total de habitaciones
+    const occupiedRooms = roomsChartData?.datasets[0]?.data[0] || 0;
+    const availableRooms = roomsChartData?.datasets[0]?.data[1] || 0;
+
     return (
         <div className="content">
-            {/* Stats Components Row */}
+            {/* Stats Components Row - Añade estadística de servicios */}
             <div className="flex flex-wrap -mx-4 mb-8">
                 <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
@@ -166,71 +389,132 @@ const Dashboard = () => {
                 </div>
                 <div className="w-full sm:w-1/2 md:w-1/2 lg:w-1/4 px-4 mb-4">
                     <StatsCard
-                        type="primary"
-                        icon={BedDouble}
-                        title="Ocupación"
-                        value={`${stats?.occupancyRate || 0}%`}
-                        footerInitIcon={Activity}
-                        footerText="Actualizado ahora"
+                        type="info"
+                        icon={Wrench}
+                        title="Servicios"
+                        value={servicesChartData?.total || 0}
+                        footerInitIcon={RefreshCw}
+                        footerText={`${servicesChartData?.completed || 0} completados`}
                     />
                 </div>
             </div>
 
-            {/* Charts Row */}
+            {/* Charts Row - Ahora en 3 columnas con las nuevas gráficas */}
             <div className="flex flex-wrap -mx-4 mb-8">
-                <div className="w-full px-4">
-                    <Card title="Comportamiento de Usuarios" subtitle="Rendimiento de 24 Horas">
-                        {/* Chart Container */}
-                        <div className="relative w-full h-[400px] mt-2">
-                            {chartData ? (
-                                <Line data={revenueChartData} options={chartOptions} />
+                {/* Gráfico de Pastel de Clientes */}
+                <div className="w-full lg:w-1/3 px-4 mb-6">
+                    <Card title="Distribución de Clientes" subtitle="Activos vs Inactivos">
+                        <div className="relative w-full h-75 mt-2 flex items-center justify-center">
+                            {stats ? (
+                                <Doughnut 
+                                    data={clientsChartData} 
+                                    options={clientsChartOptions} 
+                                />
                             ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400">
-                                    Cargando gráfico...
+                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    Cargando gráfico de clientes...
                                 </div>
                             )}
                         </div>
-                        {/* Footer (Legend within Footer or below chart) */}
-                        <div className="border-t border-gray-100 dark:border-white/5 mt-6 pt-4">
-                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
-                                <RefreshCw size={12} className="mr-1.5" /> Actualizado hace 3 minutos
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-800 dark:text-white">
+                                    {stats?.usersCount || 0}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Total de clientes
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Gráfico de Pastel de Habitaciones */}
+                <div className="w-full lg:w-1/3 px-4 mb-6">
+                    <Card title="Estado de Habitaciones" subtitle="Ocupadas vs Disponibles">
+                        <div className="relative w-full h-75 mt-2 flex items-center justify-center">
+                            {roomsChartData ? (
+                                <Doughnut 
+                                    data={roomsPieChartData} 
+                                    options={roomsChartOptions} 
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    Cargando gráfico de habitaciones...
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                    <div className="text-lg font-semibold text-amber-600 dark:text-amber-400">
+                                        {occupiedRooms}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        Ocupadas
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">
+                                        {availableRooms}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        Disponibles
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Gráfico de Barras de Servicios*/}
+                <div className="w-full lg:w-1/3 px-4 mb-6">
+                    <Card title="Servicios del Hotel" subtitle="Por estado">
+                        <div className="relative w-full h-75 mt-2">
+                            {servicesChartData ? (
+                                <Bar 
+                                    data={servicesBarChartData} 
+                                    options={servicesChartOptions} 
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    Cargando gráfico de servicios...
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-800 dark:text-white">
+                                    {servicesChartData?.total || 0}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Total de servicios solicitados
+                                </div>
                             </div>
                         </div>
                     </Card>
                 </div>
             </div>
 
-            {/* Bottom Row: Additional Charts or Tables could go here like in demo logic (Email Stats / NASDQ) */}
-            <div className="flex flex-wrap -mx-4">
-                <div className="w-full md:w-1/3 px-4 mb-4">
-                    <Card title="Estadísticas Email" subtitle="Rendimiento de Campaña">
-                        <div className="h-[245px] flex items-center justify-center text-gray-300">
-                            {/* Placeholder Pie Chart */}
-                            [ Pie Chart Placeholder ]
+            {/* Gráfico de Ingresos (movido debajo) */}
+            <div className="flex flex-wrap -mx-4 mb-8">
+                <div className="w-full px-4 mb-6">
+                    <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
+                        <div className="relative w-full h-100 mt-2">
+                            {chartData ? (
+                                <Line 
+                                    data={revenueChartData} 
+                                    options={chartOptions} 
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    Cargando gráfico de ingresos...
+                                </div>
+                            )}
                         </div>
-                        <div className="py-2 text-xs text-[#9a9a9a]">
-                            <div className="flex gap-2 justify-center">
-                                <span className="flex items-center"><Circle size={10} className="text-blue-400 fill-current mr-1" /> Abierto</span>
-                                <span className="flex items-center"><Circle size={10} className="text-yellow-400 fill-current mr-1" /> Leído</span>
-                                <span className="flex items-center"><Circle size={10} className="text-red-400 fill-current mr-1" /> Eliminado</span>
-                            </div>
-                        </div>
-                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-2">
+                        <div className="border-t border-gray-100 dark:border-white/5 mt-6 pt-4">
                             <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
-                                <Calendar size={12} className="mr-1.5" /> Número de emails enviados
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-                <div className="w-full md:w-2/3 px-4 mb-4">
-                    <Card title="NASDAQ: APHA" subtitle="Histórico 2018">
-                        <div className="h-[277px] flex items-center justify-center text-gray-300">
-                            {/* Placeholder Line Chart with different config */}
-                            [ Detailed Line Chart Placeholder ]
-                        </div>
-                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 mt-2">
-                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
-                                <Activity size={12} className="mr-1.5" /> Datos certificados de red
+                                <RefreshCw size={12} className="mr-1.5" /> Actualizado hace 3 minutos
                             </div>
                         </div>
                     </Card>
