@@ -23,6 +23,7 @@ public class S3Configuration {
     public S3Client s3Client() {
         ApplicationProperties.S3 s3Properties = applicationProperties.getS3();
         S3ClientBuilder builder = S3Client.builder()
+        .forcePathStyle(true)
             .region(Region.of(s3Properties.getRegion()));
 
         if (s3Properties.getAccessKey() != null && !s3Properties.getAccessKey().isEmpty() &&
