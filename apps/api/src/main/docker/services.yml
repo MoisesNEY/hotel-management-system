@@ -11,4 +11,7 @@ services:
       service: keycloak
   minio:
     extends:
+      file: ./minio.yml
       service: minio
+volumes:
+  minio_data:
