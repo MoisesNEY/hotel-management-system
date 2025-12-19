@@ -2,7 +2,7 @@ import React from 'react';
 
 
 interface StatsCardProps {
-    type?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
+    type?: 'primary' | 'success' | 'danger' | 'warning' | 'info' | 'purple';
     icon: React.ElementType;
     title: string;
     value: React.ReactNode;
@@ -24,7 +24,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
         success: 'text-emerald-500',
         danger: 'text-rose-500',
         warning: 'text-amber-500',
-        info: 'text-cyan-500'
+        info: 'text-cyan-500',
+        purple: 'text-purple-500'
     }[type];
 
     return (

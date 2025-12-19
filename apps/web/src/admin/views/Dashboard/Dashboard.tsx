@@ -21,7 +21,8 @@ import {
     RefreshCw,
     Calendar,
     Clock,
-    Wrench
+    Wrench,
+    User
 } from 'lucide-react';
 
 import StatsCard from '../../components/shared/StatsCard';
@@ -358,8 +359,8 @@ const Dashboard = () => {
     return (
         <div className="content">
             {/* Stats Components Row - Añade estadística de servicios */}
-            <div className="flex flex-wrap -mx-4 mb-8">
-                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/5 px-4 mb-4">
+            <div className="flex flex-wrap justify-center -mx-4 mb-8">
+                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="warning"
                         icon={CalendarCheck}
@@ -369,7 +370,7 @@ const Dashboard = () => {
                         footerText="Actualizado ahora"
                     />
                 </div>
-                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/5 px-4 mb-4">
+                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="success"
                         icon={DollarSign}
@@ -379,7 +380,7 @@ const Dashboard = () => {
                         footerText="Último mes"
                     />
                 </div>
-                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/5 px-4 mb-4">
+                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="danger"
                         icon={Users}
@@ -389,7 +390,7 @@ const Dashboard = () => {
                         footerText="Total registrados"
                     />
                 </div>
-                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/5 px-4 mb-4">
+                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="info"
                         icon={Wrench}
