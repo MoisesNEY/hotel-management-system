@@ -95,7 +95,7 @@ jhipster:
 application:
   s3:
     bucket: hotel-bucket
-    region: us-east-1
+    region: ni-leon-1
     access-key: minioadmin
     secret-key: minioadmin
     endpoint: http://localhost:9000

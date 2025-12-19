@@ -57,7 +57,7 @@ const HotelGallery: React.FC = () => {
 
 
   return (
-    <section className="bg-white dark:bg-[#1a1a2e] py-[100px] relative overflow-hidden" id="galeria">
+    <section className="bg-white dark:bg-[#0f1115] py-[100px] relative overflow-hidden" id="galeria">
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-[60px]">
           <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
@@ -126,7 +126,7 @@ const HotelGallery: React.FC = () => {
 
         {/* Location & Contact */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
-          <div className="bg-white dark:bg-[#1e1e3e] p-10 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards]">
+          <div className="bg-white dark:bg-[#1c1c1c] p-10 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards]">
             <h3 className="flex items-center gap-2.5 text-gray-900 dark:text-white mb-8 text-3xl font-semibold">
               <MapPin className="text-[#d4af37]" size={24} />
               Nuestra Ubicación
@@ -182,7 +182,7 @@ const HotelGallery: React.FC = () => {
           </div>
 
           {/* Map */}
-          <div className="bg-white dark:bg-[#1e1e3e] p-3 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards] self-start border border-gray-100 dark:border-white/10">
+          <div className="bg-white dark:bg-[#1c1c1c] p-3 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards] self-start border border-gray-100 dark:border-white/10">
             <div className="relative rounded-xl overflow-hidden h-[450px]">
                {hotelInfo.mapSrc ? (
                   <iframe
