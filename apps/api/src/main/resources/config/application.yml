@@ -119,6 +119,11 @@ spring:
   jmx:
     enabled: false
   data:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB      # Límite por cada archivo individual
+      max-request-size: 20MB   # Límite total (si subieras 2 fotos a la vez)
     jpa:
       repositories:
         bootstrap-mode: deferred
