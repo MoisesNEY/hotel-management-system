@@ -1,5 +1,6 @@
 package org.hotel.web.rest;
 
+import org.hotel.service.KeycloakService;
 import org.hotel.service.UserService;
 import org.hotel.service.dto.AdminUserDTO;
 import org.slf4j.Logger;
@@ -20,9 +21,11 @@ public class AccountResource {
     private static final Logger LOG = LoggerFactory.getLogger(AccountResource.class);
 
     private final UserService userService;
+    private final KeycloakService keycloakService;
 
-    public AccountResource(UserService userService) {
+    public AccountResource(UserService userService, KeycloakService keycloakService) {
         this.userService = userService;
+        this.keycloakService = keycloakService;
     }
 
     /**
@@ -41,6 +44,44 @@ public class AccountResource {
             AdminUserDTO user = userService.getUserFromAuthentication(authToken);
             LOG.debug("REST request to get current user account: {}", user.getLogin());
             return ResponseEntity.ok(user);
+        }
+
+        throw new RuntimeException("User could not be found");
+    }
+
+    /**
+     * {@code PUT  /account} : update the current user's account.
+     * This endpoint updates both Keycloak and the local database.
+     *
+     * @param userDTO the user to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated user.
+     */
+    @PutMapping("/account")
+    public ResponseEntity<AdminUserDTO> updateAccount(@RequestBody AdminUserDTO userDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof AbstractAuthenticationToken authToken) {
+            AdminUserDTO currentUser = userService.getUserFromAuthentication(authToken);
+
+            // Seguridad: Solo permitimos que el usuario se actualice a sí mismo
+            userDTO.setId(currentUser.getId());
+            userDTO.setLogin(currentUser.getLogin());
+
+            LOG.debug("REST request to update current user account: {}", userDTO.getLogin());
+
+            // 1. Actualizar Keycloak (Fuente de verdad)
+            keycloakService.updateUser(userDTO);
+
+            // 2. Actualizar DB Local
+            userService.updateUser(
+                    userDTO.getFirstName(),
+                    userDTO.getLastName(),
+                    userDTO.getEmail(),
+                    userDTO.getLangKey(),
+                    userDTO.getImageUrl());
+
+            return ResponseEntity.ok(userDTO);
         }
 
         throw new RuntimeException("User could not be found");

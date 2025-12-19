@@ -13,6 +13,7 @@ public class ApplicationProperties {
 
     private final S3 s3 = new S3();
     private final Liquibase liquibase = new Liquibase();
+    private final Keycloak keycloak = new Keycloak();
 
     public Liquibase getLiquibase() {
         return liquibase;
@@ -20,6 +21,10 @@ public class ApplicationProperties {
 
     public S3 getS3() {
         return s3;
+    }
+
+    public Keycloak getKeycloak() {
+        return keycloak;
     }
 
     public static class S3 {
@@ -80,6 +85,45 @@ public class ApplicationProperties {
 
         public void setAsyncStart(Boolean asyncStart) {
             this.asyncStart = asyncStart;
+        }
+    }
+
+    public static class Keycloak {
+        private String serverUrl;
+        private String realm;
+        private String username;
+        private String password;
+
+        public String getServerUrl() {
+            return serverUrl;
+        }
+
+        public void setServerUrl(String serverUrl) {
+            this.serverUrl = serverUrl;
+        }
+
+        public String getRealm() {
+            return realm;
+        }
+
+        public void setRealm(String realm) {
+            this.realm = realm;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
     // jhipster-needle-application-properties-property-class
