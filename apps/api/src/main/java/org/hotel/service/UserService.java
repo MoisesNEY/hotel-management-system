@@ -41,7 +41,8 @@ public class UserService {
     }
 
     /**
-     * Update basic information (first name, last name, email, language) for the current user.
+     * Update basic information (first name, last name, email, language) for the
+     * current user.
      *
      * @param firstName first name of user.
      * @param lastName  last name of user.
@@ -51,18 +52,18 @@ public class UserService {
      */
     public void updateUser(String firstName, String lastName, String email, String langKey, String imageUrl) {
         SecurityUtils.getCurrentUserLogin()
-            .flatMap(userRepository::findOneByLogin)
-            .ifPresent(user -> {
-                user.setFirstName(firstName);
-                user.setLastName(lastName);
-                if (email != null) {
-                    user.setEmail(email.toLowerCase());
-                }
-                user.setLangKey(langKey);
-                user.setImageUrl(imageUrl);
-                userRepository.save(user);
-                LOG.debug("Changed Information for User: {}", user);
-            });
+                .flatMap(userRepository::findOneByLogin)
+                .ifPresent(user -> {
+                    user.setFirstName(firstName);
+                    user.setLastName(lastName);
+                    if (email != null) {
+                        user.setEmail(email.toLowerCase());
+                    }
+                    user.setLangKey(langKey);
+                    user.setImageUrl(imageUrl);
+                    userRepository.save(user);
+                    LOG.debug("Changed Information for User: {}", user);
+                });
     }
 
     @Transactional(readOnly = true)
@@ -82,6 +83,7 @@ public class UserService {
 
     /**
      * Gets a list of all the authorities.
+     * 
      * @return a list of all the authorities.
      */
     @Transactional(readOnly = true)
@@ -90,7 +92,8 @@ public class UserService {
     }
 
     private User syncUserWithIdP(Map<String, Object> details, User user) {
-        // save authorities in to sync user roles/groups between IdP and JHipster's local database
+        // save authorities in to sync user roles/groups between IdP and JHipster's
+        // local database
         Collection<String> dbAuthorities = getAuthorities();
         Collection<String> userAuthorities = user.getAuthorities().stream().map(Authority::getName).toList();
         for (String authority : userAuthorities) {
@@ -104,7 +107,8 @@ public class UserService {
         // save account in to sync users between IdP and JHipster's local database
         Optional<User> existingUser = userRepository.findOneByLogin(user.getLogin());
         if (existingUser.isPresent()) {
-            // if IdP sends last updated information, use it to determine if an update should happen
+            // if IdP sends last updated information, use it to determine if an update
+            // should happen
             if (details.get("updated_at") != null) {
                 Instant dbModifiedDate = existingUser.orElseThrow().getLastModifiedDate();
                 Instant idpModifiedDate;
@@ -115,12 +119,19 @@ public class UserService {
                 }
                 if (idpModifiedDate.isAfter(dbModifiedDate)) {
                     LOG.debug("Updating user '{}' in local database", user.getLogin());
-                    updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getLangKey(), user.getImageUrl());
+                    // Proteger imageUrl: si el IdP envía null, mantenemos el que ya tenemos
+                    // localmente
+                    String finalImageUrl = user.getImageUrl() != null ? user.getImageUrl()
+                            : existingUser.get().getImageUrl();
+                    updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getLangKey(),
+                            finalImageUrl);
                 }
                 // no last updated info, blindly update
             } else {
                 LOG.debug("Updating user '{}' in local database", user.getLogin());
-                updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getLangKey(), user.getImageUrl());
+                String finalImageUrl = user.getImageUrl() != null ? user.getImageUrl()
+                        : existingUser.get().getImageUrl();
+                updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getLangKey(), finalImageUrl);
             }
         } else {
             LOG.debug("Saving user '{}' in local database", user.getLogin());
@@ -148,17 +159,16 @@ public class UserService {
         }
         User user = getUser(attributes);
         user.setAuthorities(
-            authToken
-                .getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .map(authority -> {
-                    Authority auth = new Authority();
-                    auth.setName(authority);
-                    return auth;
-                })
-                .collect(Collectors.toSet())
-        );
+                authToken
+                        .getAuthorities()
+                        .stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .map(authority -> {
+                            Authority auth = new Authority();
+                            auth.setName(authority);
+                            return auth;
+                        })
+                        .collect(Collectors.toSet()));
 
         return new AdminUserDTO(syncUserWithIdP(attributes, user));
     }
@@ -223,9 +233,11 @@ public class UserService {
         user.setActivated(activated);
         return user;
     }
+
     /**
      * Activate or deactivate a user.
-     * @param login the login of the user.
+     * 
+     * @param login     the login of the user.
      * @param activated true to activate, false to deactivate.
      */
     public void updateUserActivation(String login, boolean activated) {
@@ -235,21 +247,23 @@ public class UserService {
             // Esto evita que el usuario haga acciones aunque tenga token válido
         });
     }
+
     /**
      * Update authorities for a specific user.
      */
     public void updateUserAuthorities(String login, Set<String> authorities) {
         userRepository.findOneByLogin(login).ifPresent(user -> {
             Set<Authority> newAuthorities = authorities.stream()
-                .map(authorityRepository::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+                    .map(authorityRepository::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
 
             user.setAuthorities(newAuthorities);
             LOG.debug("Changed Authorities for User: {}", user);
         });
     }
+
     /**
      * Delete a user by login.
      */
@@ -259,6 +273,7 @@ public class UserService {
             LOG.debug("Deleted User: {}", user);
         });
     }
+
     /**
      * Update all information for a specific user, and return the modified user.
      *
@@ -267,33 +282,33 @@ public class UserService {
      */
     public Optional<AdminUserDTO> updateUser(AdminUserDTO userDTO) {
         return Optional.of(userRepository.findById(userDTO.getId()))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(user -> {
-                user.setLogin(userDTO.getLogin().toLowerCase());
-                user.setFirstName(userDTO.getFirstName());
-                user.setLastName(userDTO.getLastName());
-                if (userDTO.getEmail() != null) {
-                    user.setEmail(userDTO.getEmail().toLowerCase());
-                }
-                user.setImageUrl(userDTO.getImageUrl());
-                user.setActivated(userDTO.isActivated()); // bloqueo/desbloqueo
-                user.setLangKey(userDTO.getLangKey());
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(user -> {
+                    user.setLogin(userDTO.getLogin().toLowerCase());
+                    user.setFirstName(userDTO.getFirstName());
+                    user.setLastName(userDTO.getLastName());
+                    if (userDTO.getEmail() != null) {
+                        user.setEmail(userDTO.getEmail().toLowerCase());
+                    }
+                    user.setImageUrl(userDTO.getImageUrl());
+                    user.setActivated(userDTO.isActivated()); // bloqueo/desbloqueo
+                    user.setLangKey(userDTO.getLangKey());
 
-                // Actualizar Roles
-                Set<Authority> managedAuthorities = user.getAuthorities();
-                managedAuthorities.clear();
-                userDTO
-                    .getAuthorities()
-                    .stream()
-                    .map(authorityRepository::findById)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .forEach(managedAuthorities::add);
+                    // Actualizar Roles
+                    Set<Authority> managedAuthorities = user.getAuthorities();
+                    managedAuthorities.clear();
+                    userDTO
+                            .getAuthorities()
+                            .stream()
+                            .map(authorityRepository::findById)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .forEach(managedAuthorities::add);
 
-                LOG.debug("Changed Information for User: {}", user);
-                return user;
-            })
-            .map(AdminUserDTO::new);
+                    LOG.debug("Changed Information for User: {}", user);
+                    return user;
+                })
+                .map(AdminUserDTO::new);
     }
 }

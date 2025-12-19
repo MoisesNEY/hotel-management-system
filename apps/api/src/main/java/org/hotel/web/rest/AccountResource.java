@@ -128,6 +128,10 @@ public class AccountResource {
                     user.getLangKey(),
                     newUrl);
 
+            // 4. Sincronizar cambio con Keycloak para persistencia total
+            user.setImageUrl(newUrl);
+            keycloakService.updateUser(user);
+
             return ResponseEntity.ok(newUrl);
         }
 
@@ -158,6 +162,10 @@ public class AccountResource {
                     user.getEmail(),
                     user.getLangKey(),
                     null);
+
+            // 2. Sincronizar eliminación con Keycloak
+            user.setImageUrl(null);
+            keycloakService.updateUser(user);
 
             return ResponseEntity.noContent().build();
         }

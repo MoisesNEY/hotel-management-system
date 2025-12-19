@@ -54,6 +54,8 @@ public class KeycloakService {
             // LangKey can be stored as a custom attribute or standard locale attribute
             user.singleAttribute("langKey", userDTO.getLangKey());
             user.singleAttribute("locale", userDTO.getLangKey());
+            // Sincronizar URL de imagen con el atributo estándar de OIDC 'picture'
+            user.singleAttribute("picture", userDTO.getImageUrl());
 
             userResource.update(user);
             LOG.info("User {} successfully updated in Keycloak", userDTO.getLogin());
