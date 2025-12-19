@@ -8,7 +8,8 @@ import {
     MapPinIcon,
     KeyIcon,
     UserIcon,
-    ComputerDesktopIcon
+    ComputerDesktopIcon,
+    UserGroupIcon
 } from '@heroicons/react/24/outline';
 
 // Import views
@@ -23,6 +24,7 @@ import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
 import CMSEditor from './views/CMS/CMSEditor';
+import EmployeeView from './views/Employee/EmployeeView';
 
 export interface RouteConfig {
     path: string;
@@ -67,6 +69,13 @@ const routes: RouteConfig[] = [
         name: 'Servicios',
         icon: SparklesIcon, // Sparkles for hotel services (cleaning, amenities)
         component: ServicesView,
+        layout: '/admin'
+    },
+    {
+        path: '/employee',
+        name: 'Empleado',
+        icon: UserGroupIcon,
+        component: EmployeeView,
         layout: '/admin'
     },
     {
