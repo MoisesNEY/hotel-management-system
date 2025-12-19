@@ -25,7 +25,7 @@ public class UserMapper {
     }
 
     public UserDTO userToUserDTO(User user) {
-        return new UserDTO(user);
+        return user == null ? null : new UserDTO(user);
     }
 
     public List<AdminUserDTO> usersToAdminUserDTOs(List<User> users) {
@@ -33,7 +33,7 @@ public class UserMapper {
     }
 
     public AdminUserDTO userToAdminUserDTO(User user) {
-        return new AdminUserDTO(user);
+        return user == null ? null : new AdminUserDTO(user);
     }
 
     public List<User> userDTOsToUsers(List<AdminUserDTO> userDTOs) {

@@ -69,10 +69,10 @@ jhipster:
   # CORS is disabled by default on microservices, as you should access them through a gateway.
   # If you want to enable it, please uncomment the configuration below.
   cors:
-    allowed-origins: "http://localhost:9000,https://localhost:9000,http://localhost:5173"
-    allowed-methods: "*"
-    allowed-headers: "*"
-    exposed-headers: "Authorization,Link,X-Total-Count"
+    allowed-origins: 'http://localhost:9000,https://localhost:9000,http://localhost:5173'
+    allowed-methods: '*'
+    allowed-headers: '*'
+    exposed-headers: 'Authorization,Link,X-Total-Count'
     allow-credentials: true
     max-age: 1800
   logging:
@@ -92,3 +92,10 @@ jhipster:
 # ===================================================================
 
 # application:
+application:
+  s3:
+    bucket: hotel-bucket
+    region: us-east-1
+    access-key: minioadmin
+    secret-key: minioadmin
+    endpoint: http://localhost:9000

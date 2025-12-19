@@ -8,6 +8,7 @@ import {
     MapPinIcon,
     UserIcon,
     ComputerDesktopIcon,
+    DocumentTextIcon
     ChartBarIcon,
     TableCellsIcon
 } from '@heroicons/react/24/outline';
@@ -16,16 +17,18 @@ import {
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
 import RoomTypesView from './views/RoomTypes/RoomTypesView';
-import BookingsView from './views/Bookings/BookingsView'; // Imported
+import BookingsView from './views/Bookings/BookingsView'; 
 import ServicesView from './views/Services/ServicesView';
-import CustomersView from './views/Customers/CustomersView'; // Imported
+import CustomersView from './views/Customers/CustomersView'; 
 import MapsView from './views/Maps/MapsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
 import CMSEditor from './views/CMS/CMSEditor';
+import FileManagerView from './views/FileManager/FileManagerView';
 
 export interface RouteConfig {
+  // ...
     path: string;
     name: string;
     icon: React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>;
@@ -115,6 +118,13 @@ const routes: RouteConfig[] = [
         component: CMSEditor,
         layout: '/admin',
         hidden: true // <--- Propiedad clave
+    },
+    {
+        path: '/files',
+        name: 'Documentos',
+        icon: DocumentTextIcon,
+        component: FileManagerView,
+        layout: '/admin'
     },
 ];
 
