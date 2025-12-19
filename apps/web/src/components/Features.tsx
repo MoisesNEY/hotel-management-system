@@ -1,9 +1,10 @@
 import React from 'react';
 import { Shield, Clock, Wifi, Utensils, Car, ConciergeBell, Star } from 'lucide-react';
-import { useListContent } from '../hooks/useContent';
+import { useListContent, useSingleContent } from '../hooks/useContent';
 
 const Features: React.FC = () => {
     const { data: features, loading } = useListContent('HOME_FEATURES');
+    const { data: header } = useSingleContent('HEADER_FEATURES');
 
     // Icon colors array matching the CSS
     const iconColors = [
@@ -36,10 +37,10 @@ const Features: React.FC = () => {
             <div className="max-w-7xl mx-auto px-5 w-full">
                 <div className="text-center mb-10 flex flex-col items-center justify-center">
                     <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white mb-2.5 font-semibold">
-                        Características Exclusivas
+                        {header?.title || 'Características Exclusivas'}
                     </h2>
                     <p className="text-gray-600 dark:text-white text-base max-w-[500px] mx-auto">
-                        Descubre lo que hace de nuestra experiencia hotelera algo único y memorable
+                        {header?.subtitle || 'Descubre lo que hace de nuestra experiencia hotelera algo único y memorable'}
                     </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

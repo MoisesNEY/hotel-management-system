@@ -4,6 +4,7 @@ import { createServiceRequest } from '../services/client/serviceRequestService';
 import { getAllHotelServices } from '../services/admin/hotelServiceService';
 import { getMyBookings } from '../services/client/bookingService';
 import { useAuth } from '../contexts/AuthProvider';
+import { useSingleContent } from '../hooks/useContent';
 import type { HotelServiceDTO } from '../types/adminTypes';
 import type { BookingResponse } from '../types/clientTypes';
 import { ChevronDown } from 'lucide-react';
@@ -35,6 +36,8 @@ const Services: React.FC = () => {
     details: '',
     status: RequestStatus.PENDING
   });
+
+  const { data: header } = useSingleContent('HEADER_SERVICES');
 
   // Service card colors
   const serviceColors = [
@@ -195,10 +198,10 @@ const Services: React.FC = () => {
         <div className="max-w-7xl mx-auto px-5">
           <div className="text-center mb-[60px]">
             <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
-              Servicios Premium
+              {header?.title || 'Servicios Premium'}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg max-w-[600px] mx-auto leading-relaxed">
-              Experimenta el lujo de nuestros servicios exclusivos diseñados para tu máximo confort
+              {header?.subtitle || 'Experimenta el lujo de nuestros servicios exclusivos diseñados para tu máximo confort'}
             </p>
           </div>
           

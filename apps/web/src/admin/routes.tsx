@@ -8,7 +8,7 @@ import {
     MapPinIcon,
     UserIcon,
     ComputerDesktopIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
     ChartBarIcon,
     TableCellsIcon
 } from '@heroicons/react/24/outline';
