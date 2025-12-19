@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAccount } from '../../../services/accountService';
-import { updateUser } from '../../../services/admin/userService';
+import { getAccount, updateAccount } from '../../../services/accountService';
 import type { AdminUserDTO } from '../../../types/adminTypes';
 import { User, Mail, Globe, Shield, Save } from 'lucide-react';
 
@@ -41,7 +40,7 @@ const UserProfileView: React.FC = () => {
         setIsSaving(true);
         try {
             if (formData.login) {
-                await updateUser(formData as AdminUserDTO);
+                await updateAccount(formData as AdminUserDTO);
                 alert('Perfil actualizado correctamente');
             }
         } catch (error) {
@@ -65,7 +64,7 @@ const UserProfileView: React.FC = () => {
     return (
         <div className="min-h-screen p-6 md:p-12">
             <div className="max-w-6xl mx-auto space-y-8">
-                
+
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-white/5 pb-6">
                     <div>
@@ -75,7 +74,7 @@ const UserProfileView: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
+
                     {/* Left Column: Avatar & Quick Stats (4 cols) */}
                     <div className="lg:col-span-4 space-y-6">
                         <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-8 flex flex-col items-center text-center">
@@ -84,12 +83,12 @@ const UserProfileView: React.FC = () => {
                                     {initials}
                                 </div>
                             </div>
-                            
+
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                                 {formData.firstName} {formData.lastName}
                             </h2>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">@{formData.login}</p>
-                            
+
                             <div className="flex flex-wrap justify-center gap-2 mb-6">
                                 {formData.authorities?.map((role) => (
                                     <span key={role} className="px-3 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase rounded-md tracking-wide">
@@ -122,7 +121,7 @@ const UserProfileView: React.FC = () => {
                                     Información General
                                 </h3>
                             </div>
-                            
+
                             <div className="p-8">
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,8 +209,8 @@ const UserProfileView: React.FC = () => {
                                             disabled={isSaving}
                                             className={`
                                                 flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm transition-all
-                                                ${isSaving 
-                                                    ? 'bg-blue-400 cursor-not-allowed' 
+                                                ${isSaving
+                                                    ? 'bg-blue-400 cursor-not-allowed'
                                                     : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md active:transform active:scale-95'}
                                             `}
                                         >
