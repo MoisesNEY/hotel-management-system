@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit } from 'lucide-react';
+import { Edit, ChevronDown, ChevronUp } from 'lucide-react';
 import { CollectionType, type AssetCollection } from '../../../types/adminTypes';
 import { AssetCollectionService } from '../../../services/admin/assetCollectionService';
 import Table from '../../components/shared/Table';
@@ -10,6 +10,7 @@ import Card from '../../components/shared/Card';
 const CMSList: React.FC = () => {
     const [collections, setCollections] = useState<AssetCollection[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showTemplates, setShowTemplates] = useState(false); // Collapsed by default as requested
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -121,29 +122,44 @@ const CMSList: React.FC = () => {
             <div className="flex flex-wrap -mx-4">
                 <div className="w-full px-4">
                     <Card 
-                        title="Plantillas Sugeridas" 
-                        subtitle="Secciones críticas de la Landing Page"
-                        className="mb-6"
-                    >
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                            {templates.map((t) => (
-                                <div 
-                                    key={t.code}
-                                    className="p-4 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-md transition-all duration-300 group"
+                        title={
+                            <div className="flex items-center justify-between w-full">
+                                <span>Plantillas Sugeridas</span>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => setShowTemplates(!showTemplates)}
+                                    className="text-gray-400 hover:text-gold-default"
+                                    icon={showTemplates ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                 >
-                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">{t.name}</h4>
-                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 line-clamp-1">{t.description}</p>
-                                    <Button 
-                                        size="sm" 
-                                        variant="ghost" 
-                                        className="w-full text-[10px] uppercase tracking-widest font-bold border border-gray-200 dark:border-white/10 group-hover:border-gold-default/50 group-hover:text-gold-default"
-                                        onClick={() => handleCreateTemplate(t)}
+                                    {showTemplates ? 'Ocultar' : 'Mostrar'}
+                                </Button>
+                            </div>
+                        }
+                        subtitle="Secciones críticas de la Landing Page"
+                        className="mb-6 overflow-hidden"
+                    >
+                        {showTemplates && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 animate-in slide-in-from-top-2 duration-300">
+                                {templates.map((t) => (
+                                    <div 
+                                        key={t.code}
+                                        className="p-4 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-md transition-all duration-300 group"
                                     >
-                                        {collections.find(c => c.code === t.code) ? 'Ver Sección' : 'Configurar'}
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
+                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">{t.name}</h4>
+                                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 line-clamp-1">{t.description}</p>
+                                        <Button 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            className="w-full text-[10px] uppercase tracking-widest font-bold border border-gray-200 dark:border-white/10 group-hover:border-gold-default/50 group-hover:text-gold-default"
+                                            onClick={() => handleCreateTemplate(t)}
+                                        >
+                                            {collections.find(c => c.code === t.code) ? 'Ver Sección' : 'Configurar'}
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </Card>
 
                     <Card 

@@ -5,7 +5,7 @@ import {
   Copy, 
   ExternalLink, 
   FolderOpen,
-  FileText
+  Plus
 } from 'lucide-react';
 import { fileService } from '../../../services/admin/fileService';
 import type { StoredFile } from '../../../types/fileTypes';
@@ -194,11 +194,11 @@ const FileManagerView: React.FC = () => {
                         />
                         <Button 
                             variant="primary" 
-                            icon={uploading ? <Loader /> : <FileText size={18} />}
+                            icon={uploading ? <Loader /> : <Plus size={18} />}
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
                         >
-                            {uploading ? 'Subiendo...' : 'Subir Documento'}
+                            {uploading ? 'Subiendo...' : 'Nuevo Documento'}
                         </Button>
                     </div>
                 </div>
