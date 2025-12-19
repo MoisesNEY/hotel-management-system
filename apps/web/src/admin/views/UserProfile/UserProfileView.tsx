@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { getAccount, updateAccount } from '../../../services/accountService';
+import React, { useState, useEffect, useRef } from 'react';
+import { getAccount, updateAccount, uploadProfilePicture, deleteProfilePicture } from '../../../services/accountService';
 import type { AdminUserDTO } from '../../../types/adminTypes';
-import { User, Mail, Globe, Shield, Save } from 'lucide-react';
+import { User, Mail, Globe, Shield, Save, Camera, Trash2 } from 'lucide-react';
 
 const UserProfileView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState<Partial<AdminUserDTO>>({
         firstName: '',
         lastName: '',
@@ -51,6 +53,39 @@ const UserProfileView: React.FC = () => {
         }
     };
 
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const newUrl = await uploadProfilePicture(file);
+            setFormData(prev => ({ ...prev, imageUrl: newUrl }));
+            alert('Foto de perfil actualizada');
+        } catch (error) {
+            console.error("Failed to upload photo", error);
+            alert('Error al subir la foto');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleDeletePhoto = async () => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?')) return;
+
+        setIsUploading(true);
+        try {
+            await deleteProfilePicture();
+            setFormData(prev => ({ ...prev, imageUrl: undefined }));
+            alert('Foto de perfil eliminada');
+        } catch (error) {
+            console.error("Failed to delete photo", error);
+            alert('Error al eliminar la foto');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -80,8 +115,47 @@ const UserProfileView: React.FC = () => {
                         <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-8 flex flex-col items-center text-center">
                             <div className="relative group mb-6">
                                 <div className="h-32 w-32 rounded-full bg-gray-100 dark:bg-white/5 border-4 border-white dark:border-white/10 shadow-md flex items-center justify-center text-gray-400 dark:text-gray-500 font-bold text-4xl overflow-hidden">
-                                    {initials}
+                                    {formData.imageUrl ? (
+                                        <img src={formData.imageUrl} alt="Profile" className="h-full w-full object-cover" />
+                                    ) : (
+                                        initials
+                                    )}
+                                    {isUploading && (
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
                                 </div>
+
+                                {/* Photo Actions Overlay */}
+                                <div className="absolute -bottom-2 right-0 flex gap-1">
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                        className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all active:scale-90"
+                                        title="Subir foto"
+                                    >
+                                        <Camera size={16} />
+                                    </button>
+                                    {formData.imageUrl && (
+                                        <button
+                                            onClick={handleDeletePhoto}
+                                            disabled={isUploading}
+                                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-all active:scale-90"
+                                            title="Eliminar foto"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                />
                             </div>
 
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
