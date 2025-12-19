@@ -22,6 +22,17 @@ const RoomTypes: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successBookingDetails, setSuccessBookingDetails] = useState<{
+    roomName: string;
+    checkInDate: string;
+    checkOutDate: string;
+    guestCount: number;
+    nights: number;
+    totalPrice: number;
+  } | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   
   const [formData, setFormData] = useState({
     checkInDate: '',
@@ -183,11 +194,21 @@ const RoomTypes: React.FC = () => {
         notes: formData.notes
       });
 
-      alert(`¡Reserva enviada con éxito!\n\nDetalles:\n- Habitación: ${selectedRoom?.name}\n- Fechas: ${formData.checkInDate} al ${formData.checkOutDate}\n- Huéspedes: ${formData.guestCount}\n- Noches: ${nights}\n- Total: $${finalTotalPrice}\n\nTe contactaremos para confirmar.`);
+      setSuccessBookingDetails({
+        roomName: selectedRoom!.name,
+        checkInDate: formData.checkInDate,
+        checkOutDate: formData.checkOutDate,
+        guestCount: formData.guestCount,
+        nights,
+        totalPrice: finalTotalPrice
+      });
+      setShowSuccessModal(true);
       closeModal();
     } catch (error) {
       console.error('Error al enviar la reserva:', error);
-      alert('No se pudo registrar la reserva. Inténtalo nuevamente.');
+      setErrorMessage('No se pudo registrar la reserva. Inténtalo nuevamente.');
+      setShowErrorModal(true);
+      closeModal();
     } finally {
       setIsSubmitting(false);
     }
@@ -505,6 +526,120 @@ const RoomTypes: React.FC = () => {
                   </p>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Éxito */}
+      {showSuccessModal && successBookingDetails && (
+        <div 
+          className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5"
+          onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
+        >
+          <div 
+            className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+              <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold text-center">¡Reserva Exitosa!</h3>
+              <button 
+                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
+                type="button"
+                aria-label="Cerrar modal"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="px-8 pb-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                  <Check size={32} className="text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
+                  Tu reserva ha sido enviada con éxito. Te contactaremos pronto para confirmar los detalles.
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+                <h4 className="text-gray-900 dark:text-white font-semibold mb-4">Detalles de la Reserva</h4>
+                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="flex justify-between">
+                    <span>Habitación:</span>
+                    <span className="font-medium">{successBookingDetails.roomName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Fechas:</span>
+                    <span className="font-medium">{successBookingDetails.checkInDate} al {successBookingDetails.checkOutDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Huéspedes:</span>
+                    <span className="font-medium">{successBookingDetails.guestCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Noches:</span>
+                    <span className="font-medium">{successBookingDetails.nights}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-2 mt-2">
+                    <span className="font-semibold">Total:</span>
+                    <span className="font-semibold text-[#2a9d8f]">${successBookingDetails.totalPrice}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button 
+                className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+                onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
+                type="button"
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Error */}
+      {showErrorModal && (
+        <div 
+          className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5"
+          onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
+        >
+          <div 
+            className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+              <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold text-center">Error en la Reserva</h3>
+              <button 
+                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
+                type="button"
+                aria-label="Cerrar modal"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="px-8 pb-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                  <X size={32} className="text-red-600 dark:text-red-400" />
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+              
+              <button 
+                className="w-full bg-red-600 text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+                onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
+                type="button"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
