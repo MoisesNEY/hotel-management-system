@@ -6,10 +6,11 @@ import {
     SparklesIcon,
     UsersIcon,
     MapPinIcon,
-    KeyIcon,
     UserIcon,
     ComputerDesktopIcon,
     DocumentTextIcon
+    ChartBarIcon,
+    TableCellsIcon
 } from '@heroicons/react/24/outline';
 
 // Import views
@@ -54,7 +55,7 @@ const routes: RouteConfig[] = [
     {
         path: '/room-types',
         name: 'Tipos Hab.',
-        icon: KeyIcon, // Key for room types/categories
+        icon: TableCellsIcon, // Grid icon for data/categories
         component: RoomTypesView,
         layout: '/admin'
     },
@@ -96,7 +97,7 @@ const routes: RouteConfig[] = [
     {
         path: '/tables',
         name: 'Tablas',
-        icon: KeyIcon, // Tables/Settings
+        icon: ChartBarIcon, // Bar chart for reports/stats center
         component: TablesView,
         layout: '/admin'
     },
@@ -113,7 +114,7 @@ const routes: RouteConfig[] = [
     {
         path: '/cms/edit/:id',
         name: 'Editor CMS',
-        icon: ComputerDesktopIcon, 
+        icon: ComputerDesktopIcon,
         component: CMSEditor,
         layout: '/admin',
         hidden: true // <--- Propiedad clave
