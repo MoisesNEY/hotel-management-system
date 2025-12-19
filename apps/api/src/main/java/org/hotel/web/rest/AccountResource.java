@@ -1,5 +1,6 @@
 package org.hotel.web.rest;
 
+import org.hotel.service.FileStorageService;
 import org.hotel.service.KeycloakService;
 import org.hotel.service.UserService;
 import org.hotel.service.dto.AdminUserDTO;
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST controller for managing the current user's account.
@@ -22,10 +24,13 @@ public class AccountResource {
 
     private final UserService userService;
     private final KeycloakService keycloakService;
+    private final FileStorageService fileStorageService;
 
-    public AccountResource(UserService userService, KeycloakService keycloakService) {
+    public AccountResource(UserService userService, KeycloakService keycloakService,
+            FileStorageService fileStorageService) {
         this.userService = userService;
         this.keycloakService = keycloakService;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -82,6 +87,79 @@ public class AccountResource {
                     userDTO.getImageUrl());
 
             return ResponseEntity.ok(userDTO);
+        }
+
+        throw new RuntimeException("User could not be found");
+    }
+
+    /**
+     * {@code POST  /account/profile-picture} : Update the current user's profile
+     * picture.
+     *
+     * @param file the image file to upload.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the new
+     *         URL.
+     */
+    @PostMapping("/account/profile-picture")
+    public ResponseEntity<String> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof AbstractAuthenticationToken authToken) {
+            AdminUserDTO user = userService.getUserFromAuthentication(authToken);
+            LOG.debug("REST request to upload profile picture for user: {}", user.getLogin());
+
+            // 1. Si ya tenía una foto, borrar del Minio para no acumular basura
+            if (user.getImageUrl() != null && !user.getImageUrl().isEmpty()) {
+                try {
+                    fileStorageService.delete(user.getImageUrl());
+                } catch (Exception e) {
+                    LOG.warn("Could not delete old profile picture {}: {}", user.getImageUrl(), e.getMessage());
+                }
+            }
+
+            // 2. Guardar nueva foto en Minio (en carpeta 'profiles')
+            String newUrl = fileStorageService.save(file, "profiles");
+
+            // 3. Actualizar solo la URL en la base de datos
+            userService.updateUser(
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getEmail(),
+                    user.getLangKey(),
+                    newUrl);
+
+            return ResponseEntity.ok(newUrl);
+        }
+
+        throw new RuntimeException("User could not be found");
+    }
+
+    /**
+     * {@code DELETE  /account/profile-picture} : Remove the current user's profile
+     * picture.
+     *
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DeleteMapping("/account/profile-picture")
+    public ResponseEntity<Void> deleteProfilePicture() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof AbstractAuthenticationToken authToken) {
+            AdminUserDTO user = userService.getUserFromAuthentication(authToken);
+            LOG.debug("REST request to delete profile picture for user: {}", user.getLogin());
+
+            if (user.getImageUrl() != null && !user.getImageUrl().isEmpty()) {
+                fileStorageService.delete(user.getImageUrl());
+            }
+
+            userService.updateUser(
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getEmail(),
+                    user.getLangKey(),
+                    null);
+
+            return ResponseEntity.noContent().build();
         }
 
         throw new RuntimeException("User could not be found");
