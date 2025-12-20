@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText, ChevronRight, ChevronLeft, Plus, Minus, Loader2 } from 'lucide-react';
+import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, ChevronRight, ChevronLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useSingleContent } from '../hooks/useContent';
 import { createBooking, getAvailability } from '../services/client/bookingService';
 import { getAllRoomTypes } from '../services/admin/roomTypeService';
 import type { RoomTypeAvailability, BookingItemRequest } from '../types/clientTypes';
 import type { RoomTypeDTO } from '../types/adminTypes';
 
-type RoomType = RoomTypeDTO;
+
 
 export const BookingStatus = {
   PENDING: 'PENDING',
@@ -34,8 +34,7 @@ const RoomTypes: React.FC = () => {
     notes: ''
   });
 
-  const [selectedItems, setSelectedItems] = useState<{roomTypeId: number, quantity: number}[]>([]);
-  const [occupants, setOccupants] = useState<string[]>([]); // To match items index
+  const [selectedItems, setSelectedItems] = useState<BookingItemRequest[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -68,7 +67,7 @@ const RoomTypes: React.FC = () => {
     fetchRoomTypes();
   }, []);
 
-  const handleReservation = async (room?: RoomType) => {
+  const handleReservation = async () => {
     const { default: keycloak } = await import('../services/keycloak');
     
     if (!keycloak.authenticated) {
@@ -88,7 +87,6 @@ const RoomTypes: React.FC = () => {
       notes: ''
     });
     setSelectedItems([]);
-    setOccupants([]);
   };
 
   const closeModal = () => {
@@ -106,13 +104,15 @@ const RoomTypes: React.FC = () => {
       // Load availability
       await fetchAvailability();
     } else if (currentStep === 2) {
-      if (selectedItems.reduce((acc, item) => acc + item.quantity, 0) === 0) {
+      if (selectedItems.length === 0) {
         alert('Selecciona al menos una habitación');
         return;
       }
-      // Prepare occupants array
-      const count = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
-      setOccupants(new Array(count).fill(''));
+    } else if (currentStep === 3) {
+      if (selectedItems.some(i => !i.occupantName?.trim())) {
+        alert('Por favor introduce el nombre de los ocupantes para todas las habitaciones');
+        return;
+      }
     }
     setCurrentStep(prev => prev + 1);
   };
@@ -146,7 +146,7 @@ const RoomTypes: React.FC = () => {
     const nights = calculateNights();
     return selectedItems.reduce((acc, item) => {
       const type = availability.find(a => a.id === item.roomTypeId);
-      return acc + (type ? type.basePrice * nights * item.quantity : 0);
+      return acc + (type ? type.basePrice * nights : 0);
     }, 0);
   };
 
@@ -161,26 +161,27 @@ const RoomTypes: React.FC = () => {
     return new Date().toISOString().split('T')[0];
   };
 
-  const handleItemQuantityChange = (typeId: number, delta: number) => {
-    setSelectedItems(prev => {
-      const existing = prev.find(i => i.roomTypeId === typeId);
-      const avail = availability.find(a => a.id === typeId)?.availableQuantity || 0;
-      
-      if (existing) {
-        const newQty = Math.max(0, Math.min(avail, existing.quantity + delta));
-        if (newQty === 0) return prev.filter(i => i.roomTypeId !== typeId);
-        return prev.map(i => i.roomTypeId === typeId ? { ...i, quantity: newQty } : i);
-      } else if (delta > 0 && avail > 0) {
-        return [...prev, { roomTypeId: typeId, quantity: 1 }];
-      }
-      return prev;
-    });
+  const handleAddItem = (typeId: number) => {
+    const type = availability.find(a => a.id === typeId);
+    if (!type) return;
+
+    const currentCount = selectedItems.filter(i => i.roomTypeId === typeId).length;
+    if (currentCount >= type.availableQuantity) {
+      alert("No hay más habitaciones disponibles de este tipo");
+      return;
+    }
+
+    setSelectedItems(prev => [...prev, { roomTypeId: typeId, occupantName: '' }]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setSelectedItems(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleOccupantChange = (index: number, name: string) => {
-    setOccupants(prev => {
+    setSelectedItems(prev => {
       const next = [...prev];
-      next[index] = name;
+      next[index] = { ...next[index], occupantName: name };
       return next;
     });
   };
@@ -191,24 +192,9 @@ const RoomTypes: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      const items: BookingItemRequest[] = [];
-      let occupantIdx = 0;
-      
-      selectedItems.forEach(item => {
-        for (let i = 0; i < item.quantity; i++) {
-          items.push({
-            roomTypeId: item.roomTypeId,
-            occupantName: occupants[occupantIdx++] || ''
-          });
-        }
-      });
-
       const response = await createBooking({
-        checkInDate: formData.checkInDate,
-        checkOutDate: formData.checkOutDate,
-        guestCount: formData.guestCount,
-        notes: formData.notes,
-        items
+        ...formData,
+        items: selectedItems
       });
 
       alert(`¡Reserva ${response.code} creada con éxito!`);
@@ -297,7 +283,7 @@ const RoomTypes: React.FC = () => {
                       
                       <button 
                         className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
-                        onClick={() => handleReservation(room)}
+                        onClick={handleReservation}
                         type="button"
                       >
                         RESERVAR AHORA
@@ -458,11 +444,17 @@ const RoomTypes: React.FC = () => {
                   ) : (
                     <div className="grid gap-4">
                       {availability.map((type) => {
-                        const selected = selectedItems.find(i => i.roomTypeId === type.id);
                         return (
                           <div key={type.id} className="p-5 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-3xl flex items-center justify-between group hover:border-[#d4af37]/50 transition-all">
                             <div className="space-y-1">
-                              <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-[#d4af37] transition-colors">{type.name}</h5>
+                              <div className="flex items-center gap-2">
+                                <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-[#d4af37] transition-colors">{type.name}</h5>
+                                {selectedItems.filter(i => i.roomTypeId === type.id).length > 0 && (
+                                  <span className="bg-[#d4af37]/10 text-[#d4af37] text-[10px] font-black px-2 py-0.5 rounded-full border border-[#d4af37]/20 animate-in zoom-in-50 duration-300">
+                                    x{selectedItems.filter(i => i.roomTypeId === type.id).length}
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                 <span className="flex items-center gap-1"><Users size={12} /> Máx: {type.maxCapacity}</span>
                                 <span className="font-bold text-[#d4af37]">${type.basePrice}/noche</span>
@@ -471,22 +463,13 @@ const RoomTypes: React.FC = () => {
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-4 bg-gray-50 dark:bg-white/10 p-2 rounded-2xl">
+                            <div className="flex items-center gap-3">
                               <button 
-                                onClick={() => handleItemQuantityChange(type.id, -1)}
-                                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-white/10 transition-colors shadow-sm"
+                                onClick={() => handleAddItem(type.id)}
+                                disabled={type.availableQuantity <= (selectedItems.filter(i => i.roomTypeId === type.id).length)}
+                                className="bg-[#111111] dark:bg-[#d4af37] text-white dark:text-[#111111] px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-2"
                               >
-                                <Minus size={16} />
-                              </button>
-                              <span className="w-6 text-center font-bold text-gray-900 dark:text-white">
-                                {selected?.quantity || 0}
-                              </span>
-                              <button 
-                                onClick={() => handleItemQuantityChange(type.id, 1)}
-                                disabled={type.availableQuantity <= (selected?.quantity || 0)}
-                                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-[#d4af37] hover:text-white transition-all shadow-sm disabled:opacity-30"
-                              >
-                                <Plus size={16} />
+                                <Plus size={14} /> Reservar
                               </button>
                             </div>
                           </div>
@@ -502,19 +485,35 @@ const RoomTypes: React.FC = () => {
                   <h4 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <User size={20} className="text-[#d4af37]" /> Detalles de Ocupantes
                   </h4>
-                  <div className="space-y-4">
-                    {occupants.map((_, idx) => (
-                      <div key={idx} className="space-y-2">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Ocupante Habitación #{idx + 1}</label>
-                        <input
-                          type="text"
-                          placeholder="Nombre completo"
-                          value={occupants[idx]}
-                          onChange={(e) => handleOccupantChange(idx, e.target.value)}
-                          className="w-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl py-4 px-6 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#d4af37]/20 focus:border-[#d4af37] transition-all outline-none"
-                        />
-                      </div>
-                    ))}
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {selectedItems.map((item, idx) => {
+                      const type = availability.find(a => a.id === item.roomTypeId);
+                      return (
+                        <div key={idx} className="p-6 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-3xl space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h5 className="font-bold text-[#d4af37] flex items-center gap-2">
+                              <Bed size={16} /> {type?.name} #{idx + 1}
+                            </h5>
+                            <button 
+                              onClick={() => handleRemoveItem(idx)}
+                              className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">¿Quién ocupará esta habitación?</label>
+                            <input
+                              type="text"
+                              placeholder="Nombre completo del ocupante"
+                              value={item.occupantName}
+                              onChange={(e) => handleOccupantChange(idx, e.target.value)}
+                              className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-[#d4af37]/30 rounded-2xl py-3 px-4 text-sm text-gray-900 dark:text-white transition-all outline-none"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="space-y-2 pt-4">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Notas y Solicitudes Especiales</label>
@@ -550,12 +549,15 @@ const RoomTypes: React.FC = () => {
                       </div>
                       <div className="space-y-3">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Habitaciones Seleccionadas</label>
-                        {selectedItems.map(item => {
+                        {selectedItems.map((item, idx) => {
                           const type = availability.find(a => a.id === item.roomTypeId);
                           return (
-                            <div key={item.roomTypeId} className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600 dark:text-gray-300">{item.quantity}x {type?.name}</span>
-                              <span className="font-bold text-gray-900 dark:text-white">${(type?.basePrice || 0) * calculateNights() * item.quantity}</span>
+                            <div key={idx} className="flex justify-between items-start text-sm border-b border-gray-100 dark:border-white/5 pb-3 last:border-0">
+                              <div className="flex flex-col">
+                                <span className="text-gray-900 dark:text-white font-bold">{type?.name}</span>
+                                <span className="text-xs text-gray-500">{item.occupantName}</span>
+                              </div>
+                              <span className="font-bold text-[#d4af37]">${(type?.basePrice || 0) * calculateNights()}</span>
                             </div>
                           );
                         })}
