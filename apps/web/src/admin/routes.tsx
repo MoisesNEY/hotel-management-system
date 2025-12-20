@@ -8,6 +8,7 @@ import {
     MapPinIcon,
     UserIcon,
     ComputerDesktopIcon,
+    UserGroupIcon,
     DocumentTextIcon,
     ChartBarIcon,
     TableCellsIcon
@@ -25,6 +26,7 @@ import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
 import CMSEditor from './views/CMS/CMSEditor';
+import EmployeeView from './views/Employee/EmployeeView';
 import FileManagerView from './views/FileManager/FileManagerView';
 
 export interface RouteConfig {
@@ -71,6 +73,13 @@ const routes: RouteConfig[] = [
         name: 'Servicios',
         icon: SparklesIcon, // Sparkles for hotel services (cleaning, amenities)
         component: ServicesView,
+        layout: '/admin'
+    },
+    {
+        path: '/employee',
+        name: 'Empleado',
+        icon: UserGroupIcon,
+        component: EmployeeView,
         layout: '/admin'
     },
     {
