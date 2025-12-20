@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle2, Clock, X, Bed } from 'lucide-react';
 import { useAuth } from '../contexts/AuthProvider';
 import { getMyBookings } from '../services/client/bookingService';
 import { getMyInvoices } from '../services/client/invoiceService';
@@ -15,6 +15,8 @@ const ClientDashboardPage: React.FC = () => {
   const [invoices, setInvoices] = useState<InvoiceDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'history'>('overview');
+  const [selectedBooking, setSelectedBooking] = useState<BookingResponse | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,7 +154,10 @@ const ClientDashboardPage: React.FC = () => {
                             <Coffee size={18} /> Solicitar Room Service
                           </button>
                         )}
-                        <button className="px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-colors">
+                        <button 
+                          onClick={() => { setSelectedBooking(currentStay); setShowDetailsModal(true); }}
+                          className="px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-colors"
+                        >
                           Detalles de la Reserva
                         </button>
                       </div>
@@ -248,7 +253,10 @@ const ClientDashboardPage: React.FC = () => {
                               <CreditCard size={14} /> Pagar con PayPal
                             </button>
                            )}
-                          <button className="p-2 text-gray-400 hover:text-white transition-colors border border-white/10 rounded-full">
+                          <button 
+                            onClick={() => { setSelectedBooking(booking); setShowDetailsModal(true); }}
+                            className="p-2 text-gray-400 hover:text-white transition-colors border border-white/10 rounded-full"
+                          >
                              <ChevronRight size={18} />
                           </button>
                         </div>
@@ -311,6 +319,96 @@ const ClientDashboardPage: React.FC = () => {
         )}
 
       </div>
+
+      {/* Modal de Detalles de Reserva */}
+      {showDetailsModal && selectedBooking && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-[1000] p-4 animate-in fade-in duration-300"
+          onClick={() => setShowDetailsModal(false)}
+        >
+          <div 
+            className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 slide-in-from-bottom-5 duration-500"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header del Modal */}
+            <div className="relative h-48">
+              <img 
+                src="https://images.unsplash.com/photo-1571011297249-c3b246c4f98a?auto=format&fit=crop&q=80&w=1500" 
+                alt="Habitación" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent"></div>
+              <button 
+                onClick={() => setShowDetailsModal(false)}
+                className="absolute top-6 right-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-[#d4af37] hover:text-black transition-all"
+              >
+                <X size={20} />
+              </button>
+              <div className="absolute bottom-6 left-8">
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border mb-2 ${getStatusColor(selectedBooking.status)}`}>
+                  {selectedBooking.status}
+                </div>
+                <h3 className="text-2xl font-bold text-white">Reserva {selectedBooking.code}</h3>
+              </div>
+            </div>
+
+            {/* Contenido */}
+            <div className="p-8 space-y-8">
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-In</p>
+                  <p className="text-lg font-medium text-white">{selectedBooking.checkInDate}</p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-Out</p>
+                  <p className="text-lg font-medium text-white">{selectedBooking.checkOutDate}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-[#d4af37] uppercase tracking-widest flex items-center gap-2">
+                  <Bed size={16} /> Habitaciones y Ocupantes
+                </h4>
+                <div className="space-y-3">
+                  {selectedBooking.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                      <div>
+                        <p className="font-semibold text-white">{item.roomTypeName}</p>
+                        <p className="text-xs text-gray-400">{item.occupantName || 'Ocupante por asignar'}</p>
+                      </div>
+                      {item.assignedRoomNumber && (
+                        <div className="px-3 py-1 bg-[#d4af37]/10 text-[#d4af37] rounded-lg text-xs font-bold border border-[#d4af37]/20">
+                          HAB: {item.assignedRoomNumber}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Pagado / Pendiente</p>
+                  <p className="text-3xl font-bold text-white">${selectedBooking.totalPrice}</p>
+                </div>
+                <div className="flex gap-3">
+                   {selectedBooking.status === 'PENDING' && (
+                     <button className="px-6 py-3 bg-[#0070ba] text-white font-bold rounded-full hover:bg-[#005ea6] transition-all flex items-center gap-2 text-sm">
+                       <CreditCard size={18} /> Pagar ahora
+                     </button>
+                   )}
+                   <button 
+                    onClick={() => setShowDetailsModal(false)}
+                    className="px-6 py-3 bg-white/10 text-white font-bold rounded-full hover:bg-white/20 transition-all text-sm"
+                   >
+                     Cerrar
+                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
