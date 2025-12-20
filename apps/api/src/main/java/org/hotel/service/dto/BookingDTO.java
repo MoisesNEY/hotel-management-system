@@ -17,7 +17,6 @@ public class BookingDTO implements Serializable {
 
     private Long id;
 
-    @NotNull
     private String code;
 
     @NotNull

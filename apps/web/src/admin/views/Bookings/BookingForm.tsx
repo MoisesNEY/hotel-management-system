@@ -5,15 +5,19 @@ import {
     AlertCircle, Loader2, 
     CheckCircle2, Info, Plus, Trash2, ChevronDown
 } from 'lucide-react';
+import Badge from '../../components/shared/Badge';
+import Modal from '../../components/shared/Modal';
 import Button from '../../components/shared/Button';
 import { createBooking, updateBooking } from '../../../services/admin/bookingService';
 import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
+import { getAllRooms } from '../../../services/admin/roomService';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllUsers } from '../../../services/admin/userService';
 
 import type { 
     BookingDTO, 
     RoomTypeDTO, 
+    RoomDTO,
     CustomerDetailsDTO as CustomerDTO,
     BookingStatus,
     AdminUserDTO
@@ -37,11 +41,15 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | string>('');
     
     // Items state
-    const [bookingItems, setBookingItems] = useState<{ roomTypeId: number | string; occupantName: string; id?: number }[]>([]);
-
+    const [bookingItems, setBookingItems] = useState<{ roomTypeId: number | string; occupantName: string; assignedRoomId?: number | string; id?: number }[]>([]);
     const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
+    const [rooms, setRooms] = useState<RoomDTO[]>([]);
     const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
+
+    // Local Assignment Modal in Form
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [assigningItemIndex, setAssigningItemIndex] = useState<number | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
@@ -51,16 +59,18 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [typesResponse, customersResponse, usersResponse] = await Promise.all([
+                const [typesResponse, customersResponse, usersResponse, roomsResponse] = await Promise.all([
                     getAllRoomTypes(0, 200),
                     getAllCustomerDetails(0, 200),
-                    getAllUsers(0, 200)
+                    getAllUsers(0, 200),
+                    getAllRooms(0, 1000)
                 ]);
                 setRoomTypes(typesResponse.data);
                 setCustomers(customersResponse.data);
+                setRooms(roomsResponse.data);
 
                 const map: Record<string, AdminUserDTO> = {};
-                usersResponse.data.forEach(u => map[u.id] = u);
+                usersResponse.data.forEach((u: AdminUserDTO) => map[u.id] = u);
                 setUsersMap(map);
             } catch (e) {
                 console.error("Error loading form data", e);
@@ -85,7 +95,8 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 setBookingItems(initialData.items.map(item => ({
                     id: item.id,
                     roomTypeId: item.roomType.id,
-                    occupantName: item.occupantName || ''
+                    occupantName: item.occupantName || '',
+                    assignedRoomId: item.assignedRoom?.id || ''
                 })));
             }
         }
@@ -102,7 +113,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     }, [initialData, customers]);
 
     const addItem = () => {
-        setBookingItems([...bookingItems, { roomTypeId: '', occupantName: '' }]);
+        setBookingItems([...bookingItems, { roomTypeId: '', occupantName: '', assignedRoomId: '' }]);
     };
 
     const removeItem = (index: number) => {
@@ -113,6 +124,18 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
         const newItems = [...bookingItems];
         newItems[index] = { ...newItems[index], [field]: value };
         setBookingItems(newItems);
+    };
+
+    const openAssignModal = (index: number) => {
+        setAssigningItemIndex(index);
+        setShowAssignModal(true);
+    };
+
+    const handleAssignRoomInForm = (roomId: number) => {
+        if (assigningItemIndex === null) return;
+        updateItem(assigningItemIndex, 'assignedRoomId', roomId);
+        setShowAssignModal(false);
+        setAssigningItemIndex(null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -141,23 +164,24 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
 
             const payload_items = bookingItems.map(item => {
                 const rt = roomTypes.find(t => t.id === Number(item.roomTypeId));
+                const assignedRoom = item.assignedRoomId ? rooms.find(r => r.id === Number(item.assignedRoomId)) : undefined;
                 return {
                     ...(item.id ? { id: item.id } : {}),
                     roomType: rt,
                     occupantName: item.occupantName,
-                    price: rt?.basePrice || 0
+                    price: rt?.basePrice || 0,
+                    assignedRoom: assignedRoom
                 };
             });
-
             const payload = {
-                ...(initialData?.id ? { id: initialData.id } : {}),
+                ...(initialData?.id ? { id: initialData.id, code: initialData.code } : {}),
                 checkInDate,
                 checkOutDate,
                 guestCount: Number(guestCount),
                 status: status as BookingStatus,
                 notes,
                 customer: selectedCustomer.user,
-                bookingItems: payload_items
+                items: payload_items
             };
 
             if (initialData?.id) {
@@ -276,7 +300,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                 <div className="md:col-span-1 flex items-center justify-center pb-3">
                                     <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
                                 </div>
-                                <div className="md:col-span-5 space-y-2">
+                                <div className="md:col-span-4 space-y-2">
                                     <label className="text-[10px] uppercase font-bold text-gray-400 ml-1">Categoría</label>
                                     <div className="relative">
                                         <select
@@ -297,7 +321,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                         </div>
                                     </div>
                                 </div>
-                                <div className="md:col-span-5 space-y-2">
+                                <div className="md:col-span-3 space-y-2">
                                     <label className="text-[10px] uppercase font-bold text-gray-400 ml-1">Ocupante (Opcional)</label>
                                     <input
                                         type="text"
@@ -306,6 +330,28 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                         placeholder="Nombre del huésped"
                                         className={inputStyle}
                                     />
+                                </div>
+                                <div className="md:col-span-3 space-y-2">
+                                    <label className="text-[10px] uppercase font-bold text-gray-400 ml-1">Habitación Asignada</label>
+                                    <div className="flex items-center gap-2">
+                                        {item.assignedRoomId ? (
+                                            <Badge variant="success">
+                                                {rooms.find(r => r.id === Number(item.assignedRoomId))?.roomNumber || 'Desconocida'}
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-[10px] text-gray-400 italic">Sin asignar</span>
+                                        )}
+                                        <Button 
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            className="text-[10px] h-7 px-2"
+                                            onClick={() => openAssignModal(index)}
+                                            disabled={!item.roomTypeId}
+                                        >
+                                            {item.assignedRoomId ? 'Cambiar' : 'Asignar'}
+                                        </Button>
+                                    </div>
                                 </div>
                                 <div className="md:col-span-1 flex justify-center pb-2">
                                     <button 
@@ -446,6 +492,49 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 </div>
             </div>
 
+            {/* Assignment Modal for Form Items */}
+            <Modal
+                isOpen={showAssignModal}
+                onClose={() => setShowAssignModal(false)}
+                title="Asignar Habitación Física"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-500">
+                        Seleccione una habitación disponible del tipo reservado (
+                        {assigningItemIndex !== null && roomTypes.find(t => t.id === Number(bookingItems[assigningItemIndex].roomTypeId))?.name}
+                        )
+                    </p>
+                    <div className="grid grid-cols-4 gap-2">
+                        {assigningItemIndex !== null && rooms
+                            .filter(r => r.roomType.id === Number(bookingItems[assigningItemIndex].roomTypeId))
+                            .map(r => (
+                                <button
+                                    key={r.id}
+                                    type="button"
+                                    onClick={() => handleAssignRoomInForm(r.id)}
+                                    disabled={r.status !== 'AVAILABLE'}
+                                    className={`p-3 rounded-xl border text-sm transition-all ${
+                                        r.status === 'AVAILABLE'
+                                            ? 'border-gray-100 dark:border-white/10 hover:border-gold-default dark:hover:border-gold-default hover:bg-gold-default/5'
+                                            : 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-white/5 border-dashed'
+                                    } ${
+                                        Number(bookingItems[assigningItemIndex].assignedRoomId) === r.id
+                                            ? 'border-gold-default bg-gold-default/10 text-gold-default'
+                                            : ''
+                                    }`}
+                                >
+                                    <div className="font-bold">{r.roomNumber}</div>
+                                    <div className="text-[10px] mt-1">{r.status}</div>
+                                </button>
+                            ))}
+                        {assigningItemIndex !== null && rooms.filter(r => r.roomType.id === Number(bookingItems[assigningItemIndex].roomTypeId)).length === 0 && (
+                            <div className="col-span-4 p-4 text-center text-gray-400 text-xs italic">
+                                No hay habitaciones físicas configuradas para esta categoría.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Modal>
         </form>
     );
 };

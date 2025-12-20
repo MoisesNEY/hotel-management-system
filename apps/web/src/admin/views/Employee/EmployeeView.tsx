@@ -74,14 +74,16 @@ const EmployeeView = () => {
     }, [showError]);
 
     // Assign Room Handlers
-    const openAssignModal = async (bookingId: number, itemId: number) => {
+    const openAssignModal = async (bookingId: number, itemId: number, roomTypeId: number) => {
         setAssigningBookingId(bookingId);
         setAssigningItemId(itemId);
         setSelectedRoomId('');
         setShowAssignModal(true);
         try {
             const rooms = await getAllRooms();
-            setAvailableRooms(rooms.data.filter((room: RoomDTO) => room.status === 'AVAILABLE'));
+            setAvailableRooms(rooms.data.filter((room: RoomDTO) => 
+                room.status === 'AVAILABLE' && room.roomType.id === roomTypeId
+            ));
         } catch (error) {
             console.error('Error loading rooms:', error);
             showError('Error', 'No se pudieron cargar las habitaciones disponibles');
@@ -269,7 +271,7 @@ const EmployeeView = () => {
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => openAssignModal(item.bookingId, item.id)}
+                            onClick={() => openAssignModal(item.bookingId, item.id, item.roomType.id)}
                             className="text-xs"
                         >
                             <Home className="w-3 h-3 mr-1" />

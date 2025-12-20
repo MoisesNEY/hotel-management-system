@@ -12,6 +12,8 @@ import org.hotel.service.BookingQueryService;
 import org.hotel.service.BookingService;
 import org.hotel.service.criteria.BookingCriteria;
 import org.hotel.service.dto.BookingDTO;
+import org.hotel.service.dto.employee.request.booking.AssignRoomRequest;
+import org.hotel.service.employee.EmployeeBookingService;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +47,16 @@ public class BookingResource {
     private final BookingRepository bookingRepository;
 
     private final BookingQueryService bookingQueryService;
+    private final EmployeeBookingService employeeBookingService;
 
-    public BookingResource(BookingService bookingService, BookingRepository bookingRepository, BookingQueryService bookingQueryService) {
+    public BookingResource(BookingService bookingService, 
+                           BookingRepository bookingRepository, 
+                           BookingQueryService bookingQueryService,
+                           EmployeeBookingService employeeBookingService) {
         this.bookingService = bookingService;
         this.bookingRepository = bookingRepository;
         this.bookingQueryService = bookingQueryService;
+        this.employeeBookingService = employeeBookingService;
     }
 
     /**
@@ -197,5 +204,48 @@ public class BookingResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    /**
+     * {@code PATCH  /bookings/:id/assign-room} : Assign a room to a booking item.
+     *
+     * @param id the id of the booking.
+     * @param request the assignment request.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated bookingDTO.
+     */
+    @PatchMapping("/{id}/assign-room")
+    public ResponseEntity<BookingDTO> assignRoom(
+        @PathVariable("id") Long id,
+        @Valid @RequestBody AssignRoomRequest request
+    ) {
+        LOG.debug("REST request to assign room to booking item : {} , {}", id, request);
+        BookingDTO result = employeeBookingService.assignRoom(id, request);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * {@code PATCH  /bookings/:id/check-in} : Perform check-in for a booking.
+     *
+     * @param id the id of the booking.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated bookingDTO.
+     */
+    @PatchMapping("/{id}/check-in")
+    public ResponseEntity<BookingDTO> checkIn(@PathVariable("id") Long id) {
+        LOG.debug("REST request to check-in booking : {}", id);
+        BookingDTO result = employeeBookingService.checkIn(id);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * {@code PATCH  /bookings/:id/check-out} : Perform check-out for a booking.
+     *
+     * @param id the id of the booking.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated bookingDTO.
+     */
+    @PatchMapping("/{id}/check-out")
+    public ResponseEntity<BookingDTO> checkOut(@PathVariable("id") Long id) {
+        LOG.debug("REST request to check-out booking : {}", id);
+        BookingDTO result = employeeBookingService.checkOut(id);
+        return ResponseEntity.ok(result);
     }
 }
