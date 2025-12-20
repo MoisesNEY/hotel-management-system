@@ -158,29 +158,29 @@ const CMSEditor: React.FC = () => {
                     </div>
                     <div className="p-6 overflow-y-auto flex-auto space-y-4">
                         <Input 
-                            label="Título" 
+                            label="Título Principal" 
                             value={editingItem.title || ''} 
                             onChange={e => setEditingItem({...editingItem, title: e.target.value})}
-                            placeholder="Ingrese el título principal"
+                            placeholder="Ej: Portada de Invierno"
                         />
                         
                         <div>
                             <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Subtítulo / Descripción</label>
                             <textarea 
-                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[120px]"
+                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
                                 value={editingItem.subtitle || ''} 
                                 onChange={e => setEditingItem({...editingItem, subtitle: e.target.value})}
-                                placeholder="Ingrese una descripción breve..."
+                                placeholder="Escribe una descripción breve o subtítulo..."
                             />
                         </div>
 
                         {(collection?.type === CollectionType.GALLERY || collection?.type === CollectionType.SINGLE_IMAGE) && (
                             <div className="space-y-2">
                                 <Input 
-                                    label="URL de Imagen" 
+                                    label="URL de Imagen / Documento" 
                                     value={editingItem.imageUrl || ''} 
                                     onChange={e => setEditingItem({...editingItem, imageUrl: e.target.value})}
-                                    placeholder="https://ejemplo.com/imagen.jpg"
+                                    placeholder="https://bucket.s3.amazonaws.com/..."
                                 />
                                 {editingItem.imageUrl && (
                                     <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 h-[180px] bg-gray-50 dark:bg-black/20 flex items-center justify-center p-2">
@@ -192,17 +192,17 @@ const CMSEditor: React.FC = () => {
 
                         {(collection?.type === CollectionType.TEXT_LIST || collection?.type === CollectionType.MAP_EMBED) && (
                             <Input 
-                                label="Action URL / Iframe Src" 
+                                label="Action URL / Google Maps Iframe" 
                                 value={editingItem.actionUrl || ''} 
                                 onChange={e => setEditingItem({...editingItem, actionUrl: e.target.value})}
-                                placeholder="https://..."
+                                placeholder="URL de destino o código de mapa"
                             />
                         )}
 
                         <div className="flex flex-wrap -mx-2 pt-2">
                             <div className="w-1/2 px-2">
                                 <Input 
-                                    label="Orden" 
+                                    label="Orden de Visualización" 
                                     type="number" 
                                     value={editingItem.sortOrder || 1} 
                                     onChange={e => setEditingItem({...editingItem, sortOrder: parseInt(e.target.value)})}
@@ -224,9 +224,9 @@ const CMSEditor: React.FC = () => {
                         </div>
 
                     </div>
-                    <div className="p-6 border-t border-gray-100 dark:border-white/5 text-right bg-gray-50/50 dark:bg-white/[0.02] flex justify-end gap-3">
-                        <Button variant="ghost" onClick={() => setEditingItem(null)}>Cancelar</Button>
-                        <Button variant="primary" onClick={handleSaveItem}>Guardar Cambios</Button>
+                    <div className="p-6 border-t border-gray-100 dark:border-white/5 text-right bg-gray-50/80 dark:bg-white/[0.03] flex justify-end gap-3 rounded-b-3xl">
+                        <Button variant="ghost" onClick={() => setEditingItem(null)} className="font-bold">Cancelar</Button>
+                        <Button variant="primary" onClick={handleSaveItem} className="px-8 shadow-lg shadow-gold-default/10">Guardar Cambios</Button>
                     </div>
                 </div>
             </div>

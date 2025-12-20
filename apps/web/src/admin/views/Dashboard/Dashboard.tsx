@@ -352,7 +352,6 @@ const Dashboard = () => {
     }
 
     // Calcular el total de habitaciones
-    const totalRooms = roomsChartData?.datasets[0]?.data?.reduce((a, b) => a + b, 0) || 0;
     const occupiedRooms = roomsChartData?.datasets[0]?.data[0] || 0;
     const availableRooms = roomsChartData?.datasets[0]?.data[1] || 0;
 

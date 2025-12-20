@@ -29,7 +29,7 @@ const Input: React.FC<InputProps> = ({
             {label && (
                 <label 
                     htmlFor={inputId} 
-                    className="mb-1.5 text-sm font-medium text-gray-700"
+                    className="mb-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1"
                 >
                     {label}
                 </label>
@@ -48,15 +48,15 @@ const Input: React.FC<InputProps> = ({
                     className={`
                         w-full 
                         px-4 py-2.5
-                        bg-white 
-                        border border-gray-300 
-                        rounded-lg 
-                        text-gray-900 
+                        bg-white dark:bg-white/5
+                        border border-gray-300 dark:border-white/10
+                        rounded-xl
+                        text-gray-900 dark:text-white
                         shadow-sm 
-                        placeholder-gray-400
-                        transition-colors duration-200
-                        focus:outline-none focus:ring-1 focus:ring-paper-primary focus:border-paper-primary
-                        disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed
+                        placeholder-gray-400 dark:placeholder-gray-600
+                        transition-all duration-200
+                        focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default
+                        disabled:bg-gray-100 dark:disabled:bg-white/5 disabled:text-gray-500 disabled:cursor-not-allowed
                         ${error ? '!border-paper-danger focus:!ring-paper-danger' : ''}
                         ${leftIcon ? 'pl-10' : ''}
                         ${rightIcon ? 'pr-10' : ''}

@@ -6,27 +6,31 @@ import {
     SparklesIcon,
     UsersIcon,
     MapPinIcon,
-    KeyIcon,
     UserIcon,
     ComputerDesktopIcon,
-    UserGroupIcon
+    UserGroupIcon,
+    DocumentTextIcon,
+    ChartBarIcon,
+    TableCellsIcon
 } from '@heroicons/react/24/outline';
 
 // Import views
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
 import RoomTypesView from './views/RoomTypes/RoomTypesView';
-import BookingsView from './views/Bookings/BookingsView'; // Imported
+import BookingsView from './views/Bookings/BookingsView'; 
 import ServicesView from './views/Services/ServicesView';
-import CustomersView from './views/Customers/CustomersView'; // Imported
+import CustomersView from './views/Customers/CustomersView'; 
 import MapsView from './views/Maps/MapsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
 import CMSEditor from './views/CMS/CMSEditor';
 import EmployeeView from './views/Employee/EmployeeView';
+import FileManagerView from './views/FileManager/FileManagerView';
 
 export interface RouteConfig {
+  // ...
     path: string;
     name: string;
     icon: React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>;
@@ -53,7 +57,7 @@ const routes: RouteConfig[] = [
     {
         path: '/room-types',
         name: 'Tipos Hab.',
-        icon: KeyIcon, // Key for room types/categories
+        icon: TableCellsIcon, // Grid icon for data/categories
         component: RoomTypesView,
         layout: '/admin'
     },
@@ -102,7 +106,7 @@ const routes: RouteConfig[] = [
     {
         path: '/tables',
         name: 'Tablas',
-        icon: KeyIcon, // Tables/Settings
+        icon: ChartBarIcon, // Bar chart for reports/stats center
         component: TablesView,
         layout: '/admin'
     },
@@ -119,10 +123,17 @@ const routes: RouteConfig[] = [
     {
         path: '/cms/edit/:id',
         name: 'Editor CMS',
-        icon: ComputerDesktopIcon, 
+        icon: ComputerDesktopIcon,
         component: CMSEditor,
         layout: '/admin',
         hidden: true // <--- Propiedad clave
+    },
+    {
+        path: '/files',
+        name: 'Documentos',
+        icon: DocumentTextIcon,
+        component: FileManagerView,
+        layout: '/admin'
     },
 ];
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, FileText } from 'lucide-react';
+import { useSingleContent } from '../hooks/useContent';
 import { createBooking } from '../services/client/bookingService';
 import { getAllRoomTypes } from '../services/admin/roomTypeService';
 import type { RoomTypeDTO } from '../types/adminTypes';
@@ -42,6 +43,8 @@ const RoomTypes: React.FC = () => {
     totalPrice: 0,
     notes: ''
   });
+
+  const { data: header } = useSingleContent('HEADER_ROOMS');
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
@@ -218,9 +221,16 @@ const RoomTypes: React.FC = () => {
     <>
       <section className="bg-white dark:bg-[#1a1a2e] py-20" id="habitaciones">
         <div className="max-w-7xl mx-auto px-5">
-          <h2 className="text-center text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
-            Tipos de Habitación
-          </h2>
+          <div className="text-center mb-10">
+            <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
+              {header?.title || 'Tipos de Habitación'}
+            </h2>
+            {header?.subtitle && (
+              <p className="text-gray-600 dark:text-gray-300 text-lg max-w-[600px] mx-auto leading-relaxed">
+                {header.subtitle}
+              </p>
+            )}
+          </div>
           
           {loading ? (
             <div className="flex justify-center py-20">

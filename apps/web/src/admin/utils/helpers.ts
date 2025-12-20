@@ -1,4 +1,19 @@
 import { BOOKING_STATUS_COLORS, ROOM_STATUS_COLORS } from './constants';
+import type { AdminUserDTO } from '../../types/adminTypes';
+
+export const getUserDisplayInfo = (userObj: any, usersMap: Record<string | number, AdminUserDTO>) => {
+    const userId = userObj?.id;
+    const stitchedUser = userId ? usersMap[userId] : undefined;
+
+    const firstName = stitchedUser?.firstName || userObj?.firstName || '';
+    const lastName = stitchedUser?.lastName || userObj?.lastName || '';
+    const email = stitchedUser?.email || userObj?.email || 'N/A';
+
+    return {
+        fullName: `${firstName} ${lastName}`.trim() || 'Sin Nombre',
+        email
+    };
+};
 
 export const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('es-MX', {
