@@ -155,20 +155,12 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                 </div>
 
                 {/* Image URL & File Upload */}
-                <div>
-                    <label style={labelStyle}>Imagen del Servicio</label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <div style={{ position: 'relative', flex: 1 }}>
-                                <div style={{
-                                    position: 'absolute',
-                                    left: '12px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    color: '#9ca3af',
-                                    display: 'flex',
-                                    alignItems: 'center'
-                                }}>
+                <div className="space-y-3">
+                    <label className={labelClass}>Imagen del Servicio</label>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Link size={16} />
                                 </div>
                                 <input
@@ -177,42 +169,26 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                                     onChange={(e) => setImageUrl(e.target.value)}
                                     placeholder="https://example.com/image.jpg"
                                     disabled={isMinioImage || isUploading}
-                                    style={{
-                                        ...inputStyle,
-                                        paddingLeft: '36px',
-                                        backgroundColor: (isMinioImage || isUploading) ? '#f3f4f6' : '#ffffff',
-                                        cursor: (isMinioImage || isUploading) ? 'not-allowed' : 'text'
-                                    }}
-                                    onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                    className={`${inputClass} pl-10 ${(isMinioImage || isUploading)
+                                            ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
+                                            : ''
+                                        }`}
                                 />
                             </div>
 
                             {!isMinioImage ? (
-                                <div style={{ position: 'relative' }}>
+                                <div className="relative">
                                     <input
                                         type="file"
                                         id="service-image-upload"
-                                        style={{ display: 'none' }}
+                                        className="hidden"
                                         accept="image/*"
                                         onChange={handleFileUpload}
                                         disabled={isUploading}
                                     />
                                     <label
                                         htmlFor="service-image-upload"
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            width: '42px',
-                                            height: '42px',
-                                            backgroundColor: '#ffffff',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '8px',
-                                            cursor: isUploading ? 'not-allowed' : 'pointer',
-                                            color: '#6b7280',
-                                            transition: 'all 0.2s'
-                                        }}
+                                        className="flex items-center justify-center w-[42px] h-[42px] bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors disabled:opacity-50"
                                         title="Subir archivo"
                                     >
                                         {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
@@ -222,19 +198,7 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                                 <button
                                     type="button"
                                     onClick={handleRemoveImage}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '42px',
-                                        height: '42px',
-                                        backgroundColor: '#fee2e2',
-                                        border: '1px solid #fecaca',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        color: '#ef4444',
-                                        transition: 'all 0.2s'
-                                    }}
+                                    className="flex items-center justify-center w-[42px] h-[42px] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                                     title="Quitar imagen"
                                 >
                                     <X size={18} />
@@ -243,72 +207,60 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                         </div>
 
                         {imageUrl && (
-                            <div style={{
-                                width: '100%',
-                                height: '120px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '12px',
-                                overflow: 'hidden',
-                                backgroundColor: '#f9fafb',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
+                            <div className="w-full h-32 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex items-center justify-center group relative">
                                 <img
                                     src={imageUrl}
                                     alt="Preview"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                     onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff43c619c721?auto=format&fit=crop&q=80&w=400')}
                                 />
+                                {isUploading && (
+                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                                        <Loader2 size={32} className="text-white animate-spin" />
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        <p style={{ fontSize: '10px', color: '#9ca3af', margin: 0 }}>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 italic">
                             {isMinioImage
-                                ? "Imagen subida a almacenamiento interno. Desbloquea para usar una URL externa."
-                                : "Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
+                                ? "✨ Imagen subida a almacenamiento interno (Minio). Quita la foto para usar una URL externa."
+                                : "💡 Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
                         </p>
                     </div>
-                    <label className={labelClass}>URL de Imagen</label>
-                    <input
-                        type="text"
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                        className={inputClass}
-                    />
                 </div>
 
                 {/* Availability */}
-                <div className="flex items-center">
+                <div className="flex items-center gap-2 pt-2">
                     <input
                         id="isAvailable"
                         type="checkbox"
                         checked={isAvailable}
                         onChange={(e) => setIsAvailable(e.target.checked)}
-                        className="w-4 h-4 mr-2 cursor-pointer text-teal-600 dark:text-teal-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                        className="w-4 h-4 cursor-pointer text-teal-600 dark:text-teal-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
                     />
-                    <label htmlFor="isAvailable" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <label htmlFor="isAvailable" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer font-medium select-none">
                         Disponible para solicitar
                     </label>
                 </div>
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold text-xs uppercase hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold text-[10px] uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-300 text-white font-semibold text-xs uppercase rounded-full shadow-lg shadow-teal-500/30 disabled:shadow-none disabled:cursor-not-allowed transition-colors"
+                    className="px-8 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-300 text-white font-bold text-[10px] uppercase tracking-wider rounded-full shadow-lg shadow-teal-500/20 disabled:shadow-none disabled:cursor-not-allowed transition-all active:scale-95 flex items-center gap-2"
                 >
+                    {loading && <Loader2 size={14} className="animate-spin" />}
                     {loading ? 'Guardando...' : (initialData ? 'Actualizar' : 'Crear')}
                 </button>
             </div>

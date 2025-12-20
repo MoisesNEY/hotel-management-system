@@ -9,7 +9,7 @@ const UserProfileView: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { updateUserProfile, reloadProfile } = useAuth();
+    const { reloadProfile } = useAuth();
     const [formData, setFormData] = useState<Partial<AdminUserDTO>>({
         firstName: '',
         lastName: '',
