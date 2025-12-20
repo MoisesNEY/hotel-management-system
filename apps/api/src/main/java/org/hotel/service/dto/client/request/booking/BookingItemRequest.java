@@ -15,5 +15,6 @@ public class BookingItemRequest implements Serializable {
     @NotNull(message = "El tipo de habitación es obligatorio")
     private Long roomTypeId;
 
-    private String occupantName; // Opcional
+    @NotNull(message = "El nombre del ocupante es obligatorio")
+    private String occupantName;
 }

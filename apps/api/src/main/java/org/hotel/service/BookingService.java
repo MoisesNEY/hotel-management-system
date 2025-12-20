@@ -59,6 +59,9 @@ public class BookingService {
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
+        // Expansión de items basada en quantity
+        expandBookingItems(booking, bookingDTO);
+
         // Validamos y enriquecemos la data (Precios, Disponibilidad)
         prepareBookingData(booking, null);
 
@@ -99,6 +102,11 @@ public class BookingService {
             .findById(bookingDTO.getId())
             .map(existingBooking -> {
                 bookingMapper.partialUpdate(existingBooking, bookingDTO);
+
+                // Expansión si se enviaron items
+                if (bookingDTO.getItems() != null) {
+                    expandBookingItems(existingBooking, bookingDTO);
+                }
 
                 // Si cambian las fechas, es obligatorio recalcular todo (precios y disponibilidad)
                 if (bookingDTO.getCheckInDate() != null || bookingDTO.getCheckOutDate() != null) {
@@ -192,6 +200,27 @@ public class BookingService {
         }
         if (serviceRequestRepository.existsByBookingId(bookingId)) {
             throw new BusinessRuleException("La reserva tiene solicitudes de servicio asociadas, bórrelas primero");
+        }
+    }
+
+    private void expandBookingItems(Booking booking, BookingDTO bookingDTO) {
+        if (bookingDTO.getItems() == null) return;
+
+        // Limpiamos los items mapeados para reconstruir
+        booking.getBookingItems().clear();
+
+        for (org.hotel.service.dto.BookingItemDTO itemDTO : bookingDTO.getItems()) {
+            RoomType roomType = roomTypeRepository.findById(itemDTO.getRoomType().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RoomType", itemDTO.getRoomType().getId()));
+
+            BookingItem item = new BookingItem();
+            item.setRoomType(roomType);
+            item.setOccupantName(itemDTO.getOccupantName());
+            item.setPrice(itemDTO.getPrice()); // Admin puede enviar precio manual o se recalcula en prepare
+            
+            // Relación bidireccional
+            item.setBooking(booking);
+            booking.getBookingItems().add(item);
         }
     }
 }

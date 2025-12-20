@@ -12,6 +12,7 @@ import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.BookingDomainService;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
+import org.hotel.service.dto.client.request.booking.BookingItemRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
 import org.hotel.service.dto.client.response.booking.RoomTypeAvailabilityDTO;
 import org.hotel.service.mapper.client.ClientBookingMapper;
@@ -83,22 +84,27 @@ public class ClientBookingService {
         booking.setStatus(BookingStatus.PENDING);
         booking.setCode("RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
-        // 4. Lógica Multi-Habitación
-        if (booking.getBookingItems() == null || booking.getBookingItems().isEmpty()) {
-            throw new BusinessRuleException("La reserva debe tener al menos una habitación.");
-        }
+        // 4. Lógica Multi-Habitación (Mapeo Directo)
+        // Limpiamos los items mapeados automáticamente para reconstruir con validaciones de BD
+        booking.getBookingItems().clear();
 
         BigDecimal totalPriceAccumulated = BigDecimal.ZERO;
 
-        for (BookingItem item : booking.getBookingItems()) {
-            RoomType roomType = roomTypeRepository.findById(item.getRoomType().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("RoomType", item.getRoomType().getId()));
+        for (BookingItemRequest itemReq : request.getItems()) {
+            RoomType roomType = roomTypeRepository.findById(itemReq.getRoomTypeId())
+                .orElseThrow(() -> new ResourceNotFoundException("RoomType", itemReq.getRoomTypeId()));
 
-            item.setRoomType(roomType);
-            
             // Calcular precio de ESTE item (Delegado)
             BigDecimal itemPrice = bookingDomainService.calculateItemPrice(roomType, nights);
+            
+            BookingItem item = new BookingItem();
+            item.setRoomType(roomType);
             item.setPrice(itemPrice);
+            item.setOccupantName(itemReq.getOccupantName());
+            
+            // Establecer relación bidireccional
+            item.setBooking(booking);
+            booking.getBookingItems().add(item);
             
             // Sumar al total global
             totalPriceAccumulated = totalPriceAccumulated.add(itemPrice);
@@ -111,8 +117,8 @@ public class ClientBookingService {
                 Collectors.counting()
             ));
 
-        requestedRoomsByType.forEach((typeId, quantityNeeded) -> {
-            bookingDomainService.validateRoomAvailability(typeId, quantityNeeded, request.getCheckInDate(), request.getCheckOutDate(), null);
+        requestedRoomsByType.forEach((typeId, qty) -> {
+            bookingDomainService.validateRoomAvailability(typeId, qty, request.getCheckInDate(), request.getCheckOutDate(), null);
         });
 
         // 6. Guardar (Cascade guardará los items)

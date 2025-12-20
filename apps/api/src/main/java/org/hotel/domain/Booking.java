@@ -53,7 +53,7 @@ public class Booking implements Serializable {
     @Column(name = "special_requests")
     private String specialRequests;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties(value = { "roomType", "assignedRoom", "booking" }, allowSetters = true)
     private Set<BookingItem> bookingItems = new HashSet<>();
 

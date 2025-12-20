@@ -37,7 +37,8 @@ public interface ClientBookingMapper {
     @Mapping(target = "booking", ignore = true) // Se asigna en el AfterMapping
     @Mapping(target = "assignedRoom", ignore = true) // Se asigna en recepción
     @Mapping(target = "price", ignore = true) // Se calcula en el Service
-    @Mapping(target = "roomType.id", source = "roomTypeId") // ID vital para la reserva
+    @Mapping(target = "roomType.id", source = "roomTypeId") 
+    @Mapping(target = "occupantName", source = "occupantName")
     BookingItem toItemEntity(BookingItemRequest request);
     /**
      * IMPORTANTE: Cuando MapStruct crea una lista de hijos, no les asigna el padre automáticamente.
