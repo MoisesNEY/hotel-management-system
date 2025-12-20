@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createHotelService, updateHotelService } from '../../../services/admin/hotelServiceService';
+import fileService from '../../../services/admin/fileService';
 import type { HotelServiceDTO } from '../../../types/adminTypes';
+import { Upload, X, Link, Loader2 } from 'lucide-react';
 
 
 interface ServiceFormProps {
@@ -17,7 +19,9 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
     const [isAvailable, setIsAvailable] = useState(true);
 
     const [loading, setLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isMinioImage, setIsMinioImage] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -26,8 +30,36 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             setCost(initialData.cost.toString());
             setImageUrl(initialData.imageUrl || '');
             setIsAvailable(initialData.isAvailable);
+
+            // Si la URL contiene el bucketName o endpoint de minio, lo marcamos como minio (opcional)
+            if (initialData.imageUrl?.includes('/api/files') || initialData.imageUrl?.includes('9000')) {
+                setIsMinioImage(true);
+            }
         }
     }, [initialData]);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setError(null);
+        try {
+            const url = await fileService.uploadFile(file, 'services');
+            setImageUrl(url);
+            setIsMinioImage(true);
+        } catch (err) {
+            console.error("Error uploading file", err);
+            setError("Error al subir la imagen");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImageUrl('');
+        setIsMinioImage(false);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -152,18 +184,121 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                     />
                 </div>
 
-                {/* Image URL */}
+                {/* Image URL & File Upload */}
                 <div>
-                    <label style={labelStyle}>URL de Imagen</label>
-                    <input
-                        type="text"
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                    />
+                    <label style={labelStyle}>Imagen del Servicio</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <div style={{
+                                    position: 'absolute',
+                                    left: '12px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    color: '#9ca3af',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}>
+                                    <Link size={16} />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={imageUrl}
+                                    onChange={(e) => setImageUrl(e.target.value)}
+                                    placeholder="https://example.com/image.jpg"
+                                    disabled={isMinioImage || isUploading}
+                                    style={{
+                                        ...inputStyle,
+                                        paddingLeft: '36px',
+                                        backgroundColor: (isMinioImage || isUploading) ? '#f3f4f6' : '#ffffff',
+                                        cursor: (isMinioImage || isUploading) ? 'not-allowed' : 'text'
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = '#51cbce'}
+                                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                />
+                            </div>
+
+                            {!isMinioImage ? (
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="file"
+                                        id="service-image-upload"
+                                        style={{ display: 'none' }}
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                        disabled={isUploading}
+                                    />
+                                    <label
+                                        htmlFor="service-image-upload"
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: '42px',
+                                            height: '42px',
+                                            backgroundColor: '#ffffff',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '8px',
+                                            cursor: isUploading ? 'not-allowed' : 'pointer',
+                                            color: '#6b7280',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        title="Subir archivo"
+                                    >
+                                        {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                                    </label>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveImage}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '42px',
+                                        height: '42px',
+                                        backgroundColor: '#fee2e2',
+                                        border: '1px solid #fecaca',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        color: '#ef4444',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    title="Quitar imagen"
+                                >
+                                    <X size={18} />
+                                </button>
+                            )}
+                        </div>
+
+                        {imageUrl && (
+                            <div style={{
+                                width: '100%',
+                                height: '120px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                backgroundColor: '#f9fafb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <img
+                                    src={imageUrl}
+                                    alt="Preview"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff43c619c721?auto=format&fit=crop&q=80&w=400')}
+                                />
+                            </div>
+                        )}
+
+                        <p style={{ fontSize: '10px', color: '#9ca3af', margin: 0 }}>
+                            {isMinioImage
+                                ? "Imagen subida a almacenamiento interno. Desbloquea para usar una URL externa."
+                                : "Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Availability */}
