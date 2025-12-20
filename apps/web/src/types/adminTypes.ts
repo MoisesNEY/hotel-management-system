@@ -134,3 +134,23 @@ export interface ServiceRequestDTO {
   booking: BookingDTO;
 }
 
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED';
+
+export interface InvoiceItemDTO {
+  id: number;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface InvoiceDTO {
+  id: number;
+  code: string;
+  issueDate: string; // ISO Date-Time
+  dueDate: string;   // ISO Date-Time
+  totalAmount: number;
+  status: InvoiceStatus;
+  items: InvoiceItemDTO[];
+  bookingId?: number;
+}
