@@ -122,7 +122,7 @@ public class UserService {
                     // Proteger imageUrl: si el IdP envía null, mantenemos el que ya tenemos
                     // localmente
                     String finalImageUrl = user.getImageUrl() != null ? user.getImageUrl()
-                            : existingUser.get().getImageUrl();
+                            : existingUser.orElseThrow().getImageUrl();
                     updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getLangKey(),
                             finalImageUrl);
                 }
@@ -130,7 +130,7 @@ public class UserService {
             } else {
                 LOG.debug("Updating user '{}' in local database", user.getLogin());
                 String finalImageUrl = user.getImageUrl() != null ? user.getImageUrl()
-                        : existingUser.get().getImageUrl();
+                        : existingUser.orElseThrow().getImageUrl();
                 updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getLangKey(), finalImageUrl);
             }
         } else {
