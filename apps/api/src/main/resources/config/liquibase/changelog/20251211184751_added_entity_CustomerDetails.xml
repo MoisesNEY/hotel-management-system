@@ -10,7 +10,7 @@
         Added the entity CustomerDetails.
     -->
     <changeSet id="20251211184751-1" author="jhipster">
-        <createTable tableName="customer_details" remarks="Datos extendidos del cliente (Perfil).D\nSe llena DESPUÉS del registro en Keycloak.">
+        <createTable tableName="customer_details">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -28,6 +28,12 @@
             </column>
             <column name="country" type="varchar(255)">
                 <constraints nullable="false" />
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="identification_type" type="varchar(255)">
+                <constraints nullable="true" />
             </column>
             <column name="license_id" type="varchar(255)">
                 <constraints nullable="false" />
@@ -64,6 +70,8 @@
             <column name="address_line_1" type="string"/>
             <column name="city" type="string"/>
             <column name="country" type="string"/>
+            <column name="email" type="string"/>
+            <column name="identification_type" type="string"/>
             <column name="license_id" type="string"/>
             <column name="birth_date" type="date"/>
             <column name="user_id" type="string"/>

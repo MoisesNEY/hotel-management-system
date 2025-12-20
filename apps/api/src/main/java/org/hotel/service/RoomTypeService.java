@@ -1,19 +1,14 @@
 package org.hotel.service;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.hotel.domain.RoomType;
-import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.service.dto.RoomTypeDTO;
 import org.hotel.service.mapper.RoomTypeMapper;
-import org.hotel.web.rest.errors.BadRequestAlertException;
-import org.hotel.web.rest.errors.BusinessRuleException;
-import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +22,12 @@ public class RoomTypeService {
     private static final Logger LOG = LoggerFactory.getLogger(RoomTypeService.class);
 
     private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository;
+
     private final RoomTypeMapper roomTypeMapper;
 
-    public RoomTypeService(RoomTypeRepository roomTypeRepository, RoomRepository roomRepository, RoomTypeMapper roomTypeMapper) {
+    public RoomTypeService(RoomTypeRepository roomTypeRepository, RoomTypeMapper roomTypeMapper) {
         this.roomTypeRepository = roomTypeRepository;
         this.roomTypeMapper = roomTypeMapper;
-        this.roomRepository = roomRepository;
     }
 
     /**
@@ -44,9 +38,6 @@ public class RoomTypeService {
      */
     public RoomTypeDTO save(RoomTypeDTO roomTypeDTO) {
         LOG.debug("Request to save RoomType : {}", roomTypeDTO);
-        if (roomTypeRepository.existsByName(roomTypeDTO.getName())) {
-            throw new BusinessRuleException("Ya existe un tipo de habitación con el nombre: " + roomTypeDTO.getName());
-        }
         RoomType roomType = roomTypeMapper.toEntity(roomTypeDTO);
         roomType = roomTypeRepository.save(roomType);
         return roomTypeMapper.toDto(roomType);
@@ -60,9 +51,6 @@ public class RoomTypeService {
      */
     public RoomTypeDTO update(RoomTypeDTO roomTypeDTO) {
         LOG.debug("Request to update RoomType : {}", roomTypeDTO);
-        if (roomTypeRepository.existsByNameAndIdNot(roomTypeDTO.getName(), roomTypeDTO.getId())) {
-            throw new BusinessRuleException("Ya existe un tipo de habitación con el nombre: " + roomTypeDTO.getName());
-        }
         RoomType roomType = roomTypeMapper.toEntity(roomTypeDTO);
         roomType = roomTypeRepository.save(roomType);
         return roomTypeMapper.toDto(roomType);
@@ -76,10 +64,6 @@ public class RoomTypeService {
      */
     public Optional<RoomTypeDTO> partialUpdate(RoomTypeDTO roomTypeDTO) {
         LOG.debug("Request to partially update RoomType : {}", roomTypeDTO);
-
-        if (roomTypeDTO.getName() != null && roomTypeRepository.existsByNameAndIdNot(roomTypeDTO.getName(), roomTypeDTO.getId())) {
-            throw new BusinessRuleException("Ya existe un tipo de habitación con el nombre: " + roomTypeDTO.getName());
-        }
 
         return roomTypeRepository
             .findById(roomTypeDTO.getId())
@@ -95,12 +79,13 @@ public class RoomTypeService {
     /**
      * Get all the roomTypes.
      *
+     * @param pageable the pagination information.
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public List<RoomTypeDTO> findAll() {
+    public Page<RoomTypeDTO> findAll(Pageable pageable) {
         LOG.debug("Request to get all RoomTypes");
-        return roomTypeRepository.findAll().stream().map(roomTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
+        return roomTypeRepository.findAll(pageable).map(roomTypeMapper::toDto);
     }
 
     /**
@@ -122,12 +107,6 @@ public class RoomTypeService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete RoomType : {}", id);
-        if (!roomTypeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tipo de habitación", id);
-        }
-        if (roomRepository.countByRoomTypeId(id) > 0) {
-            throw new BusinessRuleException("No se puede borrar el tipo de habitación porque hay habitaciones físicas asociadas.");
-        }
         roomTypeRepository.deleteById(id);
     }
 }

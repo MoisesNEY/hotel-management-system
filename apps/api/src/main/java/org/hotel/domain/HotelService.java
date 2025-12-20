@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import org.hotel.domain.enumeration.ServiceStatus;
 
 /**
  * A HotelService.
@@ -29,19 +30,28 @@ public class HotelService implements Serializable {
     private String description;
 
     @NotNull
-    @Column(name = "is_available", nullable = false)
-    private Boolean isAvailable;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
-
-    @NotNull
     @DecimalMin(value = "0")
     @Column(name = "cost", precision = 21, scale = 2, nullable = false)
     private BigDecimal cost;
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+
+    @Pattern(regexp = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    @Column(name = "start_hour")
+    private String startHour;
+
+    @Pattern(regexp = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    @Column(name = "end_hour")
+    private String endHour;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ServiceStatus status;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -84,32 +94,6 @@ public class HotelService implements Serializable {
         this.description = description;
     }
 
-    public Boolean getIsAvailable() {
-        return this.isAvailable;
-    }
-
-    public HotelService isAvailable(Boolean isAvailable) {
-        this.setIsAvailable(isAvailable);
-        return this;
-    }
-
-    public void setIsAvailable(Boolean isAvailable) {
-        this.isAvailable = isAvailable;
-    }
-
-    public Boolean getIsDeleted() {
-        return this.isDeleted;
-    }
-
-    public HotelService isDeleted(Boolean isDeleted) {
-        this.setIsDeleted(isDeleted);
-        return this;
-    }
-
-    public void setIsDeleted(Boolean isDeleted) {
-        this.isDeleted = isDeleted;
-    }
-
     public BigDecimal getCost() {
         return this.cost;
     }
@@ -134,6 +118,58 @@ public class HotelService implements Serializable {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Boolean getIsDeleted() {
+        return this.isDeleted;
+    }
+
+    public HotelService isDeleted(Boolean isDeleted) {
+        this.setIsDeleted(isDeleted);
+        return this;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public String getStartHour() {
+        return this.startHour;
+    }
+
+    public HotelService startHour(String startHour) {
+        this.setStartHour(startHour);
+        return this;
+    }
+
+    public void setStartHour(String startHour) {
+        this.startHour = startHour;
+    }
+
+    public String getEndHour() {
+        return this.endHour;
+    }
+
+    public HotelService endHour(String endHour) {
+        this.setEndHour(endHour);
+        return this;
+    }
+
+    public void setEndHour(String endHour) {
+        this.endHour = endHour;
+    }
+
+    public ServiceStatus getStatus() {
+        return this.status;
+    }
+
+    public HotelService status(ServiceStatus status) {
+        this.setStatus(status);
+        return this;
+    }
+
+    public void setStatus(ServiceStatus status) {
+        this.status = status;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -162,10 +198,12 @@ public class HotelService implements Serializable {
             "id=" + getId() +
             ", name='" + getName() + "'" +
             ", description='" + getDescription() + "'" +
-            ", isAvailable='" + getIsAvailable() + "'" +
-            ", isDeleted='" + getIsDeleted() + "'" +
             ", cost=" + getCost() +
             ", imageUrl='" + getImageUrl() + "'" +
+            ", isDeleted='" + getIsDeleted() + "'" +
+            ", startHour='" + getStartHour() + "'" +
+            ", endHour='" + getEndHour() + "'" +
+            ", status='" + getStatus() + "'" +
             "}";
     }
 }

@@ -1,7 +1,6 @@
 package org.hotel.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hotel.domain.AssertUtils.bigDecimalCompareTo;
 
 public class BookingAsserts {
 
@@ -48,17 +47,13 @@ public class BookingAsserts {
     public static void assertBookingUpdatableFieldsEquals(Booking expected, Booking actual) {
         assertThat(actual)
             .as("Verify Booking relevant properties")
+            .satisfies(a -> assertThat(a.getCode()).as("check code").isEqualTo(expected.getCode()))
             .satisfies(a -> assertThat(a.getCheckInDate()).as("check checkInDate").isEqualTo(expected.getCheckInDate()))
             .satisfies(a -> assertThat(a.getCheckOutDate()).as("check checkOutDate").isEqualTo(expected.getCheckOutDate()))
             .satisfies(a -> assertThat(a.getGuestCount()).as("check guestCount").isEqualTo(expected.getGuestCount()))
             .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()))
-            .satisfies(a ->
-                assertThat(a.getTotalPrice())
-                    .as("check totalPrice")
-                    .usingComparator(bigDecimalCompareTo)
-                    .isEqualTo(expected.getTotalPrice())
-            )
-            .satisfies(a -> assertThat(a.getNotes()).as("check notes").isEqualTo(expected.getNotes()));
+            .satisfies(a -> assertThat(a.getNotes()).as("check notes").isEqualTo(expected.getNotes()))
+            .satisfies(a -> assertThat(a.getSpecialRequests()).as("check specialRequests").isEqualTo(expected.getSpecialRequests()));
     }
 
     /**
@@ -68,9 +63,6 @@ public class BookingAsserts {
      * @param actual the actual entity
      */
     public static void assertBookingUpdatableRelationshipsEquals(Booking expected, Booking actual) {
-        assertThat(actual)
-            .as("Verify Booking relationships")
-            .satisfies(a -> assertThat(a.getRoomType()).as("check roomType").isEqualTo(expected.getRoomType()))
-            .satisfies(a -> assertThat(a.getAssignedRoom()).as("check assignedRoom").isEqualTo(expected.getAssignedRoom()));
+        // empty method
     }
 }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,6 +26,10 @@ public class Booking implements Serializable {
     private Long id;
 
     @NotNull
+    @Column(name = "code", nullable = false, unique = true)
+    private String code;
+
+    @NotNull
     @Column(name = "check_in_date", nullable = false)
     private LocalDate checkInDate;
 
@@ -44,26 +47,19 @@ public class Booking implements Serializable {
     @Column(name = "status", nullable = false)
     private BookingStatus status;
 
-    @NotNull
-    @DecimalMin(value = "0")
-    @Column(name = "total_price", precision = 21, scale = 2, nullable = false)
-    private BigDecimal totalPrice;
-
     @Column(name = "notes")
     private String notes;
+
+    @Column(name = "special_requests")
+    private String specialRequests;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
+    @JsonIgnoreProperties(value = { "roomType", "assignedRoom", "booking" }, allowSetters = true)
+    private Set<BookingItem> bookingItems = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
     @JsonIgnoreProperties(value = { "service", "booking" }, allowSetters = true)
     private Set<ServiceRequest> serviceRequests = new HashSet<>();
-
-    @ManyToOne(optional = false)
-    @NotNull
-    @JsonIgnoreProperties(value = { "rooms" }, allowSetters = true)
-    private RoomType roomType;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "roomType" }, allowSetters = true)
-    private Room assignedRoom;
 
     @ManyToOne(optional = false)
     @NotNull
@@ -82,6 +78,19 @@ public class Booking implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return this.code;
+    }
+
+    public Booking code(String code) {
+        this.setCode(code);
+        return this;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public LocalDate getCheckInDate() {
@@ -136,19 +145,6 @@ public class Booking implements Serializable {
         this.status = status;
     }
 
-    public BigDecimal getTotalPrice() {
-        return this.totalPrice;
-    }
-
-    public Booking totalPrice(BigDecimal totalPrice) {
-        this.setTotalPrice(totalPrice);
-        return this;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
     public String getNotes() {
         return this.notes;
     }
@@ -160,6 +156,50 @@ public class Booking implements Serializable {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getSpecialRequests() {
+        return this.specialRequests;
+    }
+
+    public Booking specialRequests(String specialRequests) {
+        this.setSpecialRequests(specialRequests);
+        return this;
+    }
+
+    public void setSpecialRequests(String specialRequests) {
+        this.specialRequests = specialRequests;
+    }
+
+    public Set<BookingItem> getBookingItems() {
+        return this.bookingItems;
+    }
+
+    public void setBookingItems(Set<BookingItem> bookingItems) {
+        if (this.bookingItems != null) {
+            this.bookingItems.forEach(i -> i.setBooking(null));
+        }
+        if (bookingItems != null) {
+            bookingItems.forEach(i -> i.setBooking(this));
+        }
+        this.bookingItems = bookingItems;
+    }
+
+    public Booking bookingItems(Set<BookingItem> bookingItems) {
+        this.setBookingItems(bookingItems);
+        return this;
+    }
+
+    public Booking addBookingItems(BookingItem bookingItem) {
+        this.bookingItems.add(bookingItem);
+        bookingItem.setBooking(this);
+        return this;
+    }
+
+    public Booking removeBookingItems(BookingItem bookingItem) {
+        this.bookingItems.remove(bookingItem);
+        bookingItem.setBooking(null);
+        return this;
     }
 
     public Set<ServiceRequest> getServiceRequests() {
@@ -190,32 +230,6 @@ public class Booking implements Serializable {
     public Booking removeServiceRequests(ServiceRequest serviceRequest) {
         this.serviceRequests.remove(serviceRequest);
         serviceRequest.setBooking(null);
-        return this;
-    }
-
-    public RoomType getRoomType() {
-        return this.roomType;
-    }
-
-    public void setRoomType(RoomType roomType) {
-        this.roomType = roomType;
-    }
-
-    public Booking roomType(RoomType roomType) {
-        this.setRoomType(roomType);
-        return this;
-    }
-
-    public Room getAssignedRoom() {
-        return this.assignedRoom;
-    }
-
-    public void setAssignedRoom(Room room) {
-        this.assignedRoom = room;
-    }
-
-    public Booking assignedRoom(Room room) {
-        this.setAssignedRoom(room);
         return this;
     }
 
@@ -256,12 +270,13 @@ public class Booking implements Serializable {
     public String toString() {
         return "Booking{" +
             "id=" + getId() +
+            ", code='" + getCode() + "'" +
             ", checkInDate='" + getCheckInDate() + "'" +
             ", checkOutDate='" + getCheckOutDate() + "'" +
             ", guestCount=" + getGuestCount() +
             ", status='" + getStatus() + "'" +
-            ", totalPrice=" + getTotalPrice() +
             ", notes='" + getNotes() + "'" +
+            ", specialRequests='" + getSpecialRequests() + "'" +
             "}";
     }
 }

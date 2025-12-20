@@ -10,20 +10,6 @@
     -->
     <changeSet id="20251211184754-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="room_type_id"
-                                 baseTableName="booking"
-                                 constraintName="fk_booking__room_type_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="room_type"
-                                 />
-
-        <addForeignKeyConstraint baseColumnNames="assigned_room_id"
-                                 baseTableName="booking"
-                                 constraintName="fk_booking__assigned_room_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="room"
-                                 />
-
         <addForeignKeyConstraint baseColumnNames="customer_id"
                                  baseTableName="booking"
                                  constraintName="fk_booking__customer_id"

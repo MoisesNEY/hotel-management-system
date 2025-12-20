@@ -13,14 +13,28 @@
       "fieldValidateRules": ["required"]
     },
     {
-      "fieldName": "details",
-      "fieldType": "String"
-    },
-    {
       "fieldName": "status",
       "fieldType": "RequestStatus",
       "fieldValidateRules": ["required"],
       "fieldValues": "OPEN,IN_PROGRESS,COMPLETED,REJECTED"
+    },
+    {
+      "fieldName": "details",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "deliveryRoomNumber",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "quantity",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["min"],
+      "fieldValidateRulesMin": "1"
+    },
+    {
+      "fieldName": "totalCost",
+      "fieldType": "BigDecimal"
     }
   ],
   "microserviceName": "hotelBackend",
@@ -36,7 +50,7 @@
       "relationshipValidateRules": "required"
     },
     {
-      "otherEntityField": "id",
+      "otherEntityField": "code",
       "otherEntityName": "booking",
       "otherEntityRelationshipName": "serviceRequests",
       "relationshipName": "booking",

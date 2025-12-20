@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hotel.domain.BookingAsserts.*;
 import static org.hotel.web.rest.TestUtil.createUpdateProxyForBean;
-import static org.hotel.web.rest.TestUtil.sameNumber;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -12,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -20,7 +18,6 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.hotel.IntegrationTest;
 import org.hotel.domain.Booking;
-import org.hotel.domain.RoomType;
 import org.hotel.domain.User;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
@@ -52,23 +49,29 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 class BookingResourceIT {
 
+    private static final String DEFAULT_CODE = "AAAAAAAAAA";
+    private static final String UPDATED_CODE = "BBBBBBBBBB";
+
     private static final LocalDate DEFAULT_CHECK_IN_DATE = LocalDate.ofEpochDay(0L);
     private static final LocalDate UPDATED_CHECK_IN_DATE = LocalDate.now(ZoneId.systemDefault());
+    private static final LocalDate SMALLER_CHECK_IN_DATE = LocalDate.ofEpochDay(-1L);
 
     private static final LocalDate DEFAULT_CHECK_OUT_DATE = LocalDate.ofEpochDay(0L);
     private static final LocalDate UPDATED_CHECK_OUT_DATE = LocalDate.now(ZoneId.systemDefault());
+    private static final LocalDate SMALLER_CHECK_OUT_DATE = LocalDate.ofEpochDay(-1L);
 
     private static final Integer DEFAULT_GUEST_COUNT = 1;
     private static final Integer UPDATED_GUEST_COUNT = 2;
+    private static final Integer SMALLER_GUEST_COUNT = 1 - 1;
 
     private static final BookingStatus DEFAULT_STATUS = BookingStatus.PENDING;
     private static final BookingStatus UPDATED_STATUS = BookingStatus.CONFIRMED;
 
-    private static final BigDecimal DEFAULT_TOTAL_PRICE = new BigDecimal(0);
-    private static final BigDecimal UPDATED_TOTAL_PRICE = new BigDecimal(1);
-
     private static final String DEFAULT_NOTES = "AAAAAAAAAA";
     private static final String UPDATED_NOTES = "BBBBBBBBBB";
+
+    private static final String DEFAULT_SPECIAL_REQUESTS = "AAAAAAAAAA";
+    private static final String UPDATED_SPECIAL_REQUESTS = "BBBBBBBBBB";
 
     private static final String ENTITY_API_URL = "/api/bookings";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -112,22 +115,13 @@ class BookingResourceIT {
      */
     public static Booking createEntity(EntityManager em) {
         Booking booking = new Booking()
+            .code(DEFAULT_CODE)
             .checkInDate(DEFAULT_CHECK_IN_DATE)
             .checkOutDate(DEFAULT_CHECK_OUT_DATE)
             .guestCount(DEFAULT_GUEST_COUNT)
             .status(DEFAULT_STATUS)
-            .totalPrice(DEFAULT_TOTAL_PRICE)
-            .notes(DEFAULT_NOTES);
-        // Add required entity
-        RoomType roomType;
-        if (TestUtil.findAll(em, RoomType.class).isEmpty()) {
-            roomType = RoomTypeResourceIT.createEntity();
-            em.persist(roomType);
-            em.flush();
-        } else {
-            roomType = TestUtil.findAll(em, RoomType.class).get(0);
-        }
-        booking.setRoomType(roomType);
+            .notes(DEFAULT_NOTES)
+            .specialRequests(DEFAULT_SPECIAL_REQUESTS);
         // Add required entity
         User user = UserResourceIT.createEntity();
         em.persist(user);
@@ -144,22 +138,13 @@ class BookingResourceIT {
      */
     public static Booking createUpdatedEntity(EntityManager em) {
         Booking updatedBooking = new Booking()
+            .code(UPDATED_CODE)
             .checkInDate(UPDATED_CHECK_IN_DATE)
             .checkOutDate(UPDATED_CHECK_OUT_DATE)
             .guestCount(UPDATED_GUEST_COUNT)
             .status(UPDATED_STATUS)
-            .totalPrice(UPDATED_TOTAL_PRICE)
-            .notes(UPDATED_NOTES);
-        // Add required entity
-        RoomType roomType;
-        if (TestUtil.findAll(em, RoomType.class).isEmpty()) {
-            roomType = RoomTypeResourceIT.createUpdatedEntity();
-            em.persist(roomType);
-            em.flush();
-        } else {
-            roomType = TestUtil.findAll(em, RoomType.class).get(0);
-        }
-        updatedBooking.setRoomType(roomType);
+            .notes(UPDATED_NOTES)
+            .specialRequests(UPDATED_SPECIAL_REQUESTS);
         // Add required entity
         User user = UserResourceIT.createEntity();
         em.persist(user);
@@ -224,6 +209,23 @@ class BookingResourceIT {
 
         // Validate the Booking in the database
         assertSameRepositoryCount(databaseSizeBeforeCreate);
+    }
+
+    @Test
+    @Transactional
+    void checkCodeIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        booking.setCode(null);
+
+        // Create the Booking, which fails.
+        BookingDTO bookingDTO = bookingMapper.toDto(booking);
+
+        restBookingMockMvc
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(bookingDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
@@ -296,23 +298,6 @@ class BookingResourceIT {
 
     @Test
     @Transactional
-    void checkTotalPriceIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        booking.setTotalPrice(null);
-
-        // Create the Booking, which fails.
-        BookingDTO bookingDTO = bookingMapper.toDto(booking);
-
-        restBookingMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(bookingDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void getAllBookings() throws Exception {
         // Initialize the database
         insertedBooking = bookingRepository.saveAndFlush(booking);
@@ -323,12 +308,13 @@ class BookingResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(booking.getId().intValue())))
+            .andExpect(jsonPath("$.[*].code").value(hasItem(DEFAULT_CODE)))
             .andExpect(jsonPath("$.[*].checkInDate").value(hasItem(DEFAULT_CHECK_IN_DATE.toString())))
             .andExpect(jsonPath("$.[*].checkOutDate").value(hasItem(DEFAULT_CHECK_OUT_DATE.toString())))
             .andExpect(jsonPath("$.[*].guestCount").value(hasItem(DEFAULT_GUEST_COUNT)))
             .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())))
-            .andExpect(jsonPath("$.[*].totalPrice").value(hasItem(sameNumber(DEFAULT_TOTAL_PRICE))))
-            .andExpect(jsonPath("$.[*].notes").value(hasItem(DEFAULT_NOTES)));
+            .andExpect(jsonPath("$.[*].notes").value(hasItem(DEFAULT_NOTES)))
+            .andExpect(jsonPath("$.[*].specialRequests").value(hasItem(DEFAULT_SPECIAL_REQUESTS)));
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -360,12 +346,519 @@ class BookingResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(booking.getId().intValue()))
+            .andExpect(jsonPath("$.code").value(DEFAULT_CODE))
             .andExpect(jsonPath("$.checkInDate").value(DEFAULT_CHECK_IN_DATE.toString()))
             .andExpect(jsonPath("$.checkOutDate").value(DEFAULT_CHECK_OUT_DATE.toString()))
             .andExpect(jsonPath("$.guestCount").value(DEFAULT_GUEST_COUNT))
             .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()))
-            .andExpect(jsonPath("$.totalPrice").value(sameNumber(DEFAULT_TOTAL_PRICE)))
-            .andExpect(jsonPath("$.notes").value(DEFAULT_NOTES));
+            .andExpect(jsonPath("$.notes").value(DEFAULT_NOTES))
+            .andExpect(jsonPath("$.specialRequests").value(DEFAULT_SPECIAL_REQUESTS));
+    }
+
+    @Test
+    @Transactional
+    void getBookingsByIdFiltering() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        Long id = booking.getId();
+
+        defaultBookingFiltering("id.equals=" + id, "id.notEquals=" + id);
+
+        defaultBookingFiltering("id.greaterThanOrEqual=" + id, "id.greaterThan=" + id);
+
+        defaultBookingFiltering("id.lessThanOrEqual=" + id, "id.lessThan=" + id);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCodeIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where code equals to
+        defaultBookingFiltering("code.equals=" + DEFAULT_CODE, "code.equals=" + UPDATED_CODE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCodeIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where code in
+        defaultBookingFiltering("code.in=" + DEFAULT_CODE + "," + UPDATED_CODE, "code.in=" + UPDATED_CODE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCodeIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where code is not null
+        defaultBookingFiltering("code.specified=true", "code.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCodeContainsSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where code contains
+        defaultBookingFiltering("code.contains=" + DEFAULT_CODE, "code.contains=" + UPDATED_CODE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCodeNotContainsSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where code does not contain
+        defaultBookingFiltering("code.doesNotContain=" + UPDATED_CODE, "code.doesNotContain=" + DEFAULT_CODE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate equals to
+        defaultBookingFiltering("checkInDate.equals=" + DEFAULT_CHECK_IN_DATE, "checkInDate.equals=" + UPDATED_CHECK_IN_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate in
+        defaultBookingFiltering(
+            "checkInDate.in=" + DEFAULT_CHECK_IN_DATE + "," + UPDATED_CHECK_IN_DATE,
+            "checkInDate.in=" + UPDATED_CHECK_IN_DATE
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate is not null
+        defaultBookingFiltering("checkInDate.specified=true", "checkInDate.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate is greater than or equal to
+        defaultBookingFiltering(
+            "checkInDate.greaterThanOrEqual=" + DEFAULT_CHECK_IN_DATE,
+            "checkInDate.greaterThanOrEqual=" + UPDATED_CHECK_IN_DATE
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate is less than or equal to
+        defaultBookingFiltering(
+            "checkInDate.lessThanOrEqual=" + DEFAULT_CHECK_IN_DATE,
+            "checkInDate.lessThanOrEqual=" + SMALLER_CHECK_IN_DATE
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsLessThanSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate is less than
+        defaultBookingFiltering("checkInDate.lessThan=" + UPDATED_CHECK_IN_DATE, "checkInDate.lessThan=" + DEFAULT_CHECK_IN_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckInDateIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkInDate is greater than
+        defaultBookingFiltering("checkInDate.greaterThan=" + SMALLER_CHECK_IN_DATE, "checkInDate.greaterThan=" + DEFAULT_CHECK_IN_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate equals to
+        defaultBookingFiltering("checkOutDate.equals=" + DEFAULT_CHECK_OUT_DATE, "checkOutDate.equals=" + UPDATED_CHECK_OUT_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate in
+        defaultBookingFiltering(
+            "checkOutDate.in=" + DEFAULT_CHECK_OUT_DATE + "," + UPDATED_CHECK_OUT_DATE,
+            "checkOutDate.in=" + UPDATED_CHECK_OUT_DATE
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate is not null
+        defaultBookingFiltering("checkOutDate.specified=true", "checkOutDate.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate is greater than or equal to
+        defaultBookingFiltering(
+            "checkOutDate.greaterThanOrEqual=" + DEFAULT_CHECK_OUT_DATE,
+            "checkOutDate.greaterThanOrEqual=" + UPDATED_CHECK_OUT_DATE
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate is less than or equal to
+        defaultBookingFiltering(
+            "checkOutDate.lessThanOrEqual=" + DEFAULT_CHECK_OUT_DATE,
+            "checkOutDate.lessThanOrEqual=" + SMALLER_CHECK_OUT_DATE
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsLessThanSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate is less than
+        defaultBookingFiltering("checkOutDate.lessThan=" + UPDATED_CHECK_OUT_DATE, "checkOutDate.lessThan=" + DEFAULT_CHECK_OUT_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCheckOutDateIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where checkOutDate is greater than
+        defaultBookingFiltering("checkOutDate.greaterThan=" + SMALLER_CHECK_OUT_DATE, "checkOutDate.greaterThan=" + DEFAULT_CHECK_OUT_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount equals to
+        defaultBookingFiltering("guestCount.equals=" + DEFAULT_GUEST_COUNT, "guestCount.equals=" + UPDATED_GUEST_COUNT);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount in
+        defaultBookingFiltering("guestCount.in=" + DEFAULT_GUEST_COUNT + "," + UPDATED_GUEST_COUNT, "guestCount.in=" + UPDATED_GUEST_COUNT);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount is not null
+        defaultBookingFiltering("guestCount.specified=true", "guestCount.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount is greater than or equal to
+        defaultBookingFiltering(
+            "guestCount.greaterThanOrEqual=" + DEFAULT_GUEST_COUNT,
+            "guestCount.greaterThanOrEqual=" + UPDATED_GUEST_COUNT
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount is less than or equal to
+        defaultBookingFiltering("guestCount.lessThanOrEqual=" + DEFAULT_GUEST_COUNT, "guestCount.lessThanOrEqual=" + SMALLER_GUEST_COUNT);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsLessThanSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount is less than
+        defaultBookingFiltering("guestCount.lessThan=" + UPDATED_GUEST_COUNT, "guestCount.lessThan=" + DEFAULT_GUEST_COUNT);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByGuestCountIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where guestCount is greater than
+        defaultBookingFiltering("guestCount.greaterThan=" + SMALLER_GUEST_COUNT, "guestCount.greaterThan=" + DEFAULT_GUEST_COUNT);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByStatusIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where status equals to
+        defaultBookingFiltering("status.equals=" + DEFAULT_STATUS, "status.equals=" + UPDATED_STATUS);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByStatusIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where status in
+        defaultBookingFiltering("status.in=" + DEFAULT_STATUS + "," + UPDATED_STATUS, "status.in=" + UPDATED_STATUS);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByStatusIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where status is not null
+        defaultBookingFiltering("status.specified=true", "status.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByNotesIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where notes equals to
+        defaultBookingFiltering("notes.equals=" + DEFAULT_NOTES, "notes.equals=" + UPDATED_NOTES);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByNotesIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where notes in
+        defaultBookingFiltering("notes.in=" + DEFAULT_NOTES + "," + UPDATED_NOTES, "notes.in=" + UPDATED_NOTES);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByNotesIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where notes is not null
+        defaultBookingFiltering("notes.specified=true", "notes.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByNotesContainsSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where notes contains
+        defaultBookingFiltering("notes.contains=" + DEFAULT_NOTES, "notes.contains=" + UPDATED_NOTES);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByNotesNotContainsSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where notes does not contain
+        defaultBookingFiltering("notes.doesNotContain=" + UPDATED_NOTES, "notes.doesNotContain=" + DEFAULT_NOTES);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsBySpecialRequestsIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where specialRequests equals to
+        defaultBookingFiltering("specialRequests.equals=" + DEFAULT_SPECIAL_REQUESTS, "specialRequests.equals=" + UPDATED_SPECIAL_REQUESTS);
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsBySpecialRequestsIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where specialRequests in
+        defaultBookingFiltering(
+            "specialRequests.in=" + DEFAULT_SPECIAL_REQUESTS + "," + UPDATED_SPECIAL_REQUESTS,
+            "specialRequests.in=" + UPDATED_SPECIAL_REQUESTS
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsBySpecialRequestsIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where specialRequests is not null
+        defaultBookingFiltering("specialRequests.specified=true", "specialRequests.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsBySpecialRequestsContainsSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where specialRequests contains
+        defaultBookingFiltering(
+            "specialRequests.contains=" + DEFAULT_SPECIAL_REQUESTS,
+            "specialRequests.contains=" + UPDATED_SPECIAL_REQUESTS
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsBySpecialRequestsNotContainsSomething() throws Exception {
+        // Initialize the database
+        insertedBooking = bookingRepository.saveAndFlush(booking);
+
+        // Get all the bookingList where specialRequests does not contain
+        defaultBookingFiltering(
+            "specialRequests.doesNotContain=" + UPDATED_SPECIAL_REQUESTS,
+            "specialRequests.doesNotContain=" + DEFAULT_SPECIAL_REQUESTS
+        );
+    }
+
+    @Test
+    @Transactional
+    void getAllBookingsByCustomerIsEqualToSomething() throws Exception {
+        User customer;
+        if (TestUtil.findAll(em, User.class).isEmpty()) {
+            bookingRepository.saveAndFlush(booking);
+            customer = UserResourceIT.createEntity();
+        } else {
+            customer = TestUtil.findAll(em, User.class).get(0);
+        }
+        em.persist(customer);
+        em.flush();
+        booking.setCustomer(customer);
+        bookingRepository.saveAndFlush(booking);
+        String customerId = customer.getId();
+        // Get all the bookingList where customer equals to customerId
+        defaultBookingShouldBeFound("customerId.equals=" + customerId);
+
+        // Get all the bookingList where customer equals to "invalid-id"
+        defaultBookingShouldNotBeFound("customerId.equals=" + "invalid-id");
+    }
+
+    private void defaultBookingFiltering(String shouldBeFound, String shouldNotBeFound) throws Exception {
+        defaultBookingShouldBeFound(shouldBeFound);
+        defaultBookingShouldNotBeFound(shouldNotBeFound);
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultBookingShouldBeFound(String filter) throws Exception {
+        restBookingMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(booking.getId().intValue())))
+            .andExpect(jsonPath("$.[*].code").value(hasItem(DEFAULT_CODE)))
+            .andExpect(jsonPath("$.[*].checkInDate").value(hasItem(DEFAULT_CHECK_IN_DATE.toString())))
+            .andExpect(jsonPath("$.[*].checkOutDate").value(hasItem(DEFAULT_CHECK_OUT_DATE.toString())))
+            .andExpect(jsonPath("$.[*].guestCount").value(hasItem(DEFAULT_GUEST_COUNT)))
+            .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())))
+            .andExpect(jsonPath("$.[*].notes").value(hasItem(DEFAULT_NOTES)))
+            .andExpect(jsonPath("$.[*].specialRequests").value(hasItem(DEFAULT_SPECIAL_REQUESTS)));
+
+        // Check, that the count call also returns 1
+        restBookingMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultBookingShouldNotBeFound(String filter) throws Exception {
+        restBookingMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restBookingMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().string("0"));
     }
 
     @Test
@@ -388,12 +881,13 @@ class BookingResourceIT {
         // Disconnect from session so that the updates on updatedBooking are not directly saved in db
         em.detach(updatedBooking);
         updatedBooking
+            .code(UPDATED_CODE)
             .checkInDate(UPDATED_CHECK_IN_DATE)
             .checkOutDate(UPDATED_CHECK_OUT_DATE)
             .guestCount(UPDATED_GUEST_COUNT)
             .status(UPDATED_STATUS)
-            .totalPrice(UPDATED_TOTAL_PRICE)
-            .notes(UPDATED_NOTES);
+            .notes(UPDATED_NOTES)
+            .specialRequests(UPDATED_SPECIAL_REQUESTS);
         BookingDTO bookingDTO = bookingMapper.toDto(updatedBooking);
 
         restBookingMockMvc
@@ -486,7 +980,7 @@ class BookingResourceIT {
         Booking partialUpdatedBooking = new Booking();
         partialUpdatedBooking.setId(booking.getId());
 
-        partialUpdatedBooking.checkInDate(UPDATED_CHECK_IN_DATE).checkOutDate(UPDATED_CHECK_OUT_DATE).guestCount(UPDATED_GUEST_COUNT);
+        partialUpdatedBooking.code(UPDATED_CODE).checkInDate(UPDATED_CHECK_IN_DATE).checkOutDate(UPDATED_CHECK_OUT_DATE);
 
         restBookingMockMvc
             .perform(
@@ -516,12 +1010,13 @@ class BookingResourceIT {
         partialUpdatedBooking.setId(booking.getId());
 
         partialUpdatedBooking
+            .code(UPDATED_CODE)
             .checkInDate(UPDATED_CHECK_IN_DATE)
             .checkOutDate(UPDATED_CHECK_OUT_DATE)
             .guestCount(UPDATED_GUEST_COUNT)
             .status(UPDATED_STATUS)
-            .totalPrice(UPDATED_TOTAL_PRICE)
-            .notes(UPDATED_NOTES);
+            .notes(UPDATED_NOTES)
+            .specialRequests(UPDATED_SPECIAL_REQUESTS);
 
         restBookingMockMvc
             .perform(

@@ -9,8 +9,4 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
-    boolean existsByName(String name);
-
-    boolean existsByNameAndIdNot(String name, Long id);
-}
+public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {}

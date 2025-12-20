@@ -5,7 +5,6 @@
   "applications": ["hotelBackend"],
   "clientRootFolder": "hotelBackend",
   "databaseType": "sql",
-  "documentation": "Datos extendidos del cliente (Perfil).D\\nSe llena DESPUÉS del registro en Keycloak.",
   "dto": "mapstruct",
   "fields": [
     {
@@ -34,6 +33,15 @@
       "fieldName": "country",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "email",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "identificationType",
+      "fieldType": "String"
     },
     {
       "fieldName": "licenseId",

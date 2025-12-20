@@ -17,15 +17,6 @@
       "fieldType": "String"
     },
     {
-      "fieldName": "isAvailable",
-      "fieldType": "Boolean",
-      "fieldValidateRules": ["required"]
-    },
-    {
-      "fieldName": "isDeleted",
-      "fieldType": "Boolean"
-    },
-    {
       "fieldName": "cost",
       "fieldType": "BigDecimal",
       "fieldValidateRules": ["required", "min"],
@@ -34,10 +25,34 @@
     {
       "fieldName": "imageUrl",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "isDeleted",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "startHour",
+      "fieldType": "String",
+      "fieldValidateRules": ["pattern"],
+      "fieldValidateRulesPattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+    },
+    {
+      "fieldName": "endHour",
+      "fieldType": "String",
+      "fieldValidateRules": ["pattern"],
+      "fieldValidateRulesPattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "ServiceStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "OPERATIONAL,CLOSED,FULL_CAPACITY,DOWN"
     }
   ],
+  "jpaMetamodelFiltering": true,
   "microserviceName": "hotelBackend",
   "name": "HotelService",
+  "pagination": "pagination",
   "relationships": [],
   "searchEngine": "no",
   "service": "serviceClass"

@@ -11,10 +11,10 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link ServiceRequest} and its DTO {@link ServiceRequestDTO}.
  */
-@Mapper(componentModel = "spring", uses = { UserMapper.class })
+@Mapper(componentModel = "spring")
 public interface ServiceRequestMapper extends EntityMapper<ServiceRequestDTO, ServiceRequest> {
     @Mapping(target = "service", source = "service", qualifiedByName = "hotelServiceName")
-    @Mapping(target = "booking", source = "booking", qualifiedByName = "bookingWithCustomer")
+    @Mapping(target = "booking", source = "booking", qualifiedByName = "bookingCode")
     ServiceRequestDTO toDto(ServiceRequest s);
 
     @Named("hotelServiceName")
@@ -23,14 +23,9 @@ public interface ServiceRequestMapper extends EntityMapper<ServiceRequestDTO, Se
     @Mapping(target = "name", source = "name")
     HotelServiceDTO toDtoHotelServiceName(HotelService hotelService);
 
-    @Named("bookingWithCustomer")
+    @Named("bookingCode")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "customer", source = "customer")
-    BookingDTO toDtoBookingWithCustomer(Booking booking);
-
-    @Named("bookingId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    BookingDTO toDtoBookingId(Booking booking);
+    @Mapping(target = "code", source = "code")
+    BookingDTO toDtoBookingCode(Booking booking);
 }

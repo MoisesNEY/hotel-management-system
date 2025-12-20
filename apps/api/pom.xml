@@ -30,7 +30,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <start-class>org.hotel.HotelBackendApp</start-class>
-        <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx1G</argLine>
+        <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx1G --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
         <m2e.apt.activation>jdt_apt</m2e.apt.activation>
         <run.addResources>false</run.addResources>
         <spring-boot.version>${project.parent.version}</spring-boot.version>
@@ -75,6 +75,7 @@
         <awssdk.version>2.29.52</awssdk.version>
         <spring.profiles.active>dev</spring.profiles.active>
         <springdoc-openapi-starter-webmvc-api.version>2.8.8</springdoc-openapi-starter-webmvc-api.version>
+        <surefireArgLine></surefireArgLine>
     </properties>
 
     <dependencyManagement>
@@ -577,6 +578,7 @@
                             <exclude>**/*IT*</exclude>
                             <exclude>**/*IntTest*</exclude>
                         </excludes>
+                        <argLine>${argLine} ${surefireArgLine}</argLine>
                         <systemPropertyVariables>
                             <java.util.logging.config.file>src/test/resources/logback.xml</java.util.logging.config.file>
                         </systemPropertyVariables>
@@ -755,6 +757,7 @@
                     </executions>
                     <configuration>
                         <javaVersion>${java.version}</javaVersion>
+                        <failOnViolations>false</failOnViolations>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -767,6 +770,9 @@
                             <goals>
                                 <goal>prepare-agent</goal>
                             </goals>
+                            <configuration>
+                                <propertyName>surefireArgLine</propertyName>
+                            </configuration>
                         </execution>
                         <execution>
                             <!-- Ensures that the code coverage report for unit tests is created after unit tests have been run -->

@@ -12,14 +12,19 @@ public class BookingTestSamples {
     private static final AtomicInteger intCount = new AtomicInteger(random.nextInt() + (2 * Short.MAX_VALUE));
 
     public static Booking getBookingSample1() {
-        return new Booking().id(1L).guestCount(1).notes("notes1");
+        return new Booking().id(1L).code("code1").guestCount(1).notes("notes1").specialRequests("specialRequests1");
     }
 
     public static Booking getBookingSample2() {
-        return new Booking().id(2L).guestCount(2).notes("notes2");
+        return new Booking().id(2L).code("code2").guestCount(2).notes("notes2").specialRequests("specialRequests2");
     }
 
     public static Booking getBookingRandomSampleGenerator() {
-        return new Booking().id(longCount.incrementAndGet()).guestCount(intCount.incrementAndGet()).notes(UUID.randomUUID().toString());
+        return new Booking()
+            .id(longCount.incrementAndGet())
+            .code(UUID.randomUUID().toString())
+            .guestCount(intCount.incrementAndGet())
+            .notes(UUID.randomUUID().toString())
+            .specialRequests(UUID.randomUUID().toString());
     }
 }

@@ -1,5 +1,6 @@
 package org.hotel.repository;
 
+import java.net.http.HttpHeaders;
 import java.util.List;
 import java.util.Optional;
 import org.hotel.domain.ServiceRequest;
@@ -18,8 +19,7 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     default Optional<ServiceRequest> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
-    boolean existsByStatusAndServiceId(RequestStatus status, Long serviceId);
-    boolean existsByBookingId(Long bookingId);
+
     default List<ServiceRequest> findAllWithEagerRelationships() {
         return this.findAllWithToOneRelationships();
     }
@@ -27,17 +27,26 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     default Page<ServiceRequest> findAllWithEagerRelationships(Pageable pageable) {
         return this.findAllWithToOneRelationships(pageable);
     }
-    // Buscar solicitudes filtrando por el login del cliente asociado a la reserva
-    Page<ServiceRequest> findByBooking_Customer_Login(String login, Pageable pageable);
+
     @Query(
-        value = "select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service",
+        value = "select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service left join fetch serviceRequest.booking",
         countQuery = "select count(serviceRequest) from ServiceRequest serviceRequest"
     )
     Page<ServiceRequest> findAllWithToOneRelationships(Pageable pageable);
 
-    @Query("select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service")
+    @Query(
+        "select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service left join fetch serviceRequest.booking"
+    )
     List<ServiceRequest> findAllWithToOneRelationships();
 
-    @Query("select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service where serviceRequest.id =:id")
+    @Query(
+        "select serviceRequest from ServiceRequest serviceRequest left join fetch serviceRequest.service left join fetch serviceRequest.booking where serviceRequest.id =:id"
+    )
     Optional<ServiceRequest> findOneWithToOneRelationships(@Param("id") Long id);
+
+    boolean existsByBookingId(Long bookingId);
+
+    boolean existsByStatusAndServiceId(RequestStatus requestStatus, Long id);
+
+    Page<ServiceRequest> findByBooking_Customer_Login(String userLogin, Pageable pageable);
 }
