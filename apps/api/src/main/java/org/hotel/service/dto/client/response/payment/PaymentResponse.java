@@ -18,4 +18,5 @@ public class PaymentResponse implements Serializable {
     private BigDecimal amount;
     private String referenceNumber;
     private String invoiceNumber;
+    private String paypalOrderId;
 }
