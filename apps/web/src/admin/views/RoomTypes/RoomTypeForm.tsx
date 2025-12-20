@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
     Save, Type, FileText,
     DollarSign, Users, Bed,
-    Maximize, Image as ImageIcon,
+    Maximize,
     Loader2, AlertCircle,
     ChevronRight, Upload, X, Link
 } from 'lucide-react';
