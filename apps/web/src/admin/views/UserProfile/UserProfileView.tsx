@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getAccount, updateAccount, uploadProfilePicture, deleteProfilePicture } from '../../../services/accountService';
 import type { AdminUserDTO } from '../../../types/adminTypes';
 import { User, Mail, Globe, Shield, Save, Camera, Trash2 } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 const UserProfileView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { updateUserProfile } = useAuth();
     const [formData, setFormData] = useState<Partial<AdminUserDTO>>({
         firstName: '',
         lastName: '',
@@ -61,6 +63,10 @@ const UserProfileView: React.FC = () => {
         try {
             const newUrl = await uploadProfilePicture(file);
             setFormData(prev => ({ ...prev, imageUrl: newUrl }));
+
+            // Actualizar instantáneamente en el Navbar/Sidebar
+            updateUserProfile({ attributes: { picture: [newUrl] } });
+
             alert('Foto de perfil actualizada');
         } catch (error) {
             console.error("Failed to upload photo", error);
@@ -77,6 +83,10 @@ const UserProfileView: React.FC = () => {
         try {
             await deleteProfilePicture();
             setFormData(prev => ({ ...prev, imageUrl: undefined }));
+
+            // Actualizar instantáneamente en el Navbar/Sidebar
+            updateUserProfile({ attributes: { picture: [] } });
+
             alert('Foto de perfil eliminada');
         } catch (error) {
             console.error("Failed to delete photo", error);

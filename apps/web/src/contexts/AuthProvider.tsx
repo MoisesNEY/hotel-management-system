@@ -26,6 +26,7 @@ interface AuthContextType {
   getHighestRole: () => UserRole | null;
   hasProfile: boolean | null;
   checkProfileStatus: () => Promise<void>;
+  updateUserProfile: (profile: Partial<KeycloakProfile>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,14 +49,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[AuthProvider] Initializing Keycloak...');
         // Check if already initialized (shouldn't happen with lock but good for HMR)
         if (keycloak.didInitialize) {
-           console.log('[AuthProvider] Keycloak already initialized');
-           // Just update state
-           setIsAuthenticated(keycloak.authenticated || false);
-           if (keycloak.authenticated) {
-              await loadUserData();
-           }
-           setIsInitialized(true);
-           return;
+          console.log('[AuthProvider] Keycloak already initialized');
+          // Just update state
+          setIsAuthenticated(keycloak.authenticated || false);
+          if (keycloak.authenticated) {
+            await loadUserData();
+          }
+          setIsInitialized(true);
+          return;
         }
 
         const authenticated = await keycloak.init({
@@ -69,7 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsAuthenticated(authenticated);
 
         if (authenticated) {
-            await loadUserData();
+          await loadUserData();
         }
       } catch (error) {
         console.error('[AuthProvider] Failed to initialize Keycloak', error);
@@ -79,30 +80,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const loadUserData = async () => {
-        try {
-            const profile = await keycloak.loadUserProfile();
-            setUserProfile(profile);
-            
-            if (keycloak.realmAccess?.roles) {
-                console.log('[AuthProvider] Realm Roles:', keycloak.realmAccess.roles);
-                setRoles(keycloak.realmAccess.roles);
-            } else if (keycloak.resourceAccess?.['hotel-app']?.roles) {
-                setRoles(keycloak.resourceAccess['hotel-app'].roles);
-            }
+      try {
+        const profile = await keycloak.loadUserProfile();
+        setUserProfile(profile);
 
-            // Sync with backend
-            try {
-                const { getAccount } = await import('../services/accountService');
-                await getAccount();
-                console.log('[AuthProvider] User synced with backend');
-            } catch (syncError) {
-                console.error('[AuthProvider] Failed to sync user with backend', syncError);
-            }
-
-            checkProfileStatus();
-        } catch (error) {
-            console.error('[AuthProvider] Failed to load user profile or data', error);
+        if (keycloak.realmAccess?.roles) {
+          console.log('[AuthProvider] Realm Roles:', keycloak.realmAccess.roles);
+          setRoles(keycloak.realmAccess.roles);
+        } else if (keycloak.resourceAccess?.['hotel-app']?.roles) {
+          setRoles(keycloak.resourceAccess['hotel-app'].roles);
         }
+
+        // Sync with backend
+        try {
+          const { getAccount } = await import('../services/accountService');
+          await getAccount();
+          console.log('[AuthProvider] User synced with backend');
+        } catch (syncError) {
+          console.error('[AuthProvider] Failed to sync user with backend', syncError);
+        }
+
+        checkProfileStatus();
+      } catch (error) {
+        console.error('[AuthProvider] Failed to load user profile or data', error);
+      }
     };
 
     initKeycloak();
@@ -126,8 +127,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 2. Verificar localStorage (cache rápido)
     const localCompleted = localStorage.getItem('hasCompletedExtraInfo') === 'true';
     if (localCompleted) {
-       setHasProfile(true);
-       // Podríamos revalidar en background aquí si quisiéramos
+      setHasProfile(true);
+      // Podríamos revalidar en background aquí si quisiéramos
     }
 
     // 3. Verificar backend (Solo si no está confirmado localmente o para confirmar)
@@ -135,18 +136,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Import dinámico para evitar ciclos si customerDetailsService importa auth
       const { getMyProfile } = await import('../services/client/customerDetailsService');
       await getMyProfile();
-      
+
       // Si tiene perfil (200 OK)
       setHasProfile(true);
       localStorage.setItem('hasCompletedExtraInfo', 'true');
     } catch (error: any) {
-       // Si es 404, de verdad no tiene perfil
-       if (error.response && error.response.status === 404) {
-         setHasProfile(false);
-         // Importante: Eliminar flag falso si existe
-         localStorage.removeItem('hasCompletedExtraInfo'); 
-       }
-       // Si es otro error (network), mantenemos el estado local si existía (null -> null, true -> true)
+      // Si es 404, de verdad no tiene perfil
+      if (error.response && error.response.status === 404) {
+        setHasProfile(false);
+        // Importante: Eliminar flag falso si existe
+        localStorage.removeItem('hasCompletedExtraInfo');
+      }
+      // Si es otro error (network), mantenemos el estado local si existía (null -> null, true -> true)
     }
   };
 
@@ -173,6 +174,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return null;
   };
 
+  const updateUserProfile = (profileUpdate: Partial<KeycloakProfile>) => {
+    setUserProfile(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        ...profileUpdate,
+        attributes: {
+          ...prev.attributes,
+          ...profileUpdate.attributes
+        }
+      };
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -187,7 +202,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         accountManagement,
         hasRole,
-        getHighestRole
+        getHighestRole,
+        updateUserProfile
       }}
     >
       {children}
