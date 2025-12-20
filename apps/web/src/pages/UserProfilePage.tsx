@@ -4,11 +4,11 @@ import {
   User, Calendar, Shield,
   ArrowLeft, Key, Globe, CreditCard, Package,
   Bed, Coffee, ConciergeBell,
-  X, Edit, Save, ChevronDown, Camera, Loader2, Trash2
+  X, Edit, Save, ChevronDown, Camera, Loader2, Trash2, CheckCircle2
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import { useAuth } from '../contexts/AuthProvider';
-import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
+import type { CustomerDetailsUpdateRequest, Gender, BookingResponse, BookingItemResponse } from '../types/clientTypes';
 import { getMyBookings } from '../services/client/bookingService';
 import ServiceRequestModal from '../components/ServiceRequestModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -760,18 +760,6 @@ const UserProfilePage: React.FC = () => {
                           </div>
 
                           <div className="space-y-3 mb-6">
-                            {booking.invoiceId && booking.invoiceStatus === 'PENDING' && (
-                              <div className="p-4 bg-gold-default/5 border border-gold-default/20 rounded-2xl">
-                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Pago Requerido</p>
-                                <PayPalPaymentButton 
-                                  invoiceId={booking.invoiceId} 
-                                  onSuccess={() => {
-                                    // Refresh bookings
-                                    getMyBookings().then(res => setBookings(res.data));
-                                  }}
-                                />
-                              </div>
-                            )}
                             {booking.invoiceStatus === 'PAID' && (
                               <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 text-[10px] font-bold uppercase">
                                 <CheckCircle2 size={14} /> Factura Pagada

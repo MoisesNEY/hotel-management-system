@@ -4,7 +4,9 @@ import org.hotel.domain.Booking;
 import org.hotel.domain.BookingItem;
 import org.hotel.domain.RoomType;
 import org.hotel.domain.enumeration.BookingStatus;
+import org.hotel.domain.Room;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.ServiceRequestRepository;
 import org.hotel.service.dto.BookingDTO;
@@ -35,17 +37,20 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRequestRepository serviceRequestRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository; // New injection
     private final BookingMapper bookingMapper;
     private final BookingDomainService bookingDomainService; // Injected
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
                           RoomTypeRepository roomTypeRepository,
+                          RoomRepository roomRepository,
                           BookingMapper bookingMapper,
                           BookingDomainService bookingDomainService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
+        this.roomRepository = roomRepository;
         this.bookingMapper = bookingMapper;
         this.bookingDomainService = bookingDomainService;
     }
@@ -59,6 +64,11 @@ public class BookingService {
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
+        // Generar código si no existe
+        if (booking.getCode() == null) {
+            booking.setCode("RES-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        }
+
         // Expansión de items basada en quantity
         expandBookingItems(booking, bookingDTO);
 
@@ -66,11 +76,11 @@ public class BookingService {
         prepareBookingData(booking, null);
 
         // Guardamos (Cascade persistirá los BookingItems automáticamente)
-        booking = bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
 
-        // TODO: Llamar a invoiceService.createInvoiceFromBooking(booking);
+        // TODO: Llamar a invoiceService.createInvoiceFromBooking(savedBooking);
 
-        return bookingMapper.toDto(booking);
+        return bookingMapper.toDto(savedBooking);
     }
 
     /**
@@ -86,10 +96,18 @@ public class BookingService {
 
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
+        // Preservar código si viene nulo en el DTO (Evitar validación fallida en DB si @NotNull existe en Entity)
+        if (booking.getCode() == null) {
+            Optional<Booking> existingOpt = bookingRepository.findById(bookingDTO.getId());
+            if (existingOpt.isPresent()) {
+                booking.setCode(existingOpt.get().getCode());
+            }
+        }
+
         prepareBookingData(booking, booking.getId());
 
-        booking = bookingRepository.save(booking);
-        return bookingMapper.toDto(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        return bookingMapper.toDto(savedBooking);
     }
 
     /**
@@ -217,6 +235,13 @@ public class BookingService {
             item.setRoomType(roomType);
             item.setOccupantName(itemDTO.getOccupantName());
             item.setPrice(itemDTO.getPrice()); // Admin puede enviar precio manual o se recalcula en prepare
+            
+            // Asignación de habitación si viene en el DTO
+            if (itemDTO.getAssignedRoom() != null && itemDTO.getAssignedRoom().getId() != null) {
+                Room room = roomRepository.findById(itemDTO.getAssignedRoom().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Room", itemDTO.getAssignedRoom().getId()));
+                item.setAssignedRoom(room);
+            }
             
             // Relación bidireccional
             item.setBooking(booking);
