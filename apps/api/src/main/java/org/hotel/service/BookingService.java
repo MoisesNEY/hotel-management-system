@@ -5,7 +5,6 @@ import org.hotel.domain.BookingItem;
 import org.hotel.domain.RoomType;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
-import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.ServiceRequestRepository;
 import org.hotel.service.dto.BookingDTO;
@@ -20,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,19 +35,19 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRequestRepository serviceRequestRepository;
     private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository;
     private final BookingMapper bookingMapper;
+    private final BookingDomainService bookingDomainService; // Injected
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
-                          RoomRepository roomRepository,
                           RoomTypeRepository roomTypeRepository,
-                          BookingMapper bookingMapper) {
+                          BookingMapper bookingMapper,
+                          BookingDomainService bookingDomainService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
-        this.roomRepository = roomRepository;
         this.bookingMapper = bookingMapper;
+        this.bookingDomainService = bookingDomainService;
     }
 
     /**
@@ -137,11 +134,8 @@ public class BookingService {
      */
     private void prepareBookingData(Booking booking, Long currentBookingId) {
 
-        // 1. Validar Fechas
-        if (!booking.getCheckOutDate().isAfter(booking.getCheckInDate())) {
-            throw new BusinessRuleException("La fecha de salida debe ser posterior a la de entrada.");
-        }
-        long nights = ChronoUnit.DAYS.between(booking.getCheckInDate(), booking.getCheckOutDate());
+        // 1. Validar Fechas y Calcular Noches (Delegado)
+        long nights = bookingDomainService.validateAndCalculateNights(booking.getCheckInDate(), booking.getCheckOutDate());
 
         // 2. Validar que hay items
         if (booking.getBookingItems() == null || booking.getBookingItems().isEmpty()) {
@@ -149,7 +143,6 @@ public class BookingService {
         }
 
         // 3. Agrupar peticiones por RoomType para validar disponibilidad en bloque
-        // Ejemplo: Mapa { ID_Tipo_Simple: 2 peticiones, ID_Tipo_Suite: 1 petición }
         Map<Long, Long> requestedRoomsByType = booking.getBookingItems().stream()
             .collect(Collectors.groupingBy(
                 item -> item.getRoomType().getId(),
@@ -164,8 +157,8 @@ public class BookingService {
             RoomType roomType = roomTypeRepository.findById(item.getRoomType().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("RoomType", item.getRoomType().getId()));
 
-            // A. Asignar Precio Congelado (Precio Base * Noches)
-            BigDecimal itemTotal = roomType.getBasePrice().multiply(BigDecimal.valueOf(nights));
+            // A. Asignar Precio Congelado (Delegado)
+            BigDecimal itemTotal = bookingDomainService.calculateItemPrice(roomType, nights);
             item.setPrice(itemTotal);
             item.setBooking(booking); // Asegurar relación bidireccional
 
@@ -176,40 +169,16 @@ public class BookingService {
             item.setRoomType(roomType);
         }
 
-        // 5. Validar Disponibilidad (Bloque crítico)
+        // 5. Validar Disponibilidad (Bloque crítico delegago)
         // Recorremos el mapa de "lo que piden" vs "lo que hay"
         requestedRoomsByType.forEach((typeId, requestedAmount) -> {
-            validateRoomTypeAvailability(typeId, requestedAmount, booking.getCheckInDate(), booking.getCheckOutDate(), currentBookingId);
+            bookingDomainService.validateRoomAvailability(typeId, requestedAmount, booking.getCheckInDate(), booking.getCheckOutDate(), currentBookingId);
         });
 
         // 6. Validar Capacidad Global
         if (booking.getGuestCount() > totalCapacityAccumulated) {
             throw new BusinessRuleException("El número de huéspedes (" + booking.getGuestCount() +
                 ") excede la capacidad total de las habitaciones seleccionadas (" + totalCapacityAccumulated + ")");
-        }
-    }
-
-    /**
-     * Valida si quedan suficientes habitaciones libres de un tipo específico.
-     * Fórmula: (Total Físicas) - (Ocupadas en Fechas) >= (Solicitadas Ahora)
-     */
-    private void validateRoomTypeAvailability(Long roomTypeId, Long requestedAmount, LocalDate checkIn, LocalDate checkOut, Long excludeBookingId) {
-        long totalPhysicalRooms = roomRepository.countByRoomTypeId(roomTypeId);
-
-        long occupiedRooms;
-        if (excludeBookingId == null) {
-            occupiedRooms = bookingRepository.countOverlappingBookings(roomTypeId, checkIn, checkOut);
-        } else {
-            occupiedRooms = bookingRepository.countOverlappingBookingsExcludingSelf(roomTypeId, checkIn, checkOut, excludeBookingId);
-        }
-
-        long availableRooms = totalPhysicalRooms - occupiedRooms;
-
-        if (requestedAmount > availableRooms) {
-            // Buscamos el nombre solo para el error
-            String typeName = roomTypeRepository.findById(roomTypeId).map(RoomType::getName).orElse("Desconocido");
-            throw new BusinessRuleException("No hay disponibilidad suficiente para: " + typeName +
-                ". Solicitadas: " + requestedAmount + ", Disponibles: " + availableRooms);
         }
     }
 

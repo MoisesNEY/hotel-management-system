@@ -6,10 +6,10 @@ import org.hotel.domain.RoomType;
 import org.hotel.domain.User;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
-import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
+import org.hotel.service.BookingDomainService;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
 import org.hotel.service.mapper.client.ClientBookingMapper;
@@ -23,8 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,20 +37,20 @@ public class ClientBookingService {
     private final ClientBookingMapper clientBookingMapper;
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository;
+    private final BookingDomainService bookingDomainService; // Injected
 
     public ClientBookingService(
         BookingRepository bookingRepository,
         ClientBookingMapper clientBookingMapper,
         UserRepository userRepository,
         RoomTypeRepository roomTypeRepository,
-        RoomRepository roomRepository
+        BookingDomainService bookingDomainService
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
         this.userRepository = userRepository;
         this.roomTypeRepository = roomTypeRepository;
-        this.roomRepository = roomRepository;
+        this.bookingDomainService = bookingDomainService;
     }
 
     /**
@@ -69,11 +67,8 @@ public class ClientBookingService {
         User customer = userRepository.findOneByLogin(userLogin)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 2. Validar Fechas
-        if (!request.getCheckOutDate().isAfter(request.getCheckInDate())) {
-            throw new BusinessRuleException("La fecha de salida debe ser posterior a la de entrada.");
-        }
-        long nights = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
+        // 2. Validar Fechas (Delegado)
+        long nights = bookingDomainService.validateAndCalculateNights(request.getCheckInDate(), request.getCheckOutDate());
 
         // 3. Convertir DTO a Entidad
         Booking booking = clientBookingMapper.toEntity(request);
@@ -94,19 +89,15 @@ public class ClientBookingService {
 
             item.setRoomType(roomType);
             
-            // Calcular precio de ESTE item (PrecioBase * Noches)
-            BigDecimal itemPrice = roomType.getBasePrice().multiply(BigDecimal.valueOf(nights));
+            // Calcular precio de ESTE item (Delegado)
+            BigDecimal itemPrice = bookingDomainService.calculateItemPrice(roomType, nights);
             item.setPrice(itemPrice);
             
             // Sumar al total global
             totalPriceAccumulated = totalPriceAccumulated.add(itemPrice);
         }
         
-        // (Opcional) Si mantuviste totalPrice en Booking.java, asígnalo aquí:
-        // booking.setTotalPrice(totalPriceAccumulated);
-
-        // 5. Validación de Disponibilidad (Agrupada)
-        // Agrupamos por tipo para saber: "Quiere 2 Suites y 1 Twin"
+        // 5. Validación de Disponibilidad (Agrupada Delegada)
         Map<Long, Long> requestedRoomsByType = booking.getBookingItems().stream()
             .collect(Collectors.groupingBy(
                 item -> item.getRoomType().getId(), 
@@ -114,7 +105,7 @@ public class ClientBookingService {
             ));
 
         requestedRoomsByType.forEach((typeId, quantityNeeded) -> {
-            validateAvailability(typeId, quantityNeeded, request.getCheckInDate(), request.getCheckOutDate());
+            bookingDomainService.validateRoomAvailability(typeId, quantityNeeded, request.getCheckInDate(), request.getCheckOutDate(), null);
         });
 
         // 6. Guardar (Cascade guardará los items)
@@ -137,29 +128,5 @@ public class ClientBookingService {
         // Pero para lista simple, el findByCustomer_Login está bien, JPA traerá los items lazy o según config.
         return bookingRepository.findByCustomer_Login(userLogin, pageable)
             .map(clientBookingMapper::toClientResponse);
-    }
-
-    /**
-     * Valida si hay suficientes habitaciones físicas disponibles para el tipo solicitado.
-     */
-    private void validateAvailability(Long roomTypeId, Long quantityNeeded, LocalDate checkIn, LocalDate checkOut) {
-        long totalRooms = roomRepository.countByRoomTypeId(roomTypeId);
-        
-        long occupiedRooms = bookingRepository.countOverlappingBookings(
-            roomTypeId,
-            checkIn,
-            checkOut
-        );
-
-        long available = totalRooms - occupiedRooms;
-
-        if (quantityNeeded > available) {
-            // Obtenemos el nombre para un error amigable
-            String typeName = roomTypeRepository.findById(roomTypeId)
-                .map(RoomType::getName).orElse("Desconocido");
-                
-            throw new BusinessRuleException(
-                "No hay suficiente disponibilidad para " + typeName + ". Solicitadas: " + quantityNeeded + ", Disponibles: " + available);
-        }
     }
 }

@@ -1,6 +1,5 @@
 package org.hotel.service.client;
 
-import org.hotel.domain.Invoice;
 import org.hotel.repository.InvoiceRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.dto.InvoiceDTO;
