@@ -270,6 +270,198 @@ class RoomResourceIT {
 
     @Test
     @Transactional
+    void getRoomsByIdFiltering() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        Long id = room.getId();
+
+        defaultRoomFiltering("id.equals=" + id, "id.notEquals=" + id);
+
+        defaultRoomFiltering("id.greaterThanOrEqual=" + id, "id.greaterThan=" + id);
+
+        defaultRoomFiltering("id.lessThanOrEqual=" + id, "id.lessThan=" + id);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByRoomNumberIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where roomNumber equals to
+        defaultRoomFiltering("roomNumber.equals=" + DEFAULT_ROOM_NUMBER, "roomNumber.equals=" + UPDATED_ROOM_NUMBER);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByRoomNumberIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where roomNumber in
+        defaultRoomFiltering("roomNumber.in=" + DEFAULT_ROOM_NUMBER + "," + UPDATED_ROOM_NUMBER, "roomNumber.in=" + UPDATED_ROOM_NUMBER);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByRoomNumberIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where roomNumber is not null
+        defaultRoomFiltering("roomNumber.specified=true", "roomNumber.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByRoomNumberContainsSomething() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where roomNumber contains
+        defaultRoomFiltering("roomNumber.contains=" + DEFAULT_ROOM_NUMBER, "roomNumber.contains=" + UPDATED_ROOM_NUMBER);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByRoomNumberNotContainsSomething() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where roomNumber does not contain
+        defaultRoomFiltering("roomNumber.doesNotContain=" + UPDATED_ROOM_NUMBER, "roomNumber.doesNotContain=" + DEFAULT_ROOM_NUMBER);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByStatusIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where status equals to
+        defaultRoomFiltering("status.equals=" + DEFAULT_STATUS, "status.equals=" + UPDATED_STATUS);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByStatusIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where status in
+        defaultRoomFiltering("status.in=" + DEFAULT_STATUS + "," + UPDATED_STATUS, "status.in=" + UPDATED_STATUS);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByStatusIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where status is not null
+        defaultRoomFiltering("status.specified=true", "status.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByIsDeletedIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where isDeleted equals to
+        defaultRoomFiltering("isDeleted.equals=" + DEFAULT_IS_DELETED, "isDeleted.equals=" + UPDATED_IS_DELETED);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByIsDeletedIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where isDeleted in
+        defaultRoomFiltering("isDeleted.in=" + DEFAULT_IS_DELETED + "," + UPDATED_IS_DELETED, "isDeleted.in=" + UPDATED_IS_DELETED);
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByIsDeletedIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedRoom = roomRepository.saveAndFlush(room);
+
+        // Get all the roomList where isDeleted is not null
+        defaultRoomFiltering("isDeleted.specified=true", "isDeleted.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllRoomsByRoomTypeIsEqualToSomething() throws Exception {
+        RoomType roomType;
+        if (TestUtil.findAll(em, RoomType.class).isEmpty()) {
+            roomRepository.saveAndFlush(room);
+            roomType = RoomTypeResourceIT.createEntity();
+        } else {
+            roomType = TestUtil.findAll(em, RoomType.class).get(0);
+        }
+        em.persist(roomType);
+        em.flush();
+        room.setRoomType(roomType);
+        roomRepository.saveAndFlush(room);
+        Long roomTypeId = roomType.getId();
+        // Get all the roomList where roomType equals to roomTypeId
+        defaultRoomShouldBeFound("roomTypeId.equals=" + roomTypeId);
+
+        // Get all the roomList where roomType equals to (roomTypeId + 1)
+        defaultRoomShouldNotBeFound("roomTypeId.equals=" + (roomTypeId + 1));
+    }
+
+    private void defaultRoomFiltering(String shouldBeFound, String shouldNotBeFound) throws Exception {
+        defaultRoomShouldBeFound(shouldBeFound);
+        defaultRoomShouldNotBeFound(shouldNotBeFound);
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultRoomShouldBeFound(String filter) throws Exception {
+        restRoomMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(room.getId().intValue())))
+            .andExpect(jsonPath("$.[*].roomNumber").value(hasItem(DEFAULT_ROOM_NUMBER)))
+            .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())))
+            .andExpect(jsonPath("$.[*].isDeleted").value(hasItem(DEFAULT_IS_DELETED)));
+
+        // Check, that the count call also returns 1
+        restRoomMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultRoomShouldNotBeFound(String filter) throws Exception {
+        restRoomMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restRoomMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+    @Test
+    @Transactional
     void getNonExistingRoom() throws Exception {
         // Get the room
         restRoomMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());

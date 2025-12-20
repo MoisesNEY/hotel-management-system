@@ -3,7 +3,8 @@ import type {
   BookingCreateRequest,
   BookingResponse,
   PaginationParams,
-  PaginatedResponse
+  PaginatedResponse,
+  RoomTypeAvailability
 } from '../../types/clientTypes';
 
 const BOOKINGS_PATH = '/api/client/bookings';
@@ -37,4 +38,17 @@ export const getMyBookings = async (
     currentPage: pagination?.currentPage || 0,
     pageSize: pagination?.pageSize || 20
   };
+};
+
+/**
+ * Get room type availability for a specific date range
+ */
+export const getAvailability = async (
+  checkIn: string,
+  checkOut: string
+): Promise<RoomTypeAvailability[]> => {
+  const response = await apiClient.get<RoomTypeAvailability[]>(`${BOOKINGS_PATH}/availability`, {
+    params: { checkIn, checkOut }
+  });
+  return response.data;
 };

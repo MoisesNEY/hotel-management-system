@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
+import org.hotel.domain.enumeration.ServiceStatus;
 
 /**
  * A DTO for the {@link org.hotel.domain.HotelService} entity.
@@ -19,15 +20,21 @@ public class HotelServiceDTO implements Serializable {
     private String description;
 
     @NotNull
-    private Boolean isAvailable;
-
-    private Boolean isDeleted;
-
-    @NotNull
     @DecimalMin(value = "0")
     private BigDecimal cost;
 
     private String imageUrl;
+
+    private Boolean isDeleted;
+
+    @Pattern(regexp = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    private String startHour;
+
+    @Pattern(regexp = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    private String endHour;
+
+    @NotNull
+    private ServiceStatus status;
 
     public Long getId() {
         return id;
@@ -53,22 +60,6 @@ public class HotelServiceDTO implements Serializable {
         this.description = description;
     }
 
-    public Boolean getIsAvailable() {
-        return isAvailable;
-    }
-
-    public void setIsAvailable(Boolean isAvailable) {
-        this.isAvailable = isAvailable;
-    }
-
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Boolean isDeleted) {
-        this.isDeleted = isDeleted;
-    }
-
     public BigDecimal getCost() {
         return cost;
     }
@@ -83,6 +74,38 @@ public class HotelServiceDTO implements Serializable {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public String getStartHour() {
+        return startHour;
+    }
+
+    public void setStartHour(String startHour) {
+        this.startHour = startHour;
+    }
+
+    public String getEndHour() {
+        return endHour;
+    }
+
+    public void setEndHour(String endHour) {
+        this.endHour = endHour;
+    }
+
+    public ServiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ServiceStatus status) {
+        this.status = status;
     }
 
     @Override
@@ -113,10 +136,12 @@ public class HotelServiceDTO implements Serializable {
             "id=" + getId() +
             ", name='" + getName() + "'" +
             ", description='" + getDescription() + "'" +
-            ", isAvailable='" + getIsAvailable() + "'" +
-            ", isDeleted='" + getIsDeleted() + "'" +
             ", cost=" + getCost() +
             ", imageUrl='" + getImageUrl() + "'" +
+            ", isDeleted='" + getIsDeleted() + "'" +
+            ", startHour='" + getStartHour() + "'" +
+            ", endHour='" + getEndHour() + "'" +
+            ", status='" + getStatus() + "'" +
             "}";
     }
 }

@@ -286,7 +286,16 @@ const UserProfilePage: React.FC = () => {
     if (keycloak.accountManagement) keycloak.accountManagement();
   };
 
-  const handleCompleteInfo = () => navigate('/customer');
+  const getRoomSummary = (items: BookingItemResponse[]) => {
+    if (!items || items.length === 0) return 'Sin habitaciones';
+    const first = items[0].roomTypeName;
+    if (items.length === 1) return first;
+    return `${first} (+${items.length - 1} más)`;
+  };
+
+  const handleCompleteInfo = () => {
+    navigate('/customer');
+  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'No especificada';
@@ -382,7 +391,7 @@ const UserProfilePage: React.FC = () => {
                   {bookings.map(booking => (
                     <div key={booking.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg">
                       <div className="flex justify-between items-center mb-4">
-                        <h3>{booking.roomTypeName}</h3>
+                        <h3>{getRoomSummary(booking.items)}</h3>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(booking.status)}`}>
                           {getStatusText(booking.status)}
                         </span>
@@ -750,14 +759,43 @@ const UserProfilePage: React.FC = () => {
                         <div key={booking.id} className="relative bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/10 overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-gold-default to-gold-dark"></div>
                           <div className="flex justify-between items-start mb-6">
-                            <h4 className="font-bold dark:text-white">{booking.roomTypeName}</h4>
+                            <h4 className="font-bold dark:text-white truncate max-w-[180px]" title={booking.items?.[0]?.roomTypeName}>
+                              {getRoomSummary(booking.items)}
+                            </h4>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(booking.status)}`}>{getStatusText(booking.status)}</span>
                           </div>
                           <div className="space-y-4 mb-8 text-xs dark:text-gray-300">
-                            <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)}</div>
+                            <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</div>
                             <div className="flex items-center gap-2 text-lg font-bold text-gold-default"><CreditCard size={16} />${booking.totalPrice}</div>
                           </div>
-                          <button onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })} className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2">
+
+                          <div className="space-y-3 mb-6">
+                            {booking.invoiceId && booking.invoiceStatus === 'PENDING' && (
+                              <div className="p-4 bg-gold-default/5 border border-gold-default/20 rounded-2xl">
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Pago Requerido</p>
+                                <PayPalPaymentButton 
+                                  invoiceId={booking.invoiceId} 
+                                  onSuccess={() => {
+                                    // Refresh bookings
+                                    getMyBookings().then(res => setBookings(res.data));
+                                  }}
+                                />
+                              </div>
+                            )}
+                            {booking.invoiceStatus === 'PAID' && (
+                              <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 text-[10px] font-bold uppercase">
+                                <CheckCircle2 size={14} /> Factura Pagada
+                              </div>
+                            )}
+                          </div>
+
+                          <button 
+                             onClick={() => setSelectedBookingForService({ 
+                               id: booking.id, 
+                               roomTypeName: getRoomSummary(booking.items) 
+                             })} 
+                             className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                          >
                             <ConciergeBell size={14} /> Servicios
                           </button>
                         </div>
@@ -775,7 +813,7 @@ const UserProfilePage: React.FC = () => {
                       {pastBookings.map(booking => (
                         <div key={booking.id} className="bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/5 rounded-3xl p-6">
                           <div className="flex justify-between items-center mb-4">
-                            <h4 className="text-sm font-bold dark:text-gray-200">{booking.roomTypeName}</h4>
+                            <h4 className="text-sm font-bold dark:text-gray-200 truncate">{getRoomSummary(booking.items)}</h4>
                             <span className="text-[10px] font-mono text-gray-400">#{booking.id}</span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-500">

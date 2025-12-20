@@ -27,24 +27,80 @@ export interface PaginatedResponse<T> {
 }
 
 // Booking Types
+export interface BookingItemRequest {
+    roomTypeId: number;
+    occupantName?: string;
+}
+
 export interface BookingCreateRequest {
     checkInDate: string; // ISO date string (YYYY-MM-DD)
     checkOutDate: string; // ISO date string (YYYY-MM-DD)
     guestCount: number;
-    roomTypeId: number;
+    items: BookingItemRequest[];
     notes?: string;
+}
+
+export interface BookingItemResponse {
+    id: number;
+    price: number;
+    roomTypeName: string;
+    roomTypeImage?: string;
+    assignedRoomNumber?: string;
+    occupantName: string;
 }
 
 export interface BookingResponse {
     id: number;
+    code: string;
     checkInDate: string; // ISO date string (YYYY-MM-DD)
     checkOutDate: string; // ISO date string (YYYY-MM-DD)
     guestCount: number;
     totalPrice: number;
     status: BookingStatus;
-    roomTypeName: string;
-    roomTypeImage?: string;
-    assignedRoomNumber?: string;
+    items: BookingItemResponse[];
+    invoiceId?: number;
+    invoiceStatus?: InvoiceStatus;
+}
+
+export interface RoomTypeAvailability {
+    id: number;
+    name: string;
+    availableQuantity: number;
+    basePrice: number;
+    maxCapacity: number;
+}
+
+// Financial Types
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+
+export interface InvoiceResponse {
+    id: number;
+    code: string;
+    issuedDate: string;
+    status: InvoiceStatus;
+    taxAmount: number;
+    totalAmount: number;
+    currency: string;
+    bookingId: number;
+}
+
+export interface PaymentResponse {
+    id: number;
+    date: string;
+    amount: number;
+    method: string;
+    referenceId?: string;
+    paypalOrderId?: string;
+    invoiceId: number;
+}
+
+export interface PaymentInitRequest {
+    invoiceId: number;
+}
+
+export interface PaymentCaptureRequest {
+    paypalOrderId: string;
+    invoiceId: number;
 }
 
 // Customer Details Types

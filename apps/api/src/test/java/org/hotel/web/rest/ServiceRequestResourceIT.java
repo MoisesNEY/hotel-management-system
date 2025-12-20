@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hotel.domain.ServiceRequestAsserts.*;
 import static org.hotel.web.rest.TestUtil.createUpdateProxyForBean;
+import static org.hotel.web.rest.TestUtil.sameNumber;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -52,11 +54,20 @@ class ServiceRequestResourceIT {
     private static final Instant DEFAULT_REQUEST_DATE = Instant.ofEpochMilli(0L);
     private static final Instant UPDATED_REQUEST_DATE = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
+    private static final RequestStatus DEFAULT_STATUS = RequestStatus.OPEN;
+    private static final RequestStatus UPDATED_STATUS = RequestStatus.IN_PROGRESS;
+
     private static final String DEFAULT_DETAILS = "AAAAAAAAAA";
     private static final String UPDATED_DETAILS = "BBBBBBBBBB";
 
-    private static final RequestStatus DEFAULT_STATUS = RequestStatus.OPEN;
-    private static final RequestStatus UPDATED_STATUS = RequestStatus.IN_PROGRESS;
+    private static final String DEFAULT_DELIVERY_ROOM_NUMBER = "AAAAAAAAAA";
+    private static final String UPDATED_DELIVERY_ROOM_NUMBER = "BBBBBBBBBB";
+
+    private static final Integer DEFAULT_QUANTITY = 1;
+    private static final Integer UPDATED_QUANTITY = 2;
+
+    private static final BigDecimal DEFAULT_TOTAL_COST = new BigDecimal(1);
+    private static final BigDecimal UPDATED_TOTAL_COST = new BigDecimal(2);
 
     private static final String ENTITY_API_URL = "/api/service-requests";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -98,8 +109,11 @@ class ServiceRequestResourceIT {
     public static ServiceRequest createEntity(EntityManager em) {
         ServiceRequest serviceRequest = new ServiceRequest()
             .requestDate(DEFAULT_REQUEST_DATE)
+            .status(DEFAULT_STATUS)
             .details(DEFAULT_DETAILS)
-            .status(DEFAULT_STATUS);
+            .deliveryRoomNumber(DEFAULT_DELIVERY_ROOM_NUMBER)
+            .quantity(DEFAULT_QUANTITY)
+            .totalCost(DEFAULT_TOTAL_COST);
         // Add required entity
         HotelService hotelService;
         if (TestUtil.findAll(em, HotelService.class).isEmpty()) {
@@ -132,8 +146,11 @@ class ServiceRequestResourceIT {
     public static ServiceRequest createUpdatedEntity(EntityManager em) {
         ServiceRequest updatedServiceRequest = new ServiceRequest()
             .requestDate(UPDATED_REQUEST_DATE)
+            .status(UPDATED_STATUS)
             .details(UPDATED_DETAILS)
-            .status(UPDATED_STATUS);
+            .deliveryRoomNumber(UPDATED_DELIVERY_ROOM_NUMBER)
+            .quantity(UPDATED_QUANTITY)
+            .totalCost(UPDATED_TOTAL_COST);
         // Add required entity
         HotelService hotelService;
         if (TestUtil.findAll(em, HotelService.class).isEmpty()) {
@@ -270,8 +287,11 @@ class ServiceRequestResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(serviceRequest.getId().intValue())))
             .andExpect(jsonPath("$.[*].requestDate").value(hasItem(DEFAULT_REQUEST_DATE.toString())))
+            .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())))
             .andExpect(jsonPath("$.[*].details").value(hasItem(DEFAULT_DETAILS)))
-            .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())));
+            .andExpect(jsonPath("$.[*].deliveryRoomNumber").value(hasItem(DEFAULT_DELIVERY_ROOM_NUMBER)))
+            .andExpect(jsonPath("$.[*].quantity").value(hasItem(DEFAULT_QUANTITY)))
+            .andExpect(jsonPath("$.[*].totalCost").value(hasItem(sameNumber(DEFAULT_TOTAL_COST))));
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -304,8 +324,11 @@ class ServiceRequestResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(serviceRequest.getId().intValue()))
             .andExpect(jsonPath("$.requestDate").value(DEFAULT_REQUEST_DATE.toString()))
+            .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()))
             .andExpect(jsonPath("$.details").value(DEFAULT_DETAILS))
-            .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()));
+            .andExpect(jsonPath("$.deliveryRoomNumber").value(DEFAULT_DELIVERY_ROOM_NUMBER))
+            .andExpect(jsonPath("$.quantity").value(DEFAULT_QUANTITY))
+            .andExpect(jsonPath("$.totalCost").value(sameNumber(DEFAULT_TOTAL_COST)));
     }
 
     @Test
@@ -327,7 +350,13 @@ class ServiceRequestResourceIT {
         ServiceRequest updatedServiceRequest = serviceRequestRepository.findById(serviceRequest.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedServiceRequest are not directly saved in db
         em.detach(updatedServiceRequest);
-        updatedServiceRequest.requestDate(UPDATED_REQUEST_DATE).details(UPDATED_DETAILS).status(UPDATED_STATUS);
+        updatedServiceRequest
+            .requestDate(UPDATED_REQUEST_DATE)
+            .status(UPDATED_STATUS)
+            .details(UPDATED_DETAILS)
+            .deliveryRoomNumber(UPDATED_DELIVERY_ROOM_NUMBER)
+            .quantity(UPDATED_QUANTITY)
+            .totalCost(UPDATED_TOTAL_COST);
         ServiceRequestDTO serviceRequestDTO = serviceRequestMapper.toDto(updatedServiceRequest);
 
         restServiceRequestMockMvc
@@ -422,7 +451,7 @@ class ServiceRequestResourceIT {
         ServiceRequest partialUpdatedServiceRequest = new ServiceRequest();
         partialUpdatedServiceRequest.setId(serviceRequest.getId());
 
-        partialUpdatedServiceRequest.details(UPDATED_DETAILS);
+        partialUpdatedServiceRequest.status(UPDATED_STATUS).deliveryRoomNumber(UPDATED_DELIVERY_ROOM_NUMBER);
 
         restServiceRequestMockMvc
             .perform(
@@ -454,7 +483,13 @@ class ServiceRequestResourceIT {
         ServiceRequest partialUpdatedServiceRequest = new ServiceRequest();
         partialUpdatedServiceRequest.setId(serviceRequest.getId());
 
-        partialUpdatedServiceRequest.requestDate(UPDATED_REQUEST_DATE).details(UPDATED_DETAILS).status(UPDATED_STATUS);
+        partialUpdatedServiceRequest
+            .requestDate(UPDATED_REQUEST_DATE)
+            .status(UPDATED_STATUS)
+            .details(UPDATED_DETAILS)
+            .deliveryRoomNumber(UPDATED_DELIVERY_ROOM_NUMBER)
+            .quantity(UPDATED_QUANTITY)
+            .totalCost(UPDATED_TOTAL_COST);
 
         restServiceRequestMockMvc
             .perform(

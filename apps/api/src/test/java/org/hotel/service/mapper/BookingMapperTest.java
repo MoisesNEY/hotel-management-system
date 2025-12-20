@@ -5,22 +5,14 @@ import static org.hotel.domain.BookingTestSamples.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 class BookingMapperTest {
 
-    @InjectMocks
-    private BookingMapperImpl bookingMapper;
-
-    @Spy
-    private UserMapper userMapper = new UserMapper();
+    private BookingMapper bookingMapper;
 
     @BeforeEach
     void setUp() {
+        bookingMapper = new BookingMapperImpl();
     }
 
     @Test

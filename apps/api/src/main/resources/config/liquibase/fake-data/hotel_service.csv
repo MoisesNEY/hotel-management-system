@@ -1,11 +1,11 @@
-id;name;description;is_available;is_deleted;cost;image_url
-1;or;so a hm;true;true;29030.53;consistency humiliating meanwhile
-2;jubilantly;smuggle upwardly;false;true;28274.63;natural daintily
-3;likely;silently;true;true;17257.24;husky
-4;gum smoothly unfreeze;react;false;false;16580.49;aw
-5;bathhouse;freely per ha;true;true;2880.34;gah slide
-6;along;weight;true;false;896.81;crest
-7;straight scarper;bare emphasize wordy;true;false;26819.7;ski incline
-8;spiffy competent;provided;true;false;7462.98;augment
-9;intensely inwardly whack;swelter unlike;false;false;8192.91;joyful
-10;within;concerning;false;true;7852.02;vacation
+id;name;description;cost;image_url;is_deleted;start_hour;end_hour;status
+1;or;so a hm;9587.71;graceful;false;"18:48";"21:22";CLOSED
+2;neatly limp fund;unimpressively multicolored impeccable;4964.26;likely;true;"4:36";"00:31";FULL_CAPACITY
+3;spherical;while;31144.4;anti for merge;true;"23:30";"22:30";DOWN
+4;if;instead shy especially;2880.34;gah slide;true;"3:49";"20:18";CLOSED
+5;amazing ick hoick;boohoo mmm;21600.92;emphasize;true;"23:43";"23:29";DOWN
+6;ski incline;spiffy competent;866.42;entice part;false;"20:45";"22:03";OPERATIONAL
+7;inwardly whack;swelter unlike;19053.96;unto plus bruised;true;"22:25";"0:06";DOWN
+8;whoever instead yippee;greedily;5707.16;kookily since;true;"1:36";"6:00";FULL_CAPACITY
+9;until;gah hence pfft;13481.2;spirited;true;"21:52";"23:02";CLOSED
+10;triumphantly the;yum axe outrank;18039.78;though although hello;true;"15:13";"20:25";CLOSED

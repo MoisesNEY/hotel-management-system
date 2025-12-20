@@ -48,6 +48,7 @@
   ],
   "microserviceName": "hotelBackend",
   "name": "RoomType",
+  "pagination": "pagination",
   "relationships": [
     {
       "otherEntityName": "room",

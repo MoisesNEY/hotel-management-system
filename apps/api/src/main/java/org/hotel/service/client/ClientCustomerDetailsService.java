@@ -92,6 +92,12 @@ public class ClientCustomerDetailsService {
                 "La fecha de nacimiento no es válida. Verifica el año.");
         }
         entity.setUser(currentUser);
+        if (currentUser.getEmail() != null) {
+            entity.setEmail(currentUser.getEmail());
+        } else {
+             // Fallback or error if email is strictly required by CustomerDetails
+             throw new BusinessRuleException("El usuario no tiene un email configurado.");
+        }
 
         entity = customerDetailsRepository.save(entity);
 

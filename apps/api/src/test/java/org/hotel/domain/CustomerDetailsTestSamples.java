@@ -16,6 +16,8 @@ public class CustomerDetailsTestSamples {
             .addressLine1("addressLine11")
             .city("city1")
             .country("country1")
+            .email("email1")
+            .identificationType("identificationType1")
             .licenseId("licenseId1");
     }
 
@@ -26,6 +28,8 @@ public class CustomerDetailsTestSamples {
             .addressLine1("addressLine12")
             .city("city2")
             .country("country2")
+            .email("email2")
+            .identificationType("identificationType2")
             .licenseId("licenseId2");
     }
 
@@ -36,6 +40,8 @@ public class CustomerDetailsTestSamples {
             .addressLine1(UUID.randomUUID().toString())
             .city(UUID.randomUUID().toString())
             .country(UUID.randomUUID().toString())
+            .email(UUID.randomUUID().toString())
+            .identificationType(UUID.randomUUID().toString())
             .licenseId(UUID.randomUUID().toString());
     }
 }

@@ -45,6 +45,15 @@ const RequireProfile: React.FC = () => {
         return;
       }
 
+      // 3.5 Verificar si acabamos de crear el perfil (navegación desde el formulario)
+      if (location.state && location.state.profileJustCreated) {
+           console.log('[RequireProfile] Profile just created (from state), assuming validity.');
+           localStorage.setItem('hasCompletedExtraInfo', 'true');
+           hasCheckedRef.current = true;
+           setIsChecking(false);
+           return;
+      }
+
       // 4. Verificar localStorage primero (optimización)
       const localCompleted = localStorage.getItem('hasCompletedExtraInfo') === 'true';
       console.log('[RequireProfile] LocalStorage completed flag:', localCompleted);

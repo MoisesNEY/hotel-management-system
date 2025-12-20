@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.hotel.service.client.ClientBookingService;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
+import org.hotel.service.dto.client.response.booking.RoomTypeAvailabilityDTO;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.PaginationUtil;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -35,5 +37,11 @@ public class ClientBookingResource {
         var pageResponse = clientBookingService.findMyBookings(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), pageResponse);
         return ResponseEntity.ok().headers(headers).body(pageResponse.getContent());
+    }
+
+    @GetMapping("/availability")
+    public ResponseEntity<List<RoomTypeAvailabilityDTO>> getAvailability(@RequestParam LocalDate checkIn, @RequestParam LocalDate checkOut) {
+        var response = clientBookingService.getAvailability(checkIn, checkOut);
+        return ResponseEntity.ok().body(response);
     }
 }

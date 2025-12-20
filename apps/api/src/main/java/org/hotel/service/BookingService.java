@@ -1,15 +1,14 @@
 package org.hotel.service;
 
 import org.hotel.domain.Booking;
+import org.hotel.domain.BookingItem;
 import org.hotel.domain.RoomType;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
-import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.ServiceRequestRepository;
 import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.mapper.BookingMapper;
-// Se mantienen tus excepciones personalizadas
 import org.hotel.web.rest.errors.BusinessRuleException;
 import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -20,9 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service Implementation for managing {@link org.hotel.domain.Booking}.
@@ -36,80 +35,82 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRequestRepository serviceRequestRepository;
     private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository;
     private final BookingMapper bookingMapper;
+    private final BookingDomainService bookingDomainService; // Injected
 
-    public BookingService(BookingRepository bookingRepository, ServiceRequestRepository serviceRequestRepository, RoomRepository roomRepository, RoomTypeRepository roomTypeRepository, BookingMapper bookingMapper) {
+    public BookingService(BookingRepository bookingRepository,
+                          ServiceRequestRepository serviceRequestRepository,
+                          RoomTypeRepository roomTypeRepository,
+                          BookingMapper bookingMapper,
+                          BookingDomainService bookingDomainService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
-        this.roomRepository = roomRepository;
         this.bookingMapper = bookingMapper;
+        this.bookingDomainService = bookingDomainService;
     }
 
     /**
      * Save a booking.
-     *
-     * @param bookingDTO the entity to save.
-     * @return the persisted entity.
      */
     public BookingDTO save(BookingDTO bookingDTO) {
         LOG.debug("Request to save Booking : {}", bookingDTO);
-        // null indica que no hay ID que excluir (es creación)
-        return bookingMapper.toDto(bookingRepository.save(validateAndPrepareData(bookingDTO, null)));
+
+        // Convertimos a entidad para trabajar con la lista de items
+        Booking booking = bookingMapper.toEntity(bookingDTO);
+
+        // Expansión de items basada en quantity
+        expandBookingItems(booking, bookingDTO);
+
+        // Validamos y enriquecemos la data (Precios, Disponibilidad)
+        prepareBookingData(booking, null);
+
+        // Guardamos (Cascade persistirá los BookingItems automáticamente)
+        booking = bookingRepository.save(booking);
+
+        // TODO: Llamar a invoiceService.createInvoiceFromBooking(booking);
+
+        return bookingMapper.toDto(booking);
     }
 
     /**
      * Update a booking.
-     *
-     * @param bookingDTO the entity to save.
-     * @return the persisted entity.
      */
     public BookingDTO update(BookingDTO bookingDTO) {
         LOG.debug("Request to update Booking : {}", bookingDTO);
-        // Pasamos el ID para excluir esta reserva del conteo de disponibilidad (evitar autabloqueo)
-        return bookingMapper.toDto(bookingRepository.save(validateAndPrepareData(bookingDTO, bookingDTO.getId())));
+
+        // Validamos que exista
+        if (!bookingRepository.existsById(bookingDTO.getId())) {
+            throw new ResourceNotFoundException("Booking", bookingDTO.getId());
+        }
+
+        Booking booking = bookingMapper.toEntity(bookingDTO);
+
+        prepareBookingData(booking, booking.getId());
+
+        booking = bookingRepository.save(booking);
+        return bookingMapper.toDto(booking);
     }
 
     /**
      * Partially update a booking.
-     *
-     * @param bookingDTO the entity to update partially.
-     * @return the persisted entity.
      */
     public Optional<BookingDTO> partialUpdate(BookingDTO bookingDTO) {
         LOG.debug("Request to partially update Booking : {}", bookingDTO);
-
-        if (bookingDTO.getTotalPrice() != null) {
-            throw new BusinessRuleException("El precio debe ser calculado por el servidor");
-        }
 
         return bookingRepository
             .findById(bookingDTO.getId())
             .map(existingBooking -> {
                 bookingMapper.partialUpdate(existingBooking, bookingDTO);
 
-                // Si cambian las fechas, es obligatorio recalcular precio y validar disponibilidad
+                // Expansión si se enviaron items
+                if (bookingDTO.getItems() != null) {
+                    expandBookingItems(existingBooking, bookingDTO);
+                }
+
+                // Si cambian las fechas, es obligatorio recalcular todo (precios y disponibilidad)
                 if (bookingDTO.getCheckInDate() != null || bookingDTO.getCheckOutDate() != null) {
-
-                    if (!existingBooking.getCheckOutDate().isAfter(existingBooking.getCheckInDate())) {
-                        throw new BusinessRuleException("La fecha de salida debe ser posterior a la de entrada.");
-                    }
-
-                    // Se valida disponibilidad excluyendo la reserva actual
-                    validateRoomTypeDisposability(
-                        existingBooking.getRoomType().getId(),
-                        existingBooking.getCheckInDate(),
-                        existingBooking.getCheckOutDate(),
-                        existingBooking.getId()
-                    );
-
-                    BigDecimal totalPrice = calculateTotalPrice(
-                        existingBooking.getCheckInDate(),
-                        existingBooking.getCheckOutDate(),
-                        existingBooking.getRoomType()
-                    );
-                    existingBooking.setTotalPrice(totalPrice);
+                    prepareBookingData(existingBooking, existingBooking.getId());
                 }
 
                 return existingBooking;
@@ -117,75 +118,76 @@ public class BookingService {
             .map(bookingRepository::save)
             .map(bookingMapper::toDto);
     }
-
-    /**
-     * Get all the bookings.
-     *
-     * @param pageable the pagination information.
-     * @return the list of entities.
-     */
     @Transactional(readOnly = true)
     public Page<BookingDTO> findAll(Pageable pageable) {
-        LOG.debug("Request to get all Bookings");
         return bookingRepository.findAll(pageable).map(bookingMapper::toDto);
     }
 
     public Page<BookingDTO> findAllWithEagerRelationships(Pageable pageable) {
-        return bookingRepository.findAllWithEagerRelationships(pageable).map(bookingMapper::toDto);
+        return bookingRepository.findAllWithToOneRelationships(pageable).map(bookingMapper::toDto);
     }
 
     @Transactional(readOnly = true)
     public Optional<BookingDTO> findOne(Long id) {
-        LOG.debug("Request to get Booking : {}", id);
-        return bookingRepository.findOneWithEagerRelationships(id).map(bookingMapper::toDto);
+        return bookingRepository.findOneWithToOneRelationships(id).map(bookingMapper::toDto);
     }
 
-    /**
-     * Delete the booking by id.
-     *
-     * @param id the id of the entity.
-     */
     public void delete(Long id) {
-        LOG.debug("Request to delete Booking : {}", id);
         validateBookingForDeletion(id);
         bookingRepository.deleteById(id);
     }
 
     /**
-     * Centraliza la validación y preparación de datos para save y update.
-     * @param currentBookingId ID de la reserva si es update, null si es create.
+     * El cerebro del servicio. Valida fechas, disponibilidad y calcula precios.
      */
-    private Booking validateAndPrepareData(BookingDTO bookingDTO, Long currentBookingId) {
-        if (currentBookingId != null) {
-            bookingRepository.findById(currentBookingId).ifPresent(existing -> {
-                if (!existing.getCustomer().getId().equals(bookingDTO.getCustomer().getId())) {
-                    throw new BusinessRuleException("No se permite cambiar el cliente de una reserva existente");
-                }
-            });
+    private void prepareBookingData(Booking booking, Long currentBookingId) {
+
+        // 1. Validar Fechas y Calcular Noches (Delegado)
+        long nights = bookingDomainService.validateAndCalculateNights(booking.getCheckInDate(), booking.getCheckOutDate());
+
+        // 2. Validar que hay items
+        if (booking.getBookingItems() == null || booking.getBookingItems().isEmpty()) {
+            throw new BusinessRuleException("La reserva debe contener al menos una habitación.");
         }
 
-        // Es crítico obtener el RoomType de BD para tener los datos reales (precio, capacidad)
-        RoomType roomType = roomTypeRepository.findById(bookingDTO.getRoomType().getId())
-            .orElseThrow(() -> new ResourceNotFoundException("RoomType", bookingDTO.getRoomType().getId()));
+        // 3. Agrupar peticiones por RoomType para validar disponibilidad en bloque
+        Map<Long, Long> requestedRoomsByType = booking.getBookingItems().stream()
+            .collect(Collectors.groupingBy(
+                item -> item.getRoomType().getId(),
+                Collectors.counting()
+            ));
 
-        var checkInDate = bookingDTO.getCheckInDate();
-        var checkOutDate = bookingDTO.getCheckOutDate();
+        // 4. Iterar y Validar Disponibilidad + Calcular Precios + Sumar Capacidad
+        int totalCapacityAccumulated = 0;
 
-        if (!checkOutDate.isAfter(checkInDate)) {
-            throw new BusinessRuleException("La fecha de salida debe ser posterior a la de entrada.");
+        for (BookingItem item : booking.getBookingItems()) {
+            // Recuperar RoomType real de la BD (para precio y capacidad confiables)
+            RoomType roomType = roomTypeRepository.findById(item.getRoomType().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RoomType", item.getRoomType().getId()));
+
+            // A. Asignar Precio Congelado (Delegado)
+            BigDecimal itemTotal = bookingDomainService.calculateItemPrice(roomType, nights);
+            item.setPrice(itemTotal);
+            item.setBooking(booking); // Asegurar relación bidireccional
+
+            // B. Acumular Capacidad
+            totalCapacityAccumulated += roomType.getMaxCapacity();
+
+            // C. Actualizar el objeto RoomType dentro del item (por si venía incompleto del DTO)
+            item.setRoomType(roomType);
         }
 
-        validateRoomTypeCapacity(bookingDTO.getGuestCount(), roomType);
-        validateRoomTypeDisposability(roomType.getId(), checkInDate, checkOutDate, currentBookingId);
+        // 5. Validar Disponibilidad (Bloque crítico delegago)
+        // Recorremos el mapa de "lo que piden" vs "lo que hay"
+        requestedRoomsByType.forEach((typeId, requestedAmount) -> {
+            bookingDomainService.validateRoomAvailability(typeId, requestedAmount, booking.getCheckInDate(), booking.getCheckOutDate(), currentBookingId);
+        });
 
-        var booking = bookingMapper.toEntity(bookingDTO);
-
-        BigDecimal totalPrice = calculateTotalPrice(checkInDate, checkOutDate, roomType);
-
-        booking.setTotalPrice(totalPrice);
-        booking.setRoomType(roomType);
-
-        return booking;
+        // 6. Validar Capacidad Global
+        if (booking.getGuestCount() > totalCapacityAccumulated) {
+            throw new BusinessRuleException("El número de huéspedes (" + booking.getGuestCount() +
+                ") excede la capacidad total de las habitaciones seleccionadas (" + totalCapacityAccumulated + ")");
+        }
     }
 
     public void validateBookingForDeletion(Long bookingId) {
@@ -201,32 +203,24 @@ public class BookingService {
         }
     }
 
-    public BigDecimal calculateTotalPrice(LocalDate checkIn, LocalDate checkOut, RoomType roomType) {
-        long days = ChronoUnit.DAYS.between(checkIn, checkOut);
-        return roomType.getBasePrice().multiply(BigDecimal.valueOf(days));
-    }
+    private void expandBookingItems(Booking booking, BookingDTO bookingDTO) {
+        if (bookingDTO.getItems() == null) return;
 
-    /**
-     * Válida disponibilidad controlando la concurrencia y la autoexclusión en updates.
-     */
-    public void validateRoomTypeDisposability(Long roomTypeId, LocalDate checkIn, LocalDate checkOut, Long excludeBookingId) {
-        long totalRooms = roomRepository.countByRoomTypeId(roomTypeId);
-        long occupiedRooms;
+        // Limpiamos los items mapeados para reconstruir
+        booking.getBookingItems().clear();
 
-        if (excludeBookingId == null) {
-            occupiedRooms = bookingRepository.countOverlappingBookings(roomTypeId, checkIn, checkOut);
-        } else {
-            occupiedRooms = bookingRepository.countOverlappingBookingsExcludingSelf(roomTypeId, checkIn, checkOut, excludeBookingId);
-        }
+        for (org.hotel.service.dto.BookingItemDTO itemDTO : bookingDTO.getItems()) {
+            RoomType roomType = roomTypeRepository.findById(itemDTO.getRoomType().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RoomType", itemDTO.getRoomType().getId()));
 
-        if (occupiedRooms >= totalRooms) {
-            throw new BusinessRuleException("Lo sentimos, no hay disponibilidad para estas fechas.");
-        }
-    }
-
-    public void validateRoomTypeCapacity(int guestCount, RoomType roomType) {
-        if (guestCount > roomType.getMaxCapacity()) {
-            throw new BusinessRuleException("La reserva excede la cantidad de invitados soportados por la habitación");
+            BookingItem item = new BookingItem();
+            item.setRoomType(roomType);
+            item.setOccupantName(itemDTO.getOccupantName());
+            item.setPrice(itemDTO.getPrice()); // Admin puede enviar precio manual o se recalcula en prepare
+            
+            // Relación bidireccional
+            item.setBooking(booking);
+            booking.getBookingItems().add(item);
         }
     }
 }

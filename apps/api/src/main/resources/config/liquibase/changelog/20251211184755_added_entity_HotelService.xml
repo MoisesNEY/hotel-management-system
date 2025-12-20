@@ -20,17 +20,23 @@
             <column name="description" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
-            <column name="is_available" type="boolean">
-                <constraints nullable="false" />
-            </column>
-            <column name="is_deleted" type="boolean">
-                <constraints nullable="true" />
-            </column>
             <column name="cost" type="decimal(21,2)">
                 <constraints nullable="false" />
             </column>
             <column name="image_url" type="varchar(255)">
                 <constraints nullable="true" />
+            </column>
+            <column name="is_deleted" type="boolean">
+                <constraints nullable="true" />
+            </column>
+            <column name="start_hour" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="end_hour" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
@@ -55,10 +61,12 @@
             <column name="id" type="numeric"/>
             <column name="name" type="string"/>
             <column name="description" type="string"/>
-            <column name="is_available" type="boolean"/>
-            <column name="is_deleted" type="boolean"/>
             <column name="cost" type="numeric"/>
             <column name="image_url" type="string"/>
+            <column name="is_deleted" type="boolean"/>
+            <column name="start_hour" type="string"/>
+            <column name="end_hour" type="string"/>
+            <column name="status" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

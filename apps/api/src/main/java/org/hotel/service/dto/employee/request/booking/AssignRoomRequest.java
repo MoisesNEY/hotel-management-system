@@ -11,6 +11,10 @@ import java.io.Serializable;
 @Setter
 @Getter
 public class AssignRoomRequest implements Serializable {
+
+    @NotNull(message = "Debes indicar a qué línea de la reserva pertenece esta asignación")
+    private Long bookingItemId; // NUEVO: Para diferenciar si asignas la Suite o la Twin
+
     @NotNull(message = "El ID de la habitación es obligatorio")
-    private Long roomId;
+    private Long roomId;        // La habitación física (ej: 205)
 }

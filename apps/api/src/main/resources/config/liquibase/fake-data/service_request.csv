@@ -1,11 +1,11 @@
-id;request_date;details;status;service_id;booking_id
-1;2025-12-11T17:48:19;nor;IN_PROGRESS;1;1
-2;2025-12-11T17:10:57;beside;OPEN;2;2
-3;2025-12-10T20:31:09;immense kindly adumbrate;REJECTED;3;3
-4;2025-12-11T16:41:59;relative jovially;REJECTED;4;4
-5;2025-12-10T19:53:41;before;IN_PROGRESS;5;5
-6;2025-12-11T12:30:47;intensely kookily showboat;OPEN;6;6
-7;2025-12-11T00:04:43;curl deployment whoa;IN_PROGRESS;7;7
-8;2025-12-11T10:31:40;ah;COMPLETED;8;8
-9;2025-12-11T12:42:48;pupil grass croon;COMPLETED;9;9
-10;2025-12-11T18:03:56;throughout in;REJECTED;10;10
+id;request_date;status;details;delivery_room_number;quantity;total_cost;service_id;booking_id
+1;2025-12-11T17:48:19;OPEN;how;aha scrape object;2423;8886.03;1;1
+2;2025-12-10T18:58:43;IN_PROGRESS;sprinkles sadly;cardboard hmph;15764;7635.64;2;2
+3;2025-12-10T19:20:13;IN_PROGRESS;surprisingly couch;petticoat folklore;31762;6443.42;3;3
+4;2025-12-11T01:38:29;OPEN;elegantly;gadzooks;3274;2855.63;4;4
+5;2025-12-10T21:59:28;REJECTED;down but hunt;with;21723;6106.14;5;5
+6;2025-12-10T21:27:28;IN_PROGRESS;however;bicycle warmly dreamily;32090;20309.35;6;6
+7;2025-12-11T16:31:33;OPEN;bad;helpless who;15668;11874.43;7;7
+8;2025-12-11T16:35:00;REJECTED;near unibody times;final;12696;9337;8;8
+9;2025-12-11T16:41:29;OPEN;transcend materialise;quit;30814;19151.66;9;9
+10;2025-12-10T20:50:20;IN_PROGRESS;yum march the;nor snoopy;19843;5245.48;10;10

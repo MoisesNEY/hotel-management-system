@@ -1,6 +1,7 @@
 package org.hotel.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hotel.domain.AssertUtils.bigDecimalCompareTo;
 
 public class ServiceRequestAsserts {
 
@@ -48,8 +49,14 @@ public class ServiceRequestAsserts {
         assertThat(actual)
             .as("Verify ServiceRequest relevant properties")
             .satisfies(a -> assertThat(a.getRequestDate()).as("check requestDate").isEqualTo(expected.getRequestDate()))
+            .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()))
             .satisfies(a -> assertThat(a.getDetails()).as("check details").isEqualTo(expected.getDetails()))
-            .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()));
+            .satisfies(a -> assertThat(a.getDeliveryRoomNumber()).as("check deliveryRoomNumber").isEqualTo(expected.getDeliveryRoomNumber())
+            )
+            .satisfies(a -> assertThat(a.getQuantity()).as("check quantity").isEqualTo(expected.getQuantity()))
+            .satisfies(a ->
+                assertThat(a.getTotalCost()).as("check totalCost").usingComparator(bigDecimalCompareTo).isEqualTo(expected.getTotalCost())
+            );
     }
 
     /**

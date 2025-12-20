@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.hotel.repository.CustomerDetailsRepository;
-import org.hotel.security.AuthoritiesConstants;
 import org.hotel.service.CustomerDetailsService;
 import org.hotel.service.dto.CustomerDetailsDTO;
 import org.hotel.web.rest.errors.BadRequestAlertException;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -44,8 +42,7 @@ public class CustomerDetailsResource {
 
     private final CustomerDetailsRepository customerDetailsRepository;
 
-    public CustomerDetailsResource(CustomerDetailsService customerDetailsService,
-            CustomerDetailsRepository customerDetailsRepository) {
+    public CustomerDetailsResource(CustomerDetailsService customerDetailsService, CustomerDetailsRepository customerDetailsRepository) {
         this.customerDetailsService = customerDetailsService;
         this.customerDetailsRepository = customerDetailsRepository;
     }
@@ -54,46 +51,37 @@ public class CustomerDetailsResource {
      * {@code POST  /customer-details} : Create a new customerDetails.
      *
      * @param customerDetailsDTO the customerDetailsDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
-     *         body the new customerDetailsDTO, or with status
-     *         {@code 400 (Bad Request)} if the customerDetails has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new customerDetailsDTO, or with status {@code 400 (Bad Request)} if the customerDetails has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
-    public ResponseEntity<CustomerDetailsDTO> createCustomerDetails(
-            @Valid @RequestBody CustomerDetailsDTO customerDetailsDTO)
-            throws URISyntaxException {
+    public ResponseEntity<CustomerDetailsDTO> createCustomerDetails(@Valid @RequestBody CustomerDetailsDTO customerDetailsDTO)
+        throws URISyntaxException {
         LOG.debug("REST request to save CustomerDetails : {}", customerDetailsDTO);
         if (customerDetailsDTO.getId() != null) {
-            throw new BadRequestAlertException("A new customerDetails cannot already have an ID", ENTITY_NAME,
-                    "idexists");
+            throw new BadRequestAlertException("A new customerDetails cannot already have an ID", ENTITY_NAME, "idexists");
         }
         customerDetailsDTO = customerDetailsService.save(customerDetailsDTO);
         return ResponseEntity.created(new URI("/api/customer-details/" + customerDetailsDTO.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
-                        customerDetailsDTO.getId().toString()))
-                .body(customerDetailsDTO);
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, customerDetailsDTO.getId().toString()))
+            .body(customerDetailsDTO);
     }
 
     /**
      * {@code PUT  /customer-details/:id} : Updates an existing customerDetails.
      *
-     * @param id                 the id of the customerDetailsDTO to save.
+     * @param id the id of the customerDetailsDTO to save.
      * @param customerDetailsDTO the customerDetailsDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated customerDetailsDTO,
-     *         or with status {@code 400 (Bad Request)} if the customerDetailsDTO is
-     *         not valid,
-     *         or with status {@code 500 (Internal Server Error)} if the
-     *         customerDetailsDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated customerDetailsDTO,
+     * or with status {@code 400 (Bad Request)} if the customerDetailsDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the customerDetailsDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<CustomerDetailsDTO> updateCustomerDetails(
-            @PathVariable(value = "id", required = false) final Long id,
-            @Valid @RequestBody CustomerDetailsDTO customerDetailsDTO) throws URISyntaxException {
+        @PathVariable(value = "id", required = false) final Long id,
+        @Valid @RequestBody CustomerDetailsDTO customerDetailsDTO
+    ) throws URISyntaxException {
         LOG.debug("REST request to update CustomerDetails : {}, {}", id, customerDetailsDTO);
         if (customerDetailsDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -108,32 +96,26 @@ public class CustomerDetailsResource {
 
         customerDetailsDTO = customerDetailsService.update(customerDetailsDTO);
         return ResponseEntity.ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
-                        customerDetailsDTO.getId().toString()))
-                .body(customerDetailsDTO);
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, customerDetailsDTO.getId().toString()))
+            .body(customerDetailsDTO);
     }
 
     /**
-     * {@code PATCH  /customer-details/:id} : Partial updates given fields of an
-     * existing customerDetails, field will ignore if it is null
+     * {@code PATCH  /customer-details/:id} : Partial updates given fields of an existing customerDetails, field will ignore if it is null
      *
-     * @param id                 the id of the customerDetailsDTO to save.
+     * @param id the id of the customerDetailsDTO to save.
      * @param customerDetailsDTO the customerDetailsDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated customerDetailsDTO,
-     *         or with status {@code 400 (Bad Request)} if the customerDetailsDTO is
-     *         not valid,
-     *         or with status {@code 404 (Not Found)} if the customerDetailsDTO is
-     *         not found,
-     *         or with status {@code 500 (Internal Server Error)} if the
-     *         customerDetailsDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated customerDetailsDTO,
+     * or with status {@code 400 (Bad Request)} if the customerDetailsDTO is not valid,
+     * or with status {@code 404 (Not Found)} if the customerDetailsDTO is not found,
+     * or with status {@code 500 (Internal Server Error)} if the customerDetailsDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<CustomerDetailsDTO> partialUpdateCustomerDetails(
-            @PathVariable(value = "id", required = false) final Long id,
-            @NotNull @RequestBody CustomerDetailsDTO customerDetailsDTO) throws URISyntaxException {
+        @PathVariable(value = "id", required = false) final Long id,
+        @NotNull @RequestBody CustomerDetailsDTO customerDetailsDTO
+    ) throws URISyntaxException {
         LOG.debug("REST request to partial update CustomerDetails partially : {}, {}", id, customerDetailsDTO);
         if (customerDetailsDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -149,25 +131,23 @@ public class CustomerDetailsResource {
         Optional<CustomerDetailsDTO> result = customerDetailsService.partialUpdate(customerDetailsDTO);
 
         return ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
-                        customerDetailsDTO.getId().toString()));
+            result,
+            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, customerDetailsDTO.getId().toString())
+        );
     }
 
     /**
      * {@code GET  /customer-details} : get all the customerDetails.
      *
-     * @param pageable  the pagination information.
-     * @param eagerload flag to eager load entities from relationships (This is
-     *                  applicable for many-to-many).
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
-     *         of customerDetails in body.
+     * @param pageable the pagination information.
+     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of customerDetails in body.
      */
     @GetMapping("")
-    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<List<CustomerDetailsDTO>> getAllCustomerDetails(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload) {
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
+    ) {
         LOG.debug("REST request to get a page of CustomerDetails");
         Page<CustomerDetailsDTO> page;
         if (eagerload) {
@@ -175,8 +155,7 @@ public class CustomerDetailsResource {
         } else {
             page = customerDetailsService.findAll(pageable);
         }
-        HttpHeaders headers = PaginationUtil
-                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -184,11 +163,9 @@ public class CustomerDetailsResource {
      * {@code GET  /customer-details/:id} : get the "id" customerDetails.
      *
      * @param id the id of the customerDetailsDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the customerDetailsDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the customerDetailsDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + AuthoritiesConstants.ADMIN + "')")
     public ResponseEntity<CustomerDetailsDTO> getCustomerDetails(@PathVariable("id") Long id) {
         LOG.debug("REST request to get CustomerDetails : {}", id);
         Optional<CustomerDetailsDTO> customerDetailsDTO = customerDetailsService.findOne(id);
@@ -202,12 +179,11 @@ public class CustomerDetailsResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deleteCustomerDetails(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete CustomerDetails : {}", id);
         customerDetailsService.delete(id);
         return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-                .build();
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+            .build();
     }
 }
