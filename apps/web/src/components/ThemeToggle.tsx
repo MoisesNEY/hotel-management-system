@@ -59,3 +59,4 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = 'button', className
 };
 
 export default ThemeToggle;
+

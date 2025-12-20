@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { 
-    Save, Type, FileText, 
-    DollarSign, Users, Bed, 
-    Maximize, Image as ImageIcon, 
-    Loader2, AlertCircle, 
-    ChevronRight
+import {
+    Save, Type, FileText,
+    DollarSign, Users, Bed,
+    Maximize,
+    Loader2, AlertCircle,
+    ChevronRight, Upload, X, Link
 } from 'lucide-react';
 import Button from '../../components/shared/Button';
 import { createRoomType, updateRoomType } from '../../../services/admin/roomTypeService';
+import fileService from '../../../services/admin/fileService';
 import type { RoomTypeDTO } from '../../../types/adminTypes';
 
 interface RoomTypeFormProps {
@@ -28,13 +29,41 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
     });
 
     const [loading, setLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isMinioImage, setIsMinioImage] = useState(false);
 
     useEffect(() => {
         if (initialData) {
             setFormData(initialData);
+            if (initialData.imageUrl?.includes('/api/files') || initialData.imageUrl?.includes('9000')) {
+                setIsMinioImage(true);
+            }
         }
     }, [initialData]);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setError(null);
+        try {
+            const url = await fileService.uploadFile(file, 'room-types');
+            setFormData(prev => ({ ...prev, imageUrl: url }));
+            setIsMinioImage(true);
+        } catch (err) {
+            console.error("Error uploading file", err);
+            setError("Error al subir la imagen");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setFormData(prev => ({ ...prev, imageUrl: '' }));
+        setIsMinioImage(false);
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -206,27 +235,66 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
                     </div>
                 </div>
 
-                {/* Image URL */}
+                {/* Image URL & File Upload */}
                 <div className="space-y-2 group md:col-span-2">
-                    <label className={labelStyle}>Enlace de la Imagen</label>
-                    <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gold-default transition-colors">
-                            <ImageIcon size={18} />
+                    <label className={labelStyle}>Imagen de la Categoría</label>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-3">
+                            <div className="relative flex-1">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gold-default transition-colors">
+                                    <Link size={18} />
+                                </div>
+                                <input
+                                    type="text"
+                                    name="imageUrl"
+                                    value={formData.imageUrl || ''}
+                                    onChange={handleChange}
+                                    placeholder="https://cdn.example.com/suites/junior-suite.jpg"
+                                    disabled={isMinioImage || isUploading}
+                                    className={`${inputStyle} pl-12 ${isMinioImage ? 'bg-gray-100 dark:bg-white/5 cursor-not-allowed opacity-70' : ''}`}
+                                />
+                            </div>
+
+                            {!isMinioImage ? (
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="room-type-image-upload"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                        disabled={isUploading}
+                                    />
+                                    <label
+                                        htmlFor="room-type-image-upload"
+                                        className={`flex items-center justify-center w-[52px] h-[52px] bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:border-gold-default transition-all text-gray-400 hover:text-gold-default ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        title="Subir archivo"
+                                    >
+                                        {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+                                    </label>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveImage}
+                                    className="flex items-center justify-center w-[52px] h-[52px] bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/20 transition-all text-red-500"
+                                    title="Quitar imagen"
+                                >
+                                    <X size={20} />
+                                </button>
+                            )}
                         </div>
-                        <input
-                            type="text"
-                            name="imageUrl"
-                            value={formData.imageUrl || ''}
-                            onChange={handleChange}
-                            placeholder="https://cdn.example.com/suites/junior-suite.jpg"
-                            className={`${inputStyle} pl-12`}
-                        />
+                        <p className="text-[10px] text-gray-400 px-1">
+                            {isMinioImage
+                                ? "Imagen subida a almacenamiento interno. Pulse X para usar una URL externa."
+                                : "Ingrese una URL o suba un archivo directamente."}
+                        </p>
                     </div>
                     {formData.imageUrl && (
                         <div className="mt-4 rounded-3xl overflow-hidden aspect-video bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 relative group">
-                            <img 
-                                src={formData.imageUrl} 
-                                alt="Previsualización" 
+                            <img
+                                src={formData.imageUrl}
+                                alt="Previsualización"
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800')}
                             />
@@ -244,17 +312,17 @@ const RoomTypeForm = ({ initialData, onSuccess, onCancel }: RoomTypeFormProps) =
                     Campos marcados con asterisco son requeridos
                 </p>
                 <div className="flex gap-4">
-                    <Button 
-                        type="button" 
-                        variant="ghost" 
+                    <Button
+                        type="button"
+                        variant="ghost"
                         onClick={onCancel}
                         disabled={loading}
                         className="px-8 rounded-xl"
                     >
                         Cancelar
                     </Button>
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         variant="primary"
                         disabled={loading}
                         className="px-10 min-w-[160px] rounded-xl"

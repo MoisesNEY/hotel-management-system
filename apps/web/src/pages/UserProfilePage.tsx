@@ -4,14 +4,15 @@ import {
   User, Calendar, Shield,
   ArrowLeft, Key, Globe, CreditCard, Package,
   Bed, Coffee, ConciergeBell,
-  X, Edit, Save, ChevronDown, CheckCircle2
+  X, Edit, Save, ChevronDown, Camera, Loader2, Trash2
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
-import type { CustomerDetailsUpdateRequest, Gender, BookingResponse, BookingItemResponse } from '../types/clientTypes';
+import { useAuth } from '../contexts/AuthProvider';
+import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
 import { getMyBookings } from '../services/client/bookingService';
 import ServiceRequestModal from '../components/ServiceRequestModal';
 import ThemeToggle from '../components/ThemeToggle';
-import PayPalPaymentButton from '../components/PayPalPaymentButton';
+import * as accountService from '../services/accountService';
 
 interface UserData {
   firstName: string;
@@ -24,6 +25,7 @@ interface UserData {
   country: string;
   gender: string;
   licenseId: string;
+  imageUrl?: string;
   preferences: {
     notifications: boolean;
     newsletter: boolean;
@@ -43,15 +45,19 @@ interface ServiceRequest {
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const { updateUserProfile, userProfile } = useAuth();
+
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
 
   const [showBookingsModal, setShowBookingsModal] = useState(false);
   const [showServicesModal, setShowServicesModal] = useState(false);
-  
+
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
     lastName: '',
@@ -63,6 +69,7 @@ const UserProfilePage: React.FC = () => {
     country: '',
     gender: '',
     licenseId: '',
+    imageUrl: '',
     preferences: {
       notifications: true,
       newsletter: false,
@@ -114,6 +121,7 @@ const UserProfilePage: React.FC = () => {
         country: profileResponse.country || '',
         licenseId: profileResponse.licenseId || '',
         birthDate: profileResponse.birthDate || '',
+        imageUrl: (token as any).picture || '',
         gender: profileResponse.gender
           ? profileResponse.gender.charAt(0) + profileResponse.gender.slice(1).toLowerCase()
           : '',
@@ -170,7 +178,16 @@ const UserProfilePage: React.FC = () => {
   const handleSave = async () => {
     try {
       const { updateProfile } = await import('../services/client/customerDetailsService');
-      
+
+      // 1. Actualizar Datos de Keycloak (Si cambiaron)
+      await accountService.updateAccount({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        imageUrl: userData.imageUrl
+      } as any);
+
+      // 2. Actualizar Datos de CustomerDetails (Backend)
       let apiGender: Gender = 'OTHER';
       const g = userData.gender.toUpperCase();
       if (g === 'MALE' || g === 'MASCULINO') apiGender = 'MALE';
@@ -185,11 +202,62 @@ const UserProfilePage: React.FC = () => {
       };
 
       await updateProfile(updateRequest);
+
+      // 3. Sincronizar UI Global
+      updateUserProfile({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        attributes: {
+          ...userProfile?.attributes,
+          picture: [userData.imageUrl || '']
+        }
+      });
+
       setIsEditing(false);
       alert('¡Perfil actualizado exitosamente!');
     } catch (error) {
       console.error('[UserProfile] Failed to update profile', error);
       alert('Error al actualizar el perfil.');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const url = await accountService.uploadProfilePicture(file);
+      setUserData(prev => ({ ...prev, imageUrl: url }));
+
+      // Actualización reactiva instantánea
+      updateUserProfile({
+        attributes: {
+          ...userProfile?.attributes,
+          picture: [url]
+        }
+      });
+    } catch (error) {
+      console.error('[UserProfile] Upload failed', error);
+      alert('Error al subir la imagen');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!window.confirm('¿Eliminar foto de perfil?')) return;
+    try {
+      await accountService.deleteProfilePicture();
+      setUserData(prev => ({ ...prev, imageUrl: '' }));
+      updateUserProfile({
+        attributes: {
+          ...userProfile?.attributes,
+          picture: ['']
+        }
+      });
+    } catch (error) {
+      console.error('[UserProfile] Delete photo failed', error);
     }
   };
 
@@ -399,8 +467,8 @@ const UserProfilePage: React.FC = () => {
       {/* Main Content Area */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
         <div className="bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-3xl p-8 mb-8 shadow-xl transition-all duration-300">
-          <button 
-            className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-300 hover:text-gold-default mb-8" 
+          <button
+            className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-300 hover:text-gold-default mb-8"
             onClick={() => navigate('/')}
           >
             <div className="p-2 rounded-full bg-gray-100 dark:bg-white/5 group-hover:bg-gold-default/10 transition-colors">
@@ -411,14 +479,35 @@ const UserProfilePage: React.FC = () => {
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-5">
             <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-                  <span className="text-3xl font-bold">
-                    {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
-                  </span>
-                </div>
+              <div className="relative group">
+                {userData.imageUrl ? (
+                  <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 ring-4 ring-gold-default/20">
+                    <img src={userData.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300">
+                    <span className="text-3xl font-bold">
+                      {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
+                    </span>
+                  </div>
+                )}
+
+                {isEditing && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="cursor-pointer p-2 bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors">
+                      {isUploading ? <Loader2 size={24} className="animate-spin" /> : <Camera size={24} />}
+                      <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                    </label>
+                    {userData.imageUrl && !isUploading && (
+                      <button onClick={handleDeletePhoto} className="mt-2 text-white hover:text-red-400 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {!hasCompletedExtraInfo && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 border-4 border-white dark:border-navy-default rounded-full animate-pulse shadow-lg"></div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 border-4 border-white dark:border-navy-default rounded-full animate-pulse shadow-lg z-10"></div>
                 )}
               </div>
 
@@ -493,15 +582,23 @@ const UserProfilePage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Nombre</label>
-                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
-                      {userData.firstName || 'No especificado'}
-                    </div>
+                    {isEditing ? (
+                      <input name="firstName" value={userData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white" />
+                    ) : (
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                        {userData.firstName || 'No especificado'}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Apellido</label>
-                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
-                      {userData.lastName || 'No especificado'}
-                    </div>
+                    {isEditing ? (
+                      <input name="lastName" value={userData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white" />
+                    ) : (
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                        {userData.lastName || 'No especificado'}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Email</label>
@@ -526,10 +623,10 @@ const UserProfilePage: React.FC = () => {
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Género</label>
                     {isEditing ? (
                       <div className="relative group">
-                        <select 
-                          name="gender" 
-                          value={userData.gender} 
-                          onChange={handleInputChange} 
+                        <select
+                          name="gender"
+                          value={userData.gender}
+                          onChange={handleInputChange}
                           className="w-full p-4 rounded-xl bg-white dark:bg-[#1a1a2e] border-2 border-gold-default/30 text-gray-900 dark:text-white appearance-none outline-none focus:border-gold-default transition-all cursor-pointer"
                         >
                           <option value="Male" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Masculino</option>
@@ -552,7 +649,7 @@ const UserProfilePage: React.FC = () => {
                       {formatDate(userData.birthDate)}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Dirección</label>
                     {isEditing ? (
