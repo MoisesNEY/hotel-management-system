@@ -39,4 +39,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long>, JpaSpec
     Optional<Invoice> findOneWithToOneRelationships(@Param("id") Long id);
 
     Page<Invoice> findByBooking_Customer_Login(String login, Pageable pageable);
+
+    Optional<Invoice> findByCode(String code);
 }
