@@ -9,7 +9,7 @@ const UserProfileView: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { updateUserProfile } = useAuth();
+    const { reloadProfile } = useAuth();
     const [formData, setFormData] = useState<Partial<AdminUserDTO>>({
         firstName: '',
         lastName: '',
@@ -45,6 +45,7 @@ const UserProfileView: React.FC = () => {
         try {
             if (formData.login) {
                 await updateAccount(formData as AdminUserDTO);
+                await reloadProfile(); // Fuerza actualización de token y claims en Keycloak
                 alert('Perfil actualizado correctamente');
             }
         } catch (error) {
@@ -64,8 +65,8 @@ const UserProfileView: React.FC = () => {
             const newUrl = await uploadProfilePicture(file);
             setFormData(prev => ({ ...prev, imageUrl: newUrl }));
 
-            // Actualizar instantáneamente en el Navbar/Sidebar
-            updateUserProfile({ attributes: { picture: [newUrl] } });
+            // Actualizar instantáneamente local y en el servidor
+            await reloadProfile();
 
             alert('Foto de perfil actualizada');
         } catch (error) {
@@ -84,8 +85,8 @@ const UserProfileView: React.FC = () => {
             await deleteProfilePicture();
             setFormData(prev => ({ ...prev, imageUrl: undefined }));
 
-            // Actualizar instantáneamente en el Navbar/Sidebar
-            updateUserProfile({ attributes: { picture: [] } });
+            // Actualizar instantáneamente local y en el servidor
+            await reloadProfile();
 
             alert('Foto de perfil eliminada');
         } catch (error) {

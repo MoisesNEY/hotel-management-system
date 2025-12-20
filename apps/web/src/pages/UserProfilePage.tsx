@@ -45,7 +45,7 @@ interface ServiceRequest {
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { updateUserProfile, userProfile } = useAuth();
+  const { updateUserProfile, userProfile, reloadProfile } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
@@ -95,16 +95,19 @@ const UserProfilePage: React.FC = () => {
     }
     loadUserData();
     loadBookings();
-  }, [navigate]);
+  }, [navigate, userProfile]); // Added userProfile to dependencies to react to context changes
 
   const loadUserData = async () => {
     try {
-      if (!keycloak.tokenParsed) return;
-      const token = keycloak.tokenParsed;
+      // Usar perfil del contexto o cargar última versión
+      // userProfile is already updated by reloadProfile, so we can use it directly
+      const profile = userProfile || await keycloak.loadUserProfile();
+
       const baseData = {
-        firstName: token.given_name || '',
-        lastName: token.family_name || '',
-        email: token.email || ''
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: profile.email || '',
+        imageUrl: (profile.attributes as any)?.picture?.[0] || ''
       };
 
       setUserData(prev => ({ ...prev, ...baseData }));
@@ -114,14 +117,16 @@ const UserProfilePage: React.FC = () => {
 
       setUserData(prev => ({
         ...prev,
-        ...baseData,
+        firstName: profile.firstName || prev.firstName,
+        lastName: profile.lastName || prev.lastName,
+        email: profile.email || prev.email,
+        imageUrl: (profile.attributes as any)?.picture?.[0] || prev.imageUrl,
         phone: profileResponse.phone || '',
         address: profileResponse.addressLine1 || '',
         city: profileResponse.city || '',
         country: profileResponse.country || '',
         licenseId: profileResponse.licenseId || '',
         birthDate: profileResponse.birthDate || '',
-        imageUrl: (token as any).picture || '',
         gender: profileResponse.gender
           ? profileResponse.gender.charAt(0) + profileResponse.gender.slice(1).toLowerCase()
           : '',
@@ -203,15 +208,8 @@ const UserProfilePage: React.FC = () => {
 
       await updateProfile(updateRequest);
 
-      // 3. Sincronizar UI Global
-      updateUserProfile({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        attributes: {
-          ...userProfile?.attributes,
-          picture: [userData.imageUrl || '']
-        }
-      });
+      // 3. Sincronizar UI Global (Refrescar token y perfil)
+      await reloadProfile();
 
       setIsEditing(false);
       alert('¡Perfil actualizado exitosamente!');
@@ -230,13 +228,10 @@ const UserProfilePage: React.FC = () => {
       const url = await accountService.uploadProfilePicture(file);
       setUserData(prev => ({ ...prev, imageUrl: url }));
 
-      // Actualización reactiva instantánea
-      updateUserProfile({
-        attributes: {
-          ...userProfile?.attributes,
-          picture: [url]
-        }
-      });
+      // Actualización reactiva instantánea y del contexto global
+      await reloadProfile(); // Force update of token and claims
+      alert('Foto de perfil actualizada');
+
     } catch (error) {
       console.error('[UserProfile] Upload failed', error);
       alert('Error al subir la imagen');
@@ -250,12 +245,7 @@ const UserProfilePage: React.FC = () => {
     try {
       await accountService.deleteProfilePicture();
       setUserData(prev => ({ ...prev, imageUrl: '' }));
-      updateUserProfile({
-        attributes: {
-          ...userProfile?.attributes,
-          picture: ['']
-        }
-      });
+      await reloadProfile(); // Force update of token and claims
     } catch (error) {
       console.error('[UserProfile] Delete photo failed', error);
     }
