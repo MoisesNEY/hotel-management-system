@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, X, Clock, FileText, AlertCircle, Info } from 'lucide-react';
+import { Heart, X, Clock, FileText, AlertCircle, Info, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { createServiceRequest } from '../services/client/serviceRequestService';
 import { getAllHotelServices } from '../services/admin/hotelServiceService';
 import { getMyBookings } from '../services/client/bookingService';
@@ -7,7 +8,6 @@ import { useAuth } from '../contexts/AuthProvider';
 import { useSingleContent } from '../hooks/useContent';
 import type { HotelServiceDTO } from '../types/adminTypes';
 import type { BookingResponse } from '../types/clientTypes';
-import { ChevronDown } from 'lucide-react';
 
 // Enum para RequestStatus
 export const RequestStatus = {
@@ -20,12 +20,13 @@ export const RequestStatus = {
 export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
 
 const Services: React.FC = () => {
+  const navigate = useNavigate();
   const [services, setServices] = useState<HotelServiceDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedService, setSelectedService] = useState<HotelServiceDTO | null>(null);
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [userBookings, setUserBookings] = useState<BookingResponse[]>([]);
   const [selectedBookingId, setSelectedBookingId] = useState<string>('');
   const [loadingBookings, setLoadingBookings] = useState(false);
@@ -91,31 +92,7 @@ const Services: React.FC = () => {
     }
   };
 
-  const handleServiceRequest = (service: HotelServiceDTO) => {
-    if (!isAuthenticated) {
-      if (window.confirm('Debes iniciar sesión para solicitar servicios. ¿Deseas ir a la página de ingreso?')) {
-        login();
-      }
-      return;
-    }
-    
-    setSelectedService(service);
-    setShowModal(true);
-    
-    // Auto-select if bookings already loaded
-    if (userBookings.length > 0 && !selectedBookingId) {
-       setSelectedBookingId(userBookings[0].id.toString());
-    }
-    
-    const now = new Date();
-    const localDateTime = now.toISOString().slice(0, 16);
-    
-    setFormData({
-      requestDate: localDateTime,
-      details: '',
-      status: RequestStatus.PENDING
-    });
-  };
+  // const handleServiceRequest = (service: HotelServiceDTO) => { ... }
 
   const closeModal = () => {
     setShowModal(false);
@@ -247,11 +224,11 @@ const Services: React.FC = () => {
                       ${service.cost}
                     </div>
                     <button 
-                      className={`mt-6 bg-transparent text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-600 px-6 py-2.5 rounded-md font-semibold cursor-pointer transition-all duration-300 text-sm uppercase tracking-wide ${colors.hoverBg} hover:border-transparent hover:text-white`}
-                      onClick={() => handleServiceRequest(service)}
+                      className={`mt-6 bg-transparent text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-600 px-6 py-2.5 rounded-md font-semibold cursor-pointer transition-all duration-300 text-sm uppercase tracking-wide hover:bg-[#d4af37] hover:border-transparent hover:text-white flex items-center justify-center gap-2 mx-auto`}
+                      onClick={() => navigate(isAuthenticated ? '/client/services' : '/client/dashboard')}
                       type="button"
                     >
-                      Solicitar Servicio
+                      <Info size={16} /> Ver Detalles
                     </button>
                   </div>
                 );
@@ -362,7 +339,7 @@ const Services: React.FC = () => {
                         >
                           {userBookings.map(b => (
                             <option key={b.id} value={b.id}>
-                              #{b.id} - {b.roomTypeName} ({b.checkInDate} a {b.checkOutDate})
+                              #{b.code} ({b.checkInDate} a {b.checkOutDate})
                             </option>
                           ))}
                         </select>
