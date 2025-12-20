@@ -6,7 +6,7 @@ import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
 import { getAllBookings, getAllServiceRequests, assignRoom, checkIn, checkOut, updateServiceRequestStatus } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
-import type { BookingDTO, ServiceRequestDTO, RoomDTO, BookingStatus, RequestStatus } from '../../../types/adminTypes';
+import type { BookingDTO, BookingItemDTO, ServiceRequestDTO, RoomDTO, BookingStatus, RequestStatus } from '../../../types/adminTypes';
 import { formatDate, getBookingStatusConfig, getRequestStatusConfig } from '../../utils/helpers';
 import { CheckCircle2, XCircle, AlertTriangle, Home, Wrench, UserCheck, UserX } from 'lucide-react';
 
@@ -23,6 +23,7 @@ const EmployeeView = () => {
     // Assign Room Modal State
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [assigningBookingId, setAssigningBookingId] = useState<number | null>(null);
+    const [assigningItemId, setAssigningItemId] = useState<number | null>(null);
     const [availableRooms, setAvailableRooms] = useState<RoomDTO[]>([]);
     const [selectedRoomId, setSelectedRoomId] = useState<number | string>('');
     const [assignLoading, setAssignLoading] = useState(false);
@@ -73,8 +74,9 @@ const EmployeeView = () => {
     }, [showError]);
 
     // Assign Room Handlers
-    const openAssignModal = async (bookingId: number) => {
+    const openAssignModal = async (bookingId: number, itemId: number) => {
         setAssigningBookingId(bookingId);
+        setAssigningItemId(itemId);
         setSelectedRoomId('');
         setShowAssignModal(true);
         try {
@@ -87,17 +89,27 @@ const EmployeeView = () => {
     };
 
     const handleAssignRoom = async () => {
-        if (!assigningBookingId || !selectedRoomId) return;
+        if (!assigningBookingId || !assigningItemId || !selectedRoomId) return;
 
         setAssignLoading(true);
         try {
-            await assignRoom(assigningBookingId, Number(selectedRoomId));
+            await assignRoom(assigningBookingId, {
+                bookingItemId: assigningItemId,
+                roomId: Number(selectedRoomId)
+            });
             showSuccess('Éxito', 'Habitación asignada correctamente');
 
             // Update local state
             setBookings(bookings.map(booking =>
                 booking.id === assigningBookingId
-                    ? { ...booking, assignedRoom: availableRooms.find(room => room.id === Number(selectedRoomId)) }
+                    ? {
+                        ...booking,
+                        items: booking.items.map(item =>
+                            item.id === assigningItemId
+                                ? { ...item, assignedRoom: availableRooms.find(room => room.id === Number(selectedRoomId)) }
+                                : item
+                        )
+                    }
                     : booking
             ));
 
@@ -177,78 +189,109 @@ const EmployeeView = () => {
         }
     };
 
-    // Table Columns for Bookings
-    const bookingColumns: Column<BookingDTO>[] = [
+    // Extended Type for Table Rows to handle multi-item views
+    interface BookingItemRow extends BookingItemDTO {
+        bookingId: number;
+        customer: any;
+        bookingStatus: BookingStatus;
+        checkInDate: string;
+        checkOutDate: string;
+    }
+
+    const bookingItemRows: BookingItemRow[] = bookings.flatMap(booking =>
+        booking.items.map(item => ({
+            ...item,
+            bookingId: booking.id,
+            customer: booking.customer,
+            bookingStatus: booking.status,
+            checkInDate: booking.checkInDate,
+            checkOutDate: booking.checkOutDate
+        }))
+    );
+
+    // Table Columns for Booking Items (Refactored for individual room management)
+    const bookingColumns: Column<BookingItemRow>[] = [
         {
-            header: 'ID',
-            accessor: (booking) => (
-                <span className="font-mono text-sm">{booking.id}</span>
+            header: 'Reserva',
+            accessor: (item) => (
+                <div>
+                    <span className="font-mono text-xs text-gray-400">#{item.bookingId}</span>
+                    <div className="font-mono text-sm leading-none">{item.id}</div>
+                </div>
             )
         },
         {
-            header: 'Cliente',
-            accessor: (booking) => (
+            header: 'Cliente / Ocupante',
+            accessor: (item) => (
                 <div>
-                    <div className="font-medium">{booking.customer.firstName} {booking.customer.lastName}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{booking.customer.email}</div>
+                    <div className="font-medium">{item.occupantName || `${item.customer.firstName} ${item.customer.lastName}`}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Ref: {item.customer.email}</div>
                 </div>
             )
         },
         {
             header: 'Tipo Habitación',
-            accessor: (booking) => booking.roomType.name
-        },
-        {
-            header: 'Habitación',
-            accessor: (booking) => booking.assignedRoom ? booking.assignedRoom.roomNumber : 'No asignada'
-        },
-        {
-            header: 'Fechas',
-            accessor: (booking) => (
-                <div className="text-sm">
-                    <div>Check-in: {formatDate(booking.checkInDate)}</div>
-                    <div>Check-out: {formatDate(booking.checkOutDate)}</div>
+            accessor: (item) => (
+                <div className="font-medium text-sm">
+                    {item.roomType.name}
                 </div>
             )
         },
         {
-            header: 'Estado',
-            accessor: (booking) => {
-                const config = getBookingStatusConfig(booking.status);
+            header: 'Habitación Asignada',
+            accessor: (item) => item.assignedRoom ? (
+                <Badge variant="success">{item.assignedRoom.roomNumber}</Badge>
+            ) : (
+                <span className="text-gray-400 italic text-sm">Pendiente</span>
+            )
+        },
+        {
+            header: 'Fechas',
+            accessor: (item) => (
+                <div className="text-xs">
+                    <div>{formatDate(item.checkInDate)}</div>
+                    <div className="text-gray-400">al {formatDate(item.checkOutDate)}</div>
+                </div>
+            )
+        },
+        {
+            header: 'Estado Reserva',
+            accessor: (item) => {
+                const config = getBookingStatusConfig(item.bookingStatus);
                 return <Badge variant={config.variant}>{config.label}</Badge>;
             }
         },
         {
             header: 'Acciones',
-            accessor: (booking) => (
+            accessor: (item) => (
                 <div className="flex gap-2">
-                    {booking.status === 'CONFIRMED' && !booking.assignedRoom && (
+                    {['PENDING', 'CONFIRMED'].includes(item.bookingStatus) && !item.assignedRoom && (
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => openAssignModal(booking.id)}
+                            onClick={() => openAssignModal(item.bookingId, item.id)}
                             className="text-xs"
                         >
                             <Home className="w-3 h-3 mr-1" />
                             Asignar
                         </Button>
                     )}
-                    {booking.status === 'CONFIRMED' && booking.assignedRoom && (
+                    {['PENDING', 'CONFIRMED'].includes(item.bookingStatus) && item.assignedRoom && (
                         <Button
                             size="sm"
                             variant="success"
-                            onClick={() => handleCheckIn(booking.id)}
+                            onClick={() => handleCheckIn(item.bookingId)}
                             className="text-xs"
                         >
                             <UserCheck className="w-3 h-3 mr-1" />
                             Check-in
                         </Button>
                     )}
-                    {booking.status === 'CHECKED_IN' && (
+                    {item.bookingStatus === 'CHECKED_IN' && (
                         <Button
                             size="sm"
                             variant="warning"
-                            onClick={() => handleCheckOut(booking.id)}
+                            onClick={() => handleCheckOut(item.bookingId)}
                             className="text-xs"
                         >
                             <UserX className="w-3 h-3 mr-1" />
@@ -410,13 +453,13 @@ const EmployeeView = () => {
 
             {/* Bookings Section */}
             <div className="mb-8">
-                <Card title="Gestión de Reservas" subtitle="Check-in, check-out y asignación de habitaciones">
+                <Card title="Gestión de Reservas" subtitle="Check-in, check-out y asignación de habitaciones por ítem">
                     <Table
                         columns={bookingColumns}
-                        data={bookings}
+                        data={bookingItemRows}
                         isLoading={bookingsLoading}
-                        emptyMessage="No hay reservas disponibles"
-                        keyExtractor={(item) => item.id}
+                        emptyMessage="No hay habitaciones reservadas disponibles"
+                        keyExtractor={(item) => `${item.bookingId}-${item.id}`}
                     />
                 </Card>
             </div>
