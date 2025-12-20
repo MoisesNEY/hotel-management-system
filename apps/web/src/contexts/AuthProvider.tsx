@@ -27,6 +27,7 @@ interface AuthContextType {
   hasProfile: boolean | null;
   checkProfileStatus: () => Promise<void>;
   updateUserProfile: (profile: Partial<KeycloakProfile>) => void;
+  reloadProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -188,6 +189,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  /**
+   * Recarga el perfil desde el servidor de Keycloak y fuerza la actualización del token
+   * para obtener los nuevos claims (JWT)
+   */
+  const reloadProfile = async () => {
+    try {
+      console.log('[AuthProvider] Reloading profile and token...');
+
+      // 1. Recargar perfil básico
+      const profile = await keycloak.loadUserProfile();
+      setUserProfile(profile);
+
+      // 2. Forzar actualización de token (claims)
+      // Usamos un valor muy alto para forzar el refresh
+      await keycloak.updateToken(-1);
+      setIsAuthenticated(true);
+
+      console.log('[AuthProvider] Profile and token reloaded successfully');
+    } catch (error) {
+      console.error('[AuthProvider] Failed to reload profile', error);
+      // Si falla el token refresh, al menos tenemos el loadUserProfile
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -203,7 +228,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         accountManagement,
         hasRole,
         getHighestRole,
-        updateUserProfile
+        updateUserProfile,
+        reloadProfile
       }}
     >
       {children}
