@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Search, User, LogOut, 
-  Menu, ChevronDown, LayoutDashboard,
-  Settings, Shield
+import {
+    Search, User, LogOut,
+    Menu, ChevronDown, LayoutDashboard,
+    Settings, Shield
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthProvider';
 import ThemeToggle from '../../../components/ThemeToggle';
@@ -24,7 +24,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             setIsScrolled(window.scrollY > 10);
         };
         window.addEventListener('scroll', handleScroll);
-        
+
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
             if (!target.closest('.admin-user-menu') && !target.closest('.admin-profile-trigger')) {
@@ -53,7 +53,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     };
 
     const username = `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || userProfile?.username || 'Administrador';
-    
+
     const getInitials = (name: string) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
@@ -66,8 +66,8 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     return (
         <nav className={`
             sticky top-0 z-[1000] w-full transition-all duration-300
-            ${isScrolled 
-                ? 'bg-white/90 dark:bg-[#0f1115]/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 shadow-sm' 
+            ${isScrolled
+                ? 'bg-white/90 dark:bg-[#0f1115]/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 shadow-sm'
                 : 'bg-transparent border-b border-transparent'
             }
         `}>
@@ -81,7 +81,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     >
                         <Menu size={20} />
                     </button>
-                    
+
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gold-default/80">
                             <LayoutDashboard size={10} />
@@ -98,9 +98,9 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     {/* Search - Desktop Only */}
                     <div className="hidden md:flex items-center relative group">
                         <Search size={18} className="absolute left-3 text-gray-400 group-focus-within:text-gold-default transition-colors" />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar..."
                             className="pl-10 pr-4 py-2 rounded-xl bg-gray-100/50 dark:bg-white/5 border border-transparent focus:border-gold-default/30 focus:bg-white dark:focus:bg-[#1e293b] text-sm text-gray-900 dark:text-white outline-none transition-all w-48 lg:w-64"
                         />
                     </div>
@@ -113,12 +113,20 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
                     {/* Profile Dropdown */}
                     <div className="relative admin-user-menu">
-                        <button 
+                        <button
                             className="admin-profile-trigger flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >
-                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-[#0f172a] font-bold text-sm shadow-sm">
-                                {getInitials(username)}
+                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-[#0f172a] font-bold text-sm shadow-sm overflow-hidden">
+                                {((userProfile?.attributes as any)?.picture?.[0]) ? (
+                                    <img
+                                        src={(userProfile?.attributes as any).picture[0]}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    getInitials(username)
+                                )}
                             </div>
                             <div className="hidden lg:flex flex-col items-start leading-tight pr-1">
                                 <span className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[100px]">
@@ -138,10 +146,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Cuenta</p>
                                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{userProfile?.email || 'admin@hotel.com'}</p>
                                 </div>
-                                
+
                                 <div className="h-px bg-gray-100 dark:bg-white/5 mx-2 mb-1"></div>
-                                
-                                <button 
+
+                                <button
                                     onClick={() => {
                                         navigate('/admin/user-profile');
                                         setShowUserMenu(false);
@@ -153,8 +161,8 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                                     </div>
                                     <span className="text-sm font-medium">Mi Perfil</span>
                                 </button>
-                                
-                                <button 
+
+                                <button
                                     onClick={() => {
                                         alert('Configuración próximamente');
                                         setShowUserMenu(false);
@@ -167,7 +175,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                                     <span className="text-sm font-medium">Configuración</span>
                                 </button>
 
-                                <button 
+                                <button
                                     onClick={() => {
                                         alert('Seguridad próximamente');
                                         setShowUserMenu(false);
@@ -179,10 +187,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                                     </div>
                                     <span className="text-sm font-medium">Seguridad</span>
                                 </button>
-                                
+
                                 <div className="h-px bg-gray-100 dark:bg-white/5 mx-2 my-1"></div>
-                                
-                                <button 
+
+                                <button
                                     onClick={handleLogout}
                                     className="flex items-center gap-3 w-full p-2.5 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all group"
                                 >
