@@ -16,7 +16,6 @@ import org.hotel.service.dto.client.request.booking.BookingItemRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
 import org.hotel.service.dto.client.response.booking.RoomTypeAvailabilityDTO;
 import org.hotel.service.mapper.client.ClientBookingMapper;
-import org.hotel.web.rest.errors.BusinessRuleException;
 import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

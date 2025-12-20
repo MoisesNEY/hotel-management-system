@@ -463,7 +463,22 @@ const RoomTypes: React.FC = () => {
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              {selectedItems.some(i => i.roomTypeId === type.id) && (
+                                <button 
+                                  onClick={() => {
+                                    const idx = [...selectedItems].reverse().findIndex(i => i.roomTypeId === type.id);
+                                    if (idx !== -1) {
+                                      const actualIdx = selectedItems.length - 1 - idx;
+                                      handleRemoveItem(actualIdx);
+                                    }
+                                  }}
+                                  className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all border border-rose-500/20"
+                                  title="Quitar uno"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
                               <button 
                                 onClick={() => handleAddItem(type.id)}
                                 disabled={type.availableQuantity <= (selectedItems.filter(i => i.roomTypeId === type.id).length)}
