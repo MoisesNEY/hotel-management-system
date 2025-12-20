@@ -36,7 +36,7 @@ export const defaultWebContent: Readonly<WebContent> = {
   collection: null
 };
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT';
-export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'CLEANING';
+export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'CLEANING' | 'DIRTY';
 export type RequestStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 
@@ -93,17 +93,26 @@ export interface RoomDTO {
   roomType: RoomTypeDTO;
 }
 
+export interface BookingItemDTO {
+  id: number;
+  price: number;
+  occupantName?: string;
+  roomType: RoomTypeDTO;
+  assignedRoom?: RoomDTO;
+}
+
 export interface BookingDTO {
   id: number;
+  code: string;
   checkInDate: string; // ISO Date string YYYY-MM-DD
   checkOutDate: string; // ISO Date string YYYY-MM-DD
   guestCount: number;
   status: BookingStatus;
   totalPrice?: number;
   notes?: string;
-  roomType: RoomTypeDTO;
-  assignedRoom?: RoomDTO;
+  items: BookingItemDTO[];
   customer: AdminUserDTO;
+  invoiceId?: number;
 }
 
 export interface HotelServiceDTO {
