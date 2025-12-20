@@ -43,6 +43,7 @@ public class ClientBookingService {
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
     private final BookingDomainService bookingDomainService; // Injected
+    private final ClientInvoiceService clientInvoiceService;
 
     public ClientBookingService(
         BookingRepository bookingRepository,
@@ -50,7 +51,8 @@ public class ClientBookingService {
         UserRepository userRepository,
         RoomTypeRepository roomTypeRepository,
         RoomRepository roomRepository,
-        BookingDomainService bookingDomainService
+        BookingDomainService bookingDomainService,
+        ClientInvoiceService clientInvoiceService
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
@@ -58,6 +60,7 @@ public class ClientBookingService {
         this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository;
         this.bookingDomainService = bookingDomainService;
+        this.clientInvoiceService = clientInvoiceService;
     }
 
     /**
@@ -122,6 +125,9 @@ public class ClientBookingService {
 
         // 6. Guardar (Cascade guardará los items)
         booking = bookingRepository.save(booking);
+
+        // 7. Crear Factura Automática
+        clientInvoiceService.createInvoiceForBooking(booking);
 
         return clientBookingMapper.toClientResponse(booking);
     }

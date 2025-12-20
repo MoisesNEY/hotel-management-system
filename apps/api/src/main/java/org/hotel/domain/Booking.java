@@ -61,6 +61,10 @@ public class Booking implements Serializable {
     @JsonIgnoreProperties(value = { "service", "booking" }, allowSetters = true)
     private Set<ServiceRequest> serviceRequests = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
+    @JsonIgnoreProperties(value = { "booking", "items", "payments" }, allowSetters = true)
+    private Set<Invoice> invoices = new HashSet<>();
+
     @ManyToOne(optional = false)
     @NotNull
     private User customer;
@@ -230,6 +234,37 @@ public class Booking implements Serializable {
     public Booking removeServiceRequests(ServiceRequest serviceRequest) {
         this.serviceRequests.remove(serviceRequest);
         serviceRequest.setBooking(null);
+        return this;
+    }
+
+    public Set<Invoice> getInvoices() {
+        return this.invoices;
+    }
+
+    public void setInvoices(Set<Invoice> invoices) {
+        if (this.invoices != null) {
+            this.invoices.forEach(i -> i.setBooking(null));
+        }
+        if (invoices != null) {
+            invoices.forEach(i -> i.setBooking(this));
+        }
+        this.invoices = invoices;
+    }
+
+    public Booking invoices(Set<Invoice> invoices) {
+        this.setInvoices(invoices);
+        return this;
+    }
+
+    public Booking addInvoices(Invoice invoice) {
+        this.invoices.add(invoice);
+        invoice.setBooking(this);
+        return this;
+    }
+
+    public Booking removeInvoices(Invoice invoice) {
+        this.invoices.remove(invoice);
+        invoice.setBooking(null);
         return this;
     }
 
