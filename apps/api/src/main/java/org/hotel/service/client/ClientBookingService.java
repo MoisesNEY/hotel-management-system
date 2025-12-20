@@ -6,12 +6,14 @@ import org.hotel.domain.RoomType;
 import org.hotel.domain.User;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.BookingDomainService;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
+import org.hotel.service.dto.client.response.booking.RoomTypeAvailabilityDTO;
 import org.hotel.service.mapper.client.ClientBookingMapper;
 import org.hotel.web.rest.errors.BusinessRuleException;
 import org.hotel.web.rest.errors.ResourceNotFoundException;
@@ -23,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,6 +41,7 @@ public class ClientBookingService {
     private final ClientBookingMapper clientBookingMapper;
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
     private final BookingDomainService bookingDomainService; // Injected
 
     public ClientBookingService(
@@ -44,12 +49,14 @@ public class ClientBookingService {
         ClientBookingMapper clientBookingMapper,
         UserRepository userRepository,
         RoomTypeRepository roomTypeRepository,
+        RoomRepository roomRepository,
         BookingDomainService bookingDomainService
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
         this.userRepository = userRepository;
         this.roomTypeRepository = roomTypeRepository;
+        this.roomRepository = roomRepository;
         this.bookingDomainService = bookingDomainService;
     }
 
@@ -128,5 +135,33 @@ public class ClientBookingService {
         // Pero para lista simple, el findByCustomer_Login está bien, JPA traerá los items lazy o según config.
         return bookingRepository.findByCustomer_Login(userLogin, pageable)
             .map(clientBookingMapper::toClientResponse);
+    }
+
+    /**
+     * Obtiene la disponibilidad de habitaciones para un rango de fechas.
+     */
+    @Transactional(readOnly = true)
+    public List<RoomTypeAvailabilityDTO> getAvailability(LocalDate checkIn, LocalDate checkOut) {
+        log.debug("Request to get room availability between {} and {}", checkIn, checkOut);
+        
+        // Validar fechas
+        bookingDomainService.validateAndCalculateNights(checkIn, checkOut);
+
+        // Obtener todos los tipos de habitación
+        List<RoomType> roomTypes = roomTypeRepository.findAll();
+
+        return roomTypes.stream().map(type -> {
+            long totalPhysicalRooms = roomRepository.countByRoomTypeId(type.getId());
+            long occupiedRooms = bookingRepository.countOverlappingBookings(type.getId(), checkIn, checkOut);
+            
+            RoomTypeAvailabilityDTO dto = new RoomTypeAvailabilityDTO();
+            dto.setId(type.getId());
+            dto.setName(type.getName());
+            dto.setBasePrice(type.getBasePrice());
+            dto.setMaxCapacity(type.getMaxCapacity());
+            dto.setAvailableQuantity((int) Math.max(0, totalPhysicalRooms - occupiedRooms));
+            
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

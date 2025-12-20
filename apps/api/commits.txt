@@ -1,0 +1,5 @@
+feat(backend): implementado endpoint de disponibilidad de habitaciones
+feat(client): modelos de datos actualizados para multi-habitación y pagos
+feat(client): implementado wizard de reserva multi-paso con disponibilidad real
+feat(client): integrada pasarela de pago PayPal para facturas de reserva
+[/] refactor(admin): actualizando dashboard de reservas para multi-habitación
