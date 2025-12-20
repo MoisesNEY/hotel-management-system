@@ -99,77 +99,49 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
         }
     };
 
-    // Estilos reutilizados de RoomForm
-    const inputStyle: React.CSSProperties = {
-        width: '100%',
-        padding: '10px 12px',
-        border: '1px solid #d1d5db',
-        borderRadius: '8px',
-        fontSize: '14px',
-        backgroundColor: '#ffffff',
-        outline: 'none',
-        transition: 'all 0.2s',
-    };
+    // Estilos reutilizados de RoomForm - ahora usando Tailwind para soporte de modo oscuro
+    const inputClass = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-teal-500 dark:focus:border-teal-400 outline-none transition-colors";
 
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        fontSize: '11px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        color: '#6b7280',
-        marginBottom: '6px',
-    };
+    const labelClass = "block text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400 mb-1.5";
 
     return (
         <form onSubmit={handleSubmit}>
-            <div style={{ padding: '24px 24px', display: 'grid', gap: '16px' }}>
+            <div className="p-6 grid gap-4">
                 {error && (
-                    <div style={{
-                        padding: '12px',
-                        backgroundColor: '#fef2f2',
-                        border: '1px solid #fecaca',
-                        borderRadius: '8px',
-                        color: '#991b1b',
-                        fontSize: '14px'
-                    }}>
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
                         {error}
                     </div>
                 )}
 
                 {/* Name */}
                 <div>
-                    <label style={labelStyle}>
-                        Nombre del Servicio <span style={{ color: '#ef4444' }}>*</span>
+                    <label className={labelClass}>
+                        Nombre del Servicio <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={inputClass}
                     />
                 </div>
 
                 {/* Description */}
                 <div>
-                    <label style={labelStyle}>Descripción</label>
+                    <label className={labelClass}>Descripción</label>
                     <textarea
                         rows={3}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={`${inputClass} min-h-20 resize-vertical`}
                     />
                 </div>
 
                 {/* Cost */}
                 <div>
-                    <label style={labelStyle}>
-                        Costo <span style={{ color: '#ef4444' }}>*</span>
+                    <label className={labelClass}>
+                        Costo <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="number"
@@ -178,9 +150,7 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                         required
                         value={cost}
                         onChange={(e) => setCost(e.target.value)}
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={inputClass}
                     />
                 </div>
 
@@ -299,77 +269,45 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                                 : "Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
                         </p>
                     </div>
+                    <label className={labelClass}>URL de Imagen</label>
+                    <input
+                        type="text"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        className={inputClass}
+                    />
                 </div>
 
                 {/* Availability */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="flex items-center">
                     <input
                         id="isAvailable"
                         type="checkbox"
                         checked={isAvailable}
                         onChange={(e) => setIsAvailable(e.target.checked)}
-                        style={{
-                            width: '16px',
-                            height: '16px',
-                            marginRight: '8px',
-                            cursor: 'pointer'
-                        }}
+                        className="w-4 h-4 mr-2 cursor-pointer text-teal-600 dark:text-teal-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
                     />
-                    <label htmlFor="isAvailable" style={{ fontSize: '14px', color: '#374151', cursor: 'pointer' }}>
+                    <label htmlFor="isAvailable" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                         Disponible para solicitar
                     </label>
                 </div>
             </div>
 
             {/* Footer Buttons */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '12px',
-                padding: '16px 24px',
-                borderTop: '1px solid #e5e7eb'
-            }}>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    style={{
-                        padding: '8px 16px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '20px',
-                        backgroundColor: '#ffffff',
-                        color: '#6b7280',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.5 : 1,
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#f9fafb')}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold text-xs uppercase hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        padding: '8px 24px',
-                        border: 'none',
-                        borderRadius: '20px',
-                        backgroundColor: '#51cbce',
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.5 : 1,
-                        boxShadow: '0 4px 6px rgba(81, 203, 206, 0.3)',
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#4bc2c5')}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#51cbce'}
+                    className="px-6 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-300 text-white font-semibold text-xs uppercase rounded-full shadow-lg shadow-teal-500/30 disabled:shadow-none disabled:cursor-not-allowed transition-colors"
                 >
                     {loading ? 'Guardando...' : (initialData ? 'Actualizar' : 'Crear')}
                 </button>
