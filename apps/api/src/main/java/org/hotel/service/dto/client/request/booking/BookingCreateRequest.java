@@ -35,17 +35,4 @@ public class BookingCreateRequest implements Serializable {
     @NotEmpty(message = "Debes seleccionar al menos una habitación")
     private List<BookingItemRequest> items;
 
-    /**
-     * DTO interno para definir cada habitación que se quiere reservar.
-     */
-    @NoArgsConstructor
-    @Getter
-    @Setter
-    public static class BookingItemRequest implements Serializable {
-
-        @NotNull(message = "El tipo de habitación es obligatorio")
-        private Long roomTypeId;
-
-        private String occupantName; // Opcional: Nombre de quien ocupará esta habitación
-    }
 }
