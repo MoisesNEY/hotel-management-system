@@ -4,9 +4,11 @@ import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle
 import { useAuth } from '../contexts/AuthProvider';
 import { getMyBookings } from '../services/client/bookingService';
 import { getMyInvoices } from '../services/client/invoiceService';
+import { initPayment } from '../services/client/paymentService';
 import type { BookingResponse, BookingItemResponse } from '../types/clientTypes';
 import type { InvoiceDTO } from '../types/adminTypes';
 import RoomTypes from '../components/RoomTypes';
+import { Loader2 } from 'lucide-react';
 
 const ClientDashboardPage: React.FC = () => {
   const { userProfile: user } = useAuth();
@@ -17,6 +19,7 @@ const ClientDashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'history'>('overview');
   const [selectedBooking, setSelectedBooking] = useState<BookingResponse | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +49,27 @@ const ClientDashboardPage: React.FC = () => {
       case 'PENDING': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
       case 'CANCELLED': return 'bg-red-500/20 text-red-400 border-red-500/50';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
+    }
+  };
+
+  const handlePayment = async (invoiceId: number) => {
+    try {
+      setIsProcessingPayment(true);
+      const payment = await initPayment({ invoiceId });
+      
+      if (payment.paypalOrderId) {
+        // Redirigir a PayPal usando el approval link o una redirección configurada
+        // Para este MVP, si hay un link de aprobación en el objeto (que suele venir de PayPal), lo usamos
+        // Si no, mostramos un mensaje de éxito simulando que se abrió.
+        window.open(`https://www.sandbox.paypal.com/checkoutnow?token=${payment.paypalOrderId}`, '_blank');
+      } else {
+        alert('Pago iniciado correctamente. Redirigiendo...');
+      }
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      alert('Hubo un error al procesar el pago. Por favor intentalo de nuevo.');
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -331,11 +355,14 @@ const ClientDashboardPage: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal */}
-            <div className="relative h-48">
+            <div className="relative h-56">
               <img 
-                src="https://images.unsplash.com/photo-1571011297249-c3b246c4f98a?auto=format&fit=crop&q=80&w=1500" 
+                src={selectedBooking.items[0]?.roomTypeImage || "https://images.unsplash.com/photo-1571011297249-c3b246c4f98a?auto=format&fit=crop&q=80&w=1500"} 
                 alt="Habitación" 
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=2070";
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent"></div>
               <button 
@@ -392,9 +419,14 @@ const ClientDashboardPage: React.FC = () => {
                   <p className="text-3xl font-bold text-white">${selectedBooking.totalPrice}</p>
                 </div>
                 <div className="flex gap-3">
-                   {selectedBooking.status === 'PENDING' && (
-                     <button className="px-6 py-3 bg-[#0070ba] text-white font-bold rounded-full hover:bg-[#005ea6] transition-all flex items-center gap-2 text-sm">
-                       <CreditCard size={18} /> Pagar ahora
+                   {(selectedBooking.status === 'PENDING' || selectedBooking.status === 'CONFIRMED') && selectedBooking.invoiceId && (selectedBooking.invoiceStatus === 'PENDING' || selectedBooking.invoiceStatus === 'ISSUED') && (
+                     <button 
+                      onClick={() => handlePayment(selectedBooking.invoiceId!)}
+                      disabled={isProcessingPayment}
+                      className="px-6 py-3 bg-[#0070ba] text-white font-bold rounded-full hover:bg-[#005ea6] transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                     >
+                       {isProcessingPayment ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
+                       {isProcessingPayment ? 'Procesando...' : 'Pagar ahora'}
                      </button>
                    )}
                    <button 

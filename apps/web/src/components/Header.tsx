@@ -62,8 +62,8 @@ const Header: React.FC = () => {
     setActiveLink(sectionId);
     setIsMenuOpen(false);
 
-    if (window.location.pathname !== '/') {
-      navigate('/');
+    if (window.location.pathname !== '/landing') {
+      navigate('/landing');
       setTimeout(() => {
         const element = document.getElementById(sectionId);
         if (element) element.scrollIntoView({ behavior: 'smooth' });

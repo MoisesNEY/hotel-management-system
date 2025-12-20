@@ -472,7 +472,15 @@ const UserProfilePage: React.FC = () => {
               <div className="relative group">
                 {userData.imageUrl ? (
                   <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 ring-4 ring-gold-default/20">
-                    <img src={userData.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                    <img 
+                      src={userData.imageUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => {
+                        console.warn('Profile image failed to load, falling back to initials');
+                        setUserData(prev => ({ ...prev, imageUrl: '' }));
+                      }}
+                    />
                   </div>
                 ) : (
                   <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300">
