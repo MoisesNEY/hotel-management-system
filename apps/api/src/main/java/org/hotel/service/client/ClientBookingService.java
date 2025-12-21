@@ -42,8 +42,9 @@ public class ClientBookingService {
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
-    private final BookingDomainService bookingDomainService; // Injected
+    private final BookingDomainService bookingDomainService;
     private final ClientInvoiceService clientInvoiceService;
+    private final org.hotel.service.MailService mailService;
 
     public ClientBookingService(
         BookingRepository bookingRepository,
@@ -52,7 +53,8 @@ public class ClientBookingService {
         RoomTypeRepository roomTypeRepository,
         RoomRepository roomRepository,
         BookingDomainService bookingDomainService,
-        ClientInvoiceService clientInvoiceService
+        ClientInvoiceService clientInvoiceService,
+        org.hotel.service.MailService mailService
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
@@ -61,6 +63,7 @@ public class ClientBookingService {
         this.roomRepository = roomRepository;
         this.bookingDomainService = bookingDomainService;
         this.clientInvoiceService = clientInvoiceService;
+        this.mailService = mailService;
     }
 
     /**
@@ -128,6 +131,13 @@ public class ClientBookingService {
 
         // 7. Crear Factura Automática
         clientInvoiceService.createInvoiceForBooking(booking);
+
+        // 8. Enviar Correo de Confirmación (Async)
+        try {
+            mailService.sendBookingCreationEmail(customer, booking);
+        } catch (Exception e) {
+            log.warn("Fallo el envio de correo de confirmacion de reserva para usuario: {}", userLogin, e);
+        }
 
         return clientBookingMapper.toClientResponse(booking);
     }
