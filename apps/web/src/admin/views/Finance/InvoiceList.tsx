@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { getAllInvoices, deleteInvoice } from '../../../services/admin/invoiceService';
 import type { InvoiceDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
@@ -12,6 +12,9 @@ const InvoiceList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [invoiceToDelete, setInvoiceToDelete] = useState<number | null>(null);
 
     const loadInvoices = async () => {
         setLoading(true);
@@ -31,15 +34,29 @@ const InvoiceList: React.FC = () => {
         loadInvoices();
     }, [page]);
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar esta factura?')) {
+    const handleDeleteClick = (id: number) => {
+        setInvoiceToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (invoiceToDelete) {
             try {
-                await deleteInvoice(id);
+                await deleteInvoice(invoiceToDelete);
+                setShowDeleteModal(false);
+                setShowSuccessModal(true);
                 loadInvoices();
             } catch (error) {
                 console.error("Error deleting invoice", error);
+                // In a real app, show toast error
             }
         }
+    };
+
+    const closeModals = () => {
+        setShowDeleteModal(false);
+        setShowSuccessModal(false);
+        setInvoiceToDelete(null);
     };
 
     return (
@@ -108,7 +125,7 @@ const InvoiceList: React.FC = () => {
                                                     variant="ghost"
                                                 />
                                                 <ActionButton 
-                                                    onClick={() => handleDelete(invoice.id)}
+                                                    onClick={() => handleDeleteClick(invoice.id)}
                                                     icon={TrashIcon}
                                                     label="Eliminar"
                                                     variant="ghost"
@@ -142,6 +159,48 @@ const InvoiceList: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-[#111111] rounded-lg p-6 max-w-md w-full mx-4 shadow-lg border border-gray-200 dark:border-white/5">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Confirmar Eliminación</h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">¿Estás seguro de eliminar esta factura?</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={closeModals}
+                                className="px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-[#111111] rounded-lg p-6 max-w-md w-full mx-4 shadow-lg border border-gray-200 dark:border-white/5">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Factura Eliminada</h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">La factura ha sido eliminada correctamente.</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={closeModals}
+                                className="px-4 py-2 bg-[#d4af37] text-white rounded-lg hover:bg-[#b8962d] transition-colors"
+                            >
+                                Aceptar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
