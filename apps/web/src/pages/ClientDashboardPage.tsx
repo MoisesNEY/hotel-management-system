@@ -85,10 +85,10 @@ const ClientDashboardPage: React.FC = () => {
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-light mb-2">
+          <h1 className="text-4xl font-light mb-2 text-gray-900 dark:text-white">
             Bienvenido, <span className="font-semibold text-[#d4af37]">{user?.firstName || user?.username}</span>
           </h1>
-          <p className="text-gray-400">Gestiona tu estancia y descubre servicios exclusivos.</p>
+          <p className="text-gray-500 dark:text-gray-400">Gestiona tu estancia y descubre servicios exclusivos.</p>
         </div>
         <div className="flex gap-4">
           <a
@@ -101,24 +101,24 @@ const ClientDashboardPage: React.FC = () => {
       </div>
 
       {/* Dashboard Navigation */}
-      <div className="flex border-b border-white/10 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
+      <div className="flex border-b border-gray-200 dark:border-white/10 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
         <button 
           onClick={() => setActiveTab('overview')}
-          className={`px-8 py-4 transition-all duration-300 font-medium relative ${activeTab === 'overview' ? 'text-[#d4af37]' : 'text-gray-500 hover:text-white'}`}
+          className={`px-8 py-4 transition-all duration-300 font-medium relative ${activeTab === 'overview' ? 'text-[#d4af37]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
         >
           Resumen
           {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4af37]"></div>}
         </button>
         <button 
           onClick={() => setActiveTab('bookings')}
-          className={`px-8 py-4 transition-all duration-300 font-medium relative ${activeTab === 'bookings' ? 'text-[#d4af37]' : 'text-gray-500 hover:text-white'}`}
+          className={`px-8 py-4 transition-all duration-300 font-medium relative ${activeTab === 'bookings' ? 'text-[#d4af37]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
         >
           Mis Reservas
           {activeTab === 'bookings' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4af37]"></div>}
         </button>
         <button 
           onClick={() => setActiveTab('history')}
-          className={`px-8 py-4 transition-all duration-300 font-medium relative ${activeTab === 'history' ? 'text-[#d4af37]' : 'text-gray-500 hover:text-white'}`}
+          className={`px-8 py-4 transition-all duration-300 font-medium relative ${activeTab === 'history' ? 'text-[#d4af37]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
         >
           Historial de Pagos
           {activeTab === 'history' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#d4af37]"></div>}
@@ -132,12 +132,12 @@ const ClientDashboardPage: React.FC = () => {
           <>
             {/* Section A: Mi Estancia Actual / Próxima */}
             <section>
-              <h2 className="text-xl font-medium mb-6 flex items-center gap-2">
+              <h2 className="text-xl font-medium mb-6 flex items-center gap-2 text-gray-900 dark:text-white">
                 <Star className="text-[#d4af37]" /> Estancia Próxima
               </h2>
               
               {currentStay ? (
-                <div className="relative overflow-hidden rounded-3xl group">
+                <div className="relative overflow-hidden rounded-3xl group shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10"></div>
                   <img 
                     src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=2070" 
@@ -155,14 +155,14 @@ const ClientDashboardPage: React.FC = () => {
                           <Calendar className="text-[#d4af37]" />
                           <div>
                             <p className="text-xs text-gray-400 uppercase tracking-wider">Fechas</p>
-                            <p className="font-medium">{formatDate(currentStay.checkInDate)} — {formatDate(currentStay.checkOutDate)}</p>
+                            <p className="font-medium text-white">{formatDate(currentStay.checkInDate)} — {formatDate(currentStay.checkOutDate)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Clock className="text-[#d4af37]" />
                           <div>
                             <p className="text-xs text-gray-400 uppercase tracking-wider">Código</p>
-                            <p className="font-medium">{currentStay.code}</p>
+                            <p className="font-medium text-white">{currentStay.code}</p>
                           </div>
                         </div>
                       </div>
@@ -187,11 +187,11 @@ const ClientDashboardPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="bg-[#111111] border border-white/5 rounded-3xl p-12 text-center">
-                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Calendar size={32} className="text-gray-600" />
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/5 rounded-3xl p-12 text-center shadow-sm dark:shadow-none">
+                  <div className="w-20 h-20 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Calendar size={32} className="text-gray-400 dark:text-gray-600" />
                   </div>
-                  <h3 className="text-2xl font-light mb-2">No tienes estancias activas</h3>
+                  <h3 className="text-2xl font-light mb-2 text-gray-900 dark:text-white">No tienes estancias activas</h3>
                   <p className="text-gray-500 mb-8 max-w-md mx-auto">Reserva tu próxima experiencia de lujo en Gran Hotel León.</p>
                   <a
                     href="#rooms-section"
@@ -205,12 +205,12 @@ const ClientDashboardPage: React.FC = () => {
 
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-              <div className="bg-[#111111] border border-white/5 p-8 rounded-3xl hover:border-[#d4af37]/30 transition-colors md:col-span-1">
-                <div className="flex items-center gap-4 mb-4 text-gray-400">
+              <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/5 p-8 rounded-3xl hover:border-[#d4af37]/30 transition-colors md:col-span-1 shadow-sm dark:shadow-none">
+                <div className="flex items-center gap-4 mb-4 text-gray-500 dark:text-gray-400">
                   <PieChart size={24} />
                   <span className="font-medium">Total de Estancias</span>
                 </div>
-                <div className="text-4xl font-semibold">{bookings.length}</div>
+                <div className="text-4xl font-semibold text-gray-900 dark:text-white">{bookings.length}</div>
               </div>
               <div className="md:col-span-2 invisible md:block"></div>
             </div>
@@ -218,10 +218,10 @@ const ClientDashboardPage: React.FC = () => {
             {/* Section C: Reservar Nueva Estancia */}
             <section id="rooms-section" className="pt-12">
                <div className="mb-8">
-                  <h2 className="text-3xl font-light mb-2">Reserva tu <span className="text-[#d4af37] font-semibold">Próxima Diferencia</span></h2>
-                  <p className="text-gray-400">Selecciona el tipo de habitación que mejor se adapte a tus necesidades.</p>
+                  <h2 className="text-3xl font-light mb-2 text-gray-900 dark:text-white">Reserva tu <span className="text-[#d4af37] font-semibold">Próxima Diferencia</span></h2>
+                  <p className="text-gray-500 dark:text-gray-400">Selecciona el tipo de habitación que mejor se adapte a tus necesidades.</p>
                </div>
-               <div className="bg-white/5 rounded-3xl overflow-hidden border border-white/5">
+               <div className="bg-white dark:bg-white/5 rounded-3xl overflow-hidden border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none">
                   <RoomTypes />
                </div>
             </section>
@@ -229,15 +229,15 @@ const ClientDashboardPage: React.FC = () => {
         )}
 
         {activeTab === 'bookings' && (
-          <section className="bg-[#111111] border border-white/5 rounded-3xl overflow-hidden">
-            <div className="p-8 border-b border-white/5">
-              <h2 className="text-xl font-medium">Gestión de Reservas</h2>
-              <p className="text-sm text-gray-400">Consulta el estado y gestiona los pagos de tus reservas.</p>
+          <section className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm dark:shadow-none">
+            <div className="p-8 border-b border-gray-200 dark:border-white/5">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white">Gestión de Reservas</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Consulta el estado y gestiona los pagos de tus reservas.</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-widest font-medium">
+                  <tr className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest font-medium">
                     <th className="px-8 py-4">Código</th>
                     <th className="px-8 py-4">Fechas</th>
                     <th className="px-8 py-4">Categorías</th>
@@ -247,16 +247,16 @@ const ClientDashboardPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {bookings.length > 0 ? bookings.map((booking: BookingResponse) => (
-                    <tr key={booking.id} className="hover:bg-white/5 transition-colors group">
+                    <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
                       <td className="px-8 py-6 font-mono text-[#d4af37]">{booking.code}</td>
                       <td className="px-8 py-6">
-                          <span className="block text-sm font-medium">{formatDate(booking.checkInDate)}</span>
+                          <span className="block text-sm font-medium text-gray-900 dark:text-white">{formatDate(booking.checkInDate)}</span>
                           <span className="block text-xs text-gray-500">al {formatDate(booking.checkOutDate)}</span>
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex flex-wrap gap-1">
                           {booking.items.map((item: BookingItemResponse, idx: number) => (
-                            <span key={idx} className="px-2 py-0.5 bg-white/5 rounded text-[10px] text-gray-300">
+                            <span key={idx} className="px-2 py-0.5 bg-gray-100 dark:bg-white/5 rounded text-[10px] text-gray-600 dark:text-gray-300">
                               {item.roomTypeName}
                             </span>
                           ))}
@@ -296,15 +296,15 @@ const ClientDashboardPage: React.FC = () => {
         )}
 
         {activeTab === 'history' && (
-          <section className="bg-[#111111] border border-white/5 rounded-3xl overflow-hidden">
-             <div className="p-8 border-b border-white/5">
-              <h2 className="text-xl font-medium">Historial de Pagos</h2>
-              <p className="text-sm text-gray-400">Consulta y descarga tus facturas de servicios pagados.</p>
+          <section className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm dark:shadow-none">
+             <div className="p-8 border-b border-gray-200 dark:border-white/5">
+              <h2 className="text-xl font-medium text-gray-900 dark:text-white">Historial de Pagos</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Consulta y descarga tus facturas de servicios pagados.</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-widest font-medium">
+                  <tr className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest font-medium">
                     <th className="px-8 py-4">Ref. Factura</th>
                     <th className="px-8 py-4">Fecha Emisión</th>
                     <th className="px-8 py-4">Monto Total</th>
@@ -313,17 +313,17 @@ const ClientDashboardPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {invoices.length > 0 ? invoices.map((invoice: InvoiceDTO) => (
-                    <tr key={invoice.id} className="hover:bg-white/5 transition-colors group">
+                    <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
                       <td className="px-8 py-6 font-mono text-[#d4af37]">{invoice.code}</td>
-                      <td className="px-8 py-6 text-sm text-gray-300">{formatDate(invoice.issueDate)}</td>
-                      <td className="px-8 py-6 font-bold text-lg">${invoice.totalAmount}</td>
+                      <td className="px-8 py-6 text-sm text-gray-600 dark:text-gray-300">{formatDate(invoice.issuedDate)}</td>
+                      <td className="px-8 py-6 font-bold text-lg text-gray-900 dark:text-white">${invoice.totalAmount}</td>
                       <td className="px-8 py-6 text-right">
                          {invoice.status === 'PAID' ? (
-                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-[10px] font-bold">
+                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 rounded-full text-[10px] font-bold">
                               <CheckCircle2 size={12} /> PAGADO
                            </span>
                          ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 rounded-full text-[10px] font-bold">
                               <Clock size={12} /> PENDIENTE
                            </span>
                          )}
@@ -349,7 +349,7 @@ const ClientDashboardPage: React.FC = () => {
           onClick={() => setShowDetailsModal(false)}
         >
           <div 
-            className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 slide-in-from-bottom-5 duration-500"
+            className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10 rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 slide-in-from-bottom-5 duration-500"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal */}
@@ -382,11 +382,11 @@ const ClientDashboardPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-In</p>
-                  <p className="text-lg font-medium text-white">{formatDate(selectedBooking.checkInDate)}</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">{formatDate(selectedBooking.checkInDate)}</p>
                 </div>
                 <div className="space-y-1 text-right">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-Out</p>
-                  <p className="text-lg font-medium text-white">{formatDate(selectedBooking.checkOutDate)}</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">{formatDate(selectedBooking.checkOutDate)}</p>
                 </div>
               </div>
 
@@ -396,10 +396,10 @@ const ClientDashboardPage: React.FC = () => {
                 </h4>
                 <div className="space-y-3">
                   {selectedBooking.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <div key={idx} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5">
                       <div>
-                        <p className="font-semibold text-white">{item.roomTypeName}</p>
-                        <p className="text-xs text-gray-400">{item.occupantName || 'Ocupante por asignar'}</p>
+                        <p className="font-semibold text-gray-900 dark:text-white">{item.roomTypeName}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{item.occupantName || 'Ocupante por asignar'}</p>
                       </div>
                       {item.assignedRoomNumber && (
                         <div className="px-3 py-1 bg-[#d4af37]/10 text-[#d4af37] rounded-lg text-xs font-bold border border-[#d4af37]/20">
@@ -411,10 +411,10 @@ const ClientDashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+              <div className="pt-6 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Pagado / Pendiente</p>
-                  <p className="text-3xl font-bold text-white">${selectedBooking.totalPrice}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">${selectedBooking.totalPrice}</p>
                 </div>
                 <div className="flex gap-3">
                    {(selectedBooking.status === 'PENDING' || selectedBooking.status === 'CONFIRMED') && selectedBooking.invoiceId && (selectedBooking.invoiceStatus === 'PENDING' || selectedBooking.invoiceStatus === 'ISSUED') && (
@@ -433,7 +433,7 @@ const ClientDashboardPage: React.FC = () => {
                    )}
                    <button 
                     onClick={() => setShowDetailsModal(false)}
-                    className="px-6 py-3 bg-white/10 text-white font-bold rounded-full hover:bg-white/20 transition-all text-sm"
+                    className="px-6 py-3 bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white font-bold rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-all text-sm"
                    >
                      Cerrar
                    </button>

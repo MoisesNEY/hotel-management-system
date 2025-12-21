@@ -147,10 +147,13 @@ export interface InvoiceItemDTO {
 export interface InvoiceDTO {
   id: number;
   code: string;
-  issueDate: string; // ISO Date-Time
-  dueDate: string;   // ISO Date-Time
+  issuedDate: string; // ISO Date-Time
+  dueDate?: string;   // ISO Date-Time
   totalAmount: number;
+  taxAmount?: number;
+  currency?: string;
   status: InvoiceStatus;
   items: InvoiceItemDTO[];
   bookingId?: number;
+  booking?: BookingDTO;
 }
