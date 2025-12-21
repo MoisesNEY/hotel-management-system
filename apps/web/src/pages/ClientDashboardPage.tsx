@@ -79,6 +79,25 @@ const ClientDashboardPage: React.FC = () => {
     );
   }
 
+  const handleScrollToRooms = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (activeTab !== 'overview') {
+      setActiveTab('overview');
+      // Give React a moment to render the section before scrolling
+      setTimeout(() => {
+        const element = document.getElementById('rooms-section');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById('rooms-section');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       
@@ -91,12 +110,12 @@ const ClientDashboardPage: React.FC = () => {
           <p className="text-gray-500 dark:text-gray-400">Gestiona tu estancia y descubre servicios exclusivos.</p>
         </div>
         <div className="flex gap-4">
-          <a
-            href="#rooms-section"
+          <button
+            onClick={handleScrollToRooms}
             className="px-6 py-3 bg-[#d4af37] text-black font-semibold rounded-full hover:bg-[#b8962d] transition-all duration-300 flex items-center gap-2"
           >
             <Calendar size={18} /> Ver Disponibilidad
-          </a>
+          </button>
         </div>
       </div>
 
@@ -193,12 +212,12 @@ const ClientDashboardPage: React.FC = () => {
                   </div>
                   <h3 className="text-2xl font-light mb-2 text-gray-900 dark:text-white">No tienes estancias activas</h3>
                   <p className="text-gray-500 mb-8 max-w-md mx-auto">Reserva tu próxima experiencia de lujo en Gran Hotel León.</p>
-                  <a
-                    href="#rooms-section"
+                  <button
+                    onClick={handleScrollToRooms}
                     className="px-8 py-3 border border-[#d4af37] text-[#d4af37] font-semibold rounded-full hover:bg-[#d4af37] hover:text-black transition-all duration-300"
                   >
                     Explorar Habitaciones
-                  </a>
+                  </button>
                 </div>
               )}
             </section>
@@ -240,7 +259,7 @@ const ClientDashboardPage: React.FC = () => {
                   <tr className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest font-medium">
                     <th className="px-8 py-4">Código</th>
                     <th className="px-8 py-4">Fechas</th>
-                    <th className="px-8 py-4">Categorías</th>
+                    <th className="px-8 py-4">Huéspedes</th>
                     <th className="px-8 py-4">Estado</th>
                     <th className="px-8 py-4 text-right">Acciones</th>
                   </tr>
@@ -254,12 +273,9 @@ const ClientDashboardPage: React.FC = () => {
                           <span className="block text-xs text-gray-500">al {formatDate(booking.checkOutDate)}</span>
                       </td>
                       <td className="px-8 py-6">
-                        <div className="flex flex-wrap gap-1">
-                          {booking.items.map((item: BookingItemResponse, idx: number) => (
-                            <span key={idx} className="px-2 py-0.5 bg-gray-100 dark:bg-white/5 rounded text-[10px] text-gray-600 dark:text-gray-300">
-                              {item.roomTypeName}
-                            </span>
-                          ))}
+                        <div className="flex items-center gap-2">
+                           <span className="font-medium text-gray-900 dark:text-white">{booking.guestCount}</span>
+                           <span className="text-xs text-gray-500">Personas</span>
                         </div>
                       </td>
                       <td className="px-8 py-6">

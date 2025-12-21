@@ -27,7 +27,6 @@ const ClientHeader: React.FC = () => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/client/dashboard' },
-    { name: 'Mis Reservas', path: '/client/dashboard' }, // Podríamos separar esto luego si el usuario quiere
     { name: 'Servicios', path: '/client/services' },
     { name: 'Explorar Hotel', path: '/landing' }
   ];
