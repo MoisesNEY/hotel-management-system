@@ -17,6 +17,6 @@ public class PaymentResponse implements Serializable {
     private java.time.Instant paymentDate;
     private BigDecimal amount;
     private String referenceNumber;
-    private String invoiceNumber;
+    private Long invoiceId;
     private String paypalOrderId;
 }

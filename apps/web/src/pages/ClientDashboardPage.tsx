@@ -4,11 +4,10 @@ import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle
 import { useAuth } from '../contexts/AuthProvider';
 import { getMyBookings } from '../services/client/bookingService';
 import { getMyInvoices } from '../services/client/invoiceService';
-import { initPayment } from '../services/client/paymentService';
 import type { BookingResponse, BookingItemResponse } from '../types/clientTypes';
 import type { InvoiceDTO } from '../types/adminTypes';
 import RoomTypes from '../components/RoomTypes';
-import { Loader2 } from 'lucide-react';
+import { PayPalPaymentButton } from '../components/PayPalPaymentButton';
 
 const ClientDashboardPage: React.FC = () => {
   const { userProfile: user } = useAuth();
@@ -19,24 +18,24 @@ const ClientDashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'history'>('overview');
   const [selectedBooking, setSelectedBooking] = useState<BookingResponse | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const [bookingsRes, invoicesRes] = await Promise.all([
+        getMyBookings(),
+        getMyInvoices()
+      ]);
+      setBookings(bookingsRes.data);
+      setInvoices(invoicesRes.data);
+    } catch (error) {
+      console.error("Error fetching dashboard data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [bookingsRes, invoicesRes] = await Promise.all([
-          getMyBookings(),
-          getMyInvoices()
-        ]);
-        setBookings(bookingsRes.data);
-        setInvoices(invoicesRes.data);
-      } catch (error) {
-        console.error("Error fetching dashboard data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    loadData();
   }, []);
 
   // Find current or next stay
@@ -52,26 +51,6 @@ const ClientDashboardPage: React.FC = () => {
     }
   };
 
-  const handlePayment = async (invoiceId: number) => {
-    try {
-      setIsProcessingPayment(true);
-      const payment = await initPayment({ invoiceId });
-      
-      if (payment.paypalOrderId) {
-        // Redirigir a PayPal usando el approval link o una redirección configurada
-        // Para este MVP, si hay un link de aprobación en el objeto (que suele venir de PayPal), lo usamos
-        // Si no, mostramos un mensaje de éxito simulando que se abrió.
-        window.open(`https://www.sandbox.paypal.com/checkoutnow?token=${payment.paypalOrderId}`, '_blank');
-      } else {
-        alert('Pago iniciado correctamente. Redirigiendo...');
-      }
-    } catch (error) {
-      console.error('Error initiating payment:', error);
-      alert('Hubo un error al procesar el pago. Por favor intentalo de nuevo.');
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -420,14 +399,18 @@ const ClientDashboardPage: React.FC = () => {
                 </div>
                 <div className="flex gap-3">
                    {(selectedBooking.status === 'PENDING' || selectedBooking.status === 'CONFIRMED') && selectedBooking.invoiceId && (selectedBooking.invoiceStatus === 'PENDING' || selectedBooking.invoiceStatus === 'ISSUED') && (
-                     <button 
-                      onClick={() => handlePayment(selectedBooking.invoiceId!)}
-                      disabled={isProcessingPayment}
-                      className="px-6 py-3 bg-[#0070ba] text-white font-bold rounded-full hover:bg-[#005ea6] transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                     >
-                       {isProcessingPayment ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
-                       {isProcessingPayment ? 'Procesando...' : 'Pagar ahora'}
-                     </button>
+                     <div className="w-48">
+                         <PayPalPaymentButton 
+                            invoiceId={selectedBooking.invoiceId}
+                            amount={selectedBooking.totalPrice}
+                            onSuccess={() => {
+                                alert("Pago confirmado exitosamente.");
+                                setShowDetailsModal(false);
+                                loadData(); // Refresh bookings
+                            }}
+                            onError={(msg: string) => alert(msg)}
+                         />
+                     </div>
                    )}
                    <button 
                     onClick={() => setShowDetailsModal(false)}

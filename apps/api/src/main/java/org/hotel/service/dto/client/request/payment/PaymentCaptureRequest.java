@@ -14,5 +14,5 @@ public class PaymentCaptureRequest implements Serializable {
     @NotNull
     private String paypalOrderId;
     @NotNull
-    private String invoiceCode;
+    private Long invoiceId;
 }
