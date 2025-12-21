@@ -157,3 +157,14 @@ export interface InvoiceDTO {
   bookingId?: number;
   booking?: BookingDTO;
 }
+
+export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'PAYPAL' | 'TRANSFER';
+
+export interface PaymentDTO {
+  id: number;
+  date: string; // ISO Date-Time
+  amount: number;
+  method: PaymentMethod;
+  referenceId?: string; // For external refs (e.g. PayPal Order ID or Bank Ref)
+  invoice: { id: number; code?: string };
+}
