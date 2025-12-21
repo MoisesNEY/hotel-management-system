@@ -45,7 +45,11 @@ interface ServiceRequest {
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { updateUserProfile, userProfile, reloadProfile } = useAuth();
+  const { userProfile, reloadProfile } = useAuth(); // Removed hasRole as it is no longer needed for this specific logic
+
+  const handleBack = () => {
+    navigate(-1);
+  };
 
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
@@ -459,12 +463,12 @@ const UserProfilePage: React.FC = () => {
         <div className="bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-3xl p-8 mb-8 shadow-xl transition-all duration-300">
           <button
             className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-300 hover:text-gold-default mb-8"
-            onClick={() => navigate('/')}
+            onClick={handleBack}
           >
             <div className="p-2 rounded-full bg-gray-100 dark:bg-white/5 group-hover:bg-gold-default/10 transition-colors">
               <ArrowLeft size={18} />
             </div>
-            Volver al inicio
+            Volver
           </button>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-5">
@@ -472,7 +476,15 @@ const UserProfilePage: React.FC = () => {
               <div className="relative group">
                 {userData.imageUrl ? (
                   <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 ring-4 ring-gold-default/20">
-                    <img src={userData.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                    <img 
+                      src={userData.imageUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover" 
+                      onError={() => {
+                        console.warn('Profile image failed to load, falling back to initials');
+                        setUserData(prev => ({ ...prev, imageUrl: '' }));
+                      }}
+                    />
                   </div>
                 ) : (
                   <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300">

@@ -71,7 +71,7 @@ export interface RoomTypeAvailability {
 }
 
 // Financial Types
-export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+export type InvoiceStatus = 'PENDING' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
 
 export interface InvoiceResponse {
     id: number;

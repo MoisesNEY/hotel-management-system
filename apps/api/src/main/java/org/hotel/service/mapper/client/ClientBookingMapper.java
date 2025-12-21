@@ -1,7 +1,9 @@
 package org.hotel.service.mapper.client;
 
+import java.math.BigDecimal;
 import org.hotel.domain.Booking;
 import org.hotel.domain.BookingItem;
+import org.hotel.domain.Invoice;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.request.booking.BookingItemRequest; // Asegúrate de crear este DTO
@@ -15,6 +17,8 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface ClientBookingMapper {
     @Mapping(source = "bookingItems", target = "items")
+    @Mapping(target = "invoiceId", expression = "java(getInvoiceId(booking))")
+    @Mapping(target = "invoiceStatus", expression = "java(getInvoiceStatus(booking))")
     BookingResponse toClientResponse(Booking booking);
     @Mapping(source = "roomType.name", target = "roomTypeName")
     @Mapping(source = "roomType.imageUrl", target = "roomTypeImage")
@@ -62,5 +66,31 @@ public interface ClientBookingMapper {
             return item.getAssignedRoom().getRoomNumber();
         }
         return null;
+    }
+
+    default Long getInvoiceId(Booking booking) {
+        if (booking.getInvoices() == null || booking.getInvoices().isEmpty()) {
+            return null;
+        }
+        return booking.getInvoices().stream().findFirst().map(Invoice::getId).orElse(null);
+    }
+
+    default String getInvoiceStatus(Booking booking) {
+        if (booking.getInvoices() == null || booking.getInvoices().isEmpty()) {
+            return null;
+        }
+        return booking.getInvoices().stream().findFirst().map(i -> i.getStatus().name()).orElse(null);
+    }
+
+    @AfterMapping
+    default void calculateTotalPrice(Booking booking, @MappingTarget BookingResponse response) {
+        if (booking.getBookingItems() == null || booking.getBookingItems().isEmpty()) {
+            response.setTotalPrice(BigDecimal.ZERO);
+            return;
+        }
+        BigDecimal total = booking.getBookingItems().stream()
+            .map(item -> item.getPrice() != null ? item.getPrice() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        response.setTotalPrice(total);
     }
 }

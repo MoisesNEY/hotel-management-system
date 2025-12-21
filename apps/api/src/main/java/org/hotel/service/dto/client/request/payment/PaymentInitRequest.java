@@ -12,5 +12,5 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class PaymentInitRequest implements Serializable {
     @NotNull
-    private String invoiceCode;
+    private Long invoiceId;
 }

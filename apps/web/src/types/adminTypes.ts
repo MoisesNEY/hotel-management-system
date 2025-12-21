@@ -134,3 +134,37 @@ export interface ServiceRequestDTO {
   booking: BookingDTO;
 }
 
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED';
+
+export interface InvoiceItemDTO {
+  id: number;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface InvoiceDTO {
+  id: number;
+  code: string;
+  issuedDate: string; // ISO Date-Time
+  dueDate?: string;   // ISO Date-Time
+  totalAmount: number;
+  taxAmount?: number;
+  currency?: string;
+  status: InvoiceStatus;
+  items: InvoiceItemDTO[];
+  bookingId?: number;
+  booking?: BookingDTO;
+}
+
+export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'PAYPAL' | 'TRANSFER';
+
+export interface PaymentDTO {
+  id: number;
+  date: string; // ISO Date-Time
+  amount: number;
+  method: PaymentMethod;
+  referenceId?: string; // For external refs (e.g. PayPal Order ID or Bank Ref)
+  invoice: { id: number; code?: string };
+}

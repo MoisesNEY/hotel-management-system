@@ -25,6 +25,8 @@ public class BookingResponse implements Serializable {
     private BookingStatus status;
     private String specialRequests;
     private List<BookingItemResponse> items;
+    private Long invoiceId;
+    private String invoiceStatus;
 
     @NoArgsConstructor
     @Getter

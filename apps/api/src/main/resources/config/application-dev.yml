@@ -101,6 +101,6 @@ application:
     endpoint: http://localhost:9000
 
 paypal:
-  client-id: AXtI3lQlPN11na0d8it84mPLxDV4qHZkQQztH-2UEupx9gqwqkmgsBtVxPYnlCQcl7IoEropWKFl-YWX
-  client-secret: ELWWhxxr8P3TsTNqf9diS4DgzsdvTjVAue4Zwt-PDzhb9cvfHpAuF_zdPonrW0zj1NG1GZ6ATIAV4T_Z
-  mode: sandbox
+  client-id: 'AXtI3lQlPN11na0d8it84mPLxDV4qHZkQQztH-2UEupx9gqwqkmgsBtVxPYnlCQcl7IoEropWKFl-YWX'
+  client-secret: 'ELWWhxxr8P3TsTNqf9diS4DgzsdvTjVAue4Zwt-PDzhb9cvfHpAuF_zdPonrW0zj1NG1GZ6ATIAV4T_Z'
+  mode: 'sandbox'

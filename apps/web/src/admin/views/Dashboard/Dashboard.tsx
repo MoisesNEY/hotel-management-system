@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -21,8 +20,7 @@ import {
     RefreshCw,
     Calendar,
     Clock,
-    Wrench,
-    User
+    Wrench
 } from 'lucide-react';
 
 import StatsCard from '../../components/shared/StatsCard';

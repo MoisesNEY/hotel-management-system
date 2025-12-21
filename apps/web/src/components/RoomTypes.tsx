@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, ChevronRight, ChevronLeft, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useSingleContent } from '../hooks/useContent';
+import { useAuth } from '../contexts/AuthProvider';
 import { createBooking, getAvailability } from '../services/client/bookingService';
 import { getAllRoomTypes } from '../services/admin/roomTypeService';
 import type { RoomTypeAvailability, BookingItemRequest } from '../types/clientTypes';
@@ -18,6 +19,7 @@ export const BookingStatus = {
 export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 
 const RoomTypes: React.FC = () => {
+  const { isAuthenticated, login } = useAuth();
   const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,9 @@ const RoomTypes: React.FC = () => {
     notes: ''
   });
 
+  const [currentStep, setCurrentStep] = useState(1);
+  const [availability, setAvailability] = useState<RoomTypeAvailability[]>([]);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [selectedItems, setSelectedItems] = useState<BookingItemRequest[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -76,11 +81,9 @@ const RoomTypes: React.FC = () => {
   }, []);
 
   const handleReservation = async () => {
-    const { default: keycloak } = await import('../services/keycloak');
-    
-    if (!keycloak.authenticated) {
+    if (!isAuthenticated) {
         alert('Debes iniciar sesión para realizar una reserva.');
-        keycloak.login();
+        login();
         return;
     }
 
@@ -200,13 +203,20 @@ const RoomTypes: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      const response = await createBooking({
+      await createBooking({
         ...formData,
         items: selectedItems
       });
 
+      const nights = calculateNights();
+      const finalTotalPrice = calculateTotal();
+      const roomNames = selectedItems.map(item => {
+        const type = availability.find(a => a.id === item.roomTypeId);
+        return type?.name;
+      }).filter(Boolean).join(', ');
+
       setSuccessBookingDetails({
-        roomName: selectedRoom!.name,
+        roomName: roomNames || 'Habitación/es',
         checkInDate: formData.checkInDate,
         checkOutDate: formData.checkOutDate,
         guestCount: formData.guestCount,
@@ -216,7 +226,7 @@ const RoomTypes: React.FC = () => {
       setShowSuccessModal(true);
       closeModal();
       // Redirect to profile or show success UI would be better
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error al enviar la reserva:', error);
       setErrorMessage('No se pudo registrar la reserva. Inténtalo nuevamente.');
       setShowErrorModal(true);

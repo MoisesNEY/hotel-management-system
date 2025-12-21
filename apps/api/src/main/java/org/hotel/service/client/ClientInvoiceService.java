@@ -51,4 +51,31 @@ public class ClientInvoiceService {
                              invoice.getBooking().getCustomer().getLogin().equals(userLogin))
             .map(invoiceMapper::toDto);
     }
+
+    @Transactional
+    public void createInvoiceForBooking(org.hotel.domain.Booking booking) {
+        if (booking.getInvoices() != null && !booking.getInvoices().isEmpty()) {
+            return;
+        }
+
+        org.hotel.domain.Invoice invoice = new org.hotel.domain.Invoice();
+        invoice.setCode("INV-" + booking.getCode());
+        invoice.setIssuedDate(java.time.Instant.now());
+        invoice.setStatus(org.hotel.domain.enumeration.InvoiceStatus.ISSUED);
+        invoice.setCurrency("USD");
+        invoice.setBooking(booking);
+
+        java.math.BigDecimal totalAmount = java.math.BigDecimal.ZERO;
+        if (booking.getBookingItems() != null) {
+            for (org.hotel.domain.BookingItem item : booking.getBookingItems()) {
+                if (item.getPrice() != null) {
+                    totalAmount = totalAmount.add(item.getPrice());
+                }
+            }
+        }
+        invoice.setTotalAmount(totalAmount);
+        invoice.setTaxAmount(totalAmount.multiply(new java.math.BigDecimal("0.15"))); 
+
+        invoiceRepository.save(invoice);
+    }
 }

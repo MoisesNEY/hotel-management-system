@@ -49,13 +49,13 @@ public class ClientPaymentService {
      * Inicia el proceso de pago creando una orden en PayPal.
      */
     public PaymentResponse initPayment(PaymentInitRequest request) {
-        log.debug("Iniciando pago para la factura: {}", request.getInvoiceCode());
+        log.debug("Iniciando pago para la factura ID: {}", request.getInvoiceId());
 
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new BusinessRuleException("Usuario no autenticado"));
 
-        Invoice invoice = invoiceRepository.findByCode(request.getInvoiceCode())
-            .orElseThrow(() -> new ResourceNotFoundException("Invoice", request.getInvoiceCode()));
+        Invoice invoice = invoiceRepository.findById(request.getInvoiceId())
+            .orElseThrow(() -> new ResourceNotFoundException("Invoice", request.getInvoiceId()));
 
         validateInvoiceOwnership(invoice, userLogin);
 
@@ -87,7 +87,7 @@ public class ClientPaymentService {
                 null,
                 invoice.getTotalAmount(),
                 null,
-                invoice.getCode(),
+                invoice.getId(),
                 order.getId()
             );
 
@@ -101,13 +101,13 @@ public class ClientPaymentService {
      * Captura el pago de una orden de PayPal previamente autorizada.
      */
     public PaymentResponse capturePayment(PaymentCaptureRequest request) {
-        log.debug("Capturando pago PayPal: {} para factura: {}", request.getPaypalOrderId(), request.getInvoiceCode());
+        log.debug("Capturando pago PayPal: {} para factura ID: {}", request.getPaypalOrderId(), request.getInvoiceId());
 
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new BusinessRuleException("Usuario no autenticado"));
 
-        Invoice invoice = invoiceRepository.findByCode(request.getInvoiceCode())
-            .orElseThrow(() -> new ResourceNotFoundException("Invoice", request.getInvoiceCode()));
+        Invoice invoice = invoiceRepository.findById(request.getInvoiceId())
+            .orElseThrow(() -> new ResourceNotFoundException("Invoice", request.getInvoiceId()));
 
         validateInvoiceOwnership(invoice, userLogin);
 
@@ -117,7 +117,7 @@ public class ClientPaymentService {
                 .captureOrder(captureOrderInput)
                 .getResult();
 
-            if ("COMPLETED".equals(order.getStatus())) {
+            if ("COMPLETED".equals(String.valueOf(order.getStatus()))) {
                 Payment payment = new Payment();
                 payment.setDate(Instant.now());
                 payment.setAmount(invoice.getTotalAmount());
@@ -135,7 +135,7 @@ public class ClientPaymentService {
                     payment.getDate(),
                     payment.getAmount(),
                     payment.getReferenceId(),
-                    invoice.getCode(),
+                    invoice.getId(),
                     order.getId()
                 );
             } else {

@@ -46,9 +46,11 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc, CorsFilter corsFilter)
             throws Exception {
         http
+        
                 .addFilterBefore(corsFilter,
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
+                
                 .authorizeHttpRequests(authz ->
                 // prettier-ignore
                 authz
