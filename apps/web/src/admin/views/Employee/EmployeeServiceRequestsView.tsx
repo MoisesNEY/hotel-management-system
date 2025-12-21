@@ -103,7 +103,7 @@ const EmployeeServiceRequestsView = () => {
                 <div>
                     <div className="font-medium">#{request.booking.id}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {request.booking.customer.firstName} {request.booking.customer.lastName}
+                        {request.booking.customer ? `${request.booking.customer.firstName} ${request.booking.customer.lastName}` : 'Cliente desconocido'}
                     </div>
                 </div>
             )
@@ -150,7 +150,7 @@ const EmployeeServiceRequestsView = () => {
             >
                 <div className={`p-4 rounded-lg ${feedback.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200' :
                     feedback.type === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' :
-                    'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200'}`}>
+                        'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200'}`}>
                     <div className="flex items-center">
                         {feedback.type === 'success' && <CheckCircle2 className="w-5 h-5 mr-2" />}
                         {feedback.type === 'error' && <XCircle className="w-5 h-5 mr-2" />}
