@@ -102,15 +102,22 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             let serverMsg = 'Error al guardar el servicio';
             if (err.response?.data) {
                 const data = err.response.data;
-                serverMsg = data.detail || data.message || data.title || serverMsg;
 
-                // If there are field errors (common in JHipster/Spring)
+                // Detailed check for common Spring/JHipster error structures
+                serverMsg = data.detail || data.message || data.title || (typeof data === 'string' ? data : serverMsg);
+
+                // If there are field errors
                 if (data.fieldErrors && Array.isArray(data.fieldErrors)) {
                     const fields = data.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join(', ');
-                    serverMsg += ` (${fields})`;
+                    serverMsg = `Error de validación: ${fields}`;
                 } else if (data.params) {
                     serverMsg += ` - ${JSON.stringify(data.params)}`;
+                } else if (!data.detail && !data.message && !data.title && typeof data === 'object') {
+                    // If we have an object but no standard fields, show the stringified object
+                    serverMsg = `Error del servidor: ${JSON.stringify(data)}`;
                 }
+            } else if (err.message) {
+                serverMsg = `Error de red: ${err.message}`;
             }
 
             setError(serverMsg);

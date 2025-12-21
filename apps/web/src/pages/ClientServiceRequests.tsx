@@ -316,12 +316,12 @@ const ClientServiceRequests: React.FC = () => {
             <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setNotification({ ...notification, show: false })}></div>
             <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/10 w-full max-w-md rounded-[2rem] overflow-hidden relative z-10 animate-in zoom-in-95 duration-200 shadow-2xl">
               <div className={`h-2 w-full ${notification.type === 'success' ? 'bg-green-500' :
-                  notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
                 }`} />
 
               <div className="p-8 text-center">
                 <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center ${notification.type === 'success' ? 'bg-green-500/10 text-green-500' :
-                    notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'
+                  notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'
                   }`}>
                   {notification.type === 'success' ? <Heart size={40} /> :
                     notification.type === 'error' ? <AlertCircle size={40} /> : <Info size={40} />}
