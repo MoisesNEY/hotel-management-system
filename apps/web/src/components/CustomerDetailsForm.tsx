@@ -121,7 +121,7 @@ const CustomerDetailsForm: React.FC = () => {
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all appearance-none cursor-pointer"
+                  className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all appearance-none cursor-pointer"
                   required
                 >
                   <option value="MALE" className="bg-[#0a143c] text-white">Masculino</option>
@@ -144,7 +144,7 @@ const CustomerDetailsForm: React.FC = () => {
                 name="birthDate"
                 value={formData.birthDate}
                 onChange={handleChange}
-                className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [color-scheme:dark]"
+                className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [color-scheme:dark]"
                 required
                 max={new Date().toISOString().split('T')[0]}
               />
@@ -160,7 +160,7 @@ const CustomerDetailsForm: React.FC = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all"
+                className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_#0a143c_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 placeholder="+505 0000 0000"
                 required
               />
@@ -176,7 +176,7 @@ const CustomerDetailsForm: React.FC = () => {
                 name="licenseId"
                 value={formData.licenseId}
                 onChange={handleChange}
-                className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all"
+                className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_#0a143c_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 placeholder="Número de documento"
                 required
               />
@@ -192,7 +192,7 @@ const CustomerDetailsForm: React.FC = () => {
                 name="addressLine1"
                 value={formData.addressLine1}
                 onChange={handleChange}
-                className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all"
+                className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_#0a143c_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 placeholder="Calle, número, colonia..."
                 required
               />
@@ -208,7 +208,7 @@ const CustomerDetailsForm: React.FC = () => {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all"
+                className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_#0a143c_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 placeholder="Ej. Managua"
                 required
               />
@@ -224,7 +224,7 @@ const CustomerDetailsForm: React.FC = () => {
                 name="country"
                 value={formData.country}
                 onChange={handleChange}
-                className="w-full h-13 px-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all"
+                className="w-full h-13 px-5 bg-[#0a143c]/50 border border-white/10 rounded-2xl !text-white placeholder:text-white/20 outline-none focus:border-gold-default focus:ring-4 focus:ring-gold-default/10 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_#0a143c_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 placeholder="Ej. Nicaragua"
                 required
               />
@@ -297,8 +297,8 @@ const CustomerDetailsForm: React.FC = () => {
       {feedback.show && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] max-w-sm w-full px-4 animate-in slide-in-from-bottom-12 fade-in duration-500">
           <div className={`flex items-center gap-4 p-5 rounded-[1.25rem] shadow-[0_20px_40px_rgba(0,0,0,0.4)] border ${feedback.type === 'success'
-              ? 'bg-emerald-600/90 border-emerald-400/30 text-white'
-              : 'bg-rose-600/90 border-rose-400/30 text-white'
+            ? 'bg-emerald-600/90 border-emerald-400/30 text-white'
+            : 'bg-rose-600/90 border-rose-400/30 text-white'
             } backdrop-blur-xl ring-1 ring-white/10`}>
             <div className={`p-2 rounded-full ${feedback.type === 'success' ? 'bg-white/20' : 'bg-white/20'}`}>
               {feedback.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
