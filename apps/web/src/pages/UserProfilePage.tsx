@@ -45,7 +45,7 @@ interface ServiceRequest {
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { updateUserProfile, userProfile, reloadProfile } = useAuth();
+  const { userProfile, reloadProfile } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
@@ -476,7 +476,7 @@ const UserProfilePage: React.FC = () => {
                       src={userData.imageUrl} 
                       alt="Profile" 
                       className="w-full h-full object-cover" 
-                      onError={(e) => {
+                      onError={() => {
                         console.warn('Profile image failed to load, falling back to initials');
                         setUserData(prev => ({ ...prev, imageUrl: '' }));
                       }}

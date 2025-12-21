@@ -203,7 +203,7 @@ const RoomTypes: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      const response = await createBooking({
+      await createBooking({
         ...formData,
         items: selectedItems
       });
@@ -226,7 +226,7 @@ const RoomTypes: React.FC = () => {
       setShowSuccessModal(true);
       closeModal();
       // Redirect to profile or show success UI would be better
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error al enviar la reserva:', error);
       setErrorMessage('No se pudo registrar la reserva. Inténtalo nuevamente.');
       setShowErrorModal(true);

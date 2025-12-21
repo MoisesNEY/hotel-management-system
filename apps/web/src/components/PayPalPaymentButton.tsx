@@ -10,7 +10,7 @@ interface PayPalPaymentButtonProps {
     onError?: (message: string) => void;
 }
 
-export const PayPalPaymentButton: React.FC<PayPalPaymentButtonProps> = ({ invoiceId, amount, onSuccess, onError }) => {
+export const PayPalPaymentButton: React.FC<PayPalPaymentButtonProps> = ({ invoiceId, onSuccess, onError }) => {
 
     const createOrder = async (_data: any, _actions: any) => {
         try {

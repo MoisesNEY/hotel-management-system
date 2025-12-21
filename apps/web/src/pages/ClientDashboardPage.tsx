@@ -38,6 +38,25 @@ const ClientDashboardPage: React.FC = () => {
     loadData();
   }, []);
 
+  const formatDate = (dateVal: string | number[] | null | undefined) => {
+    if (!dateVal) return 'N/A';
+    try {
+      if (Array.isArray(dateVal)) {
+        // [year, month, day] - month is 1-based in Java, 0-based in JS
+        return new Date(dateVal[0], dateVal[1] - 1, dateVal[2]).toLocaleDateString('es-ES', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+      }
+      const date = new Date(dateVal as string);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+    } catch (error) {
+      return 'N/A';
+    }
+  };
+
   // Find current or next stay
   const currentStay = bookings.find(b => b.status === 'CHECKED_IN' || b.status === 'CONFIRMED');
 
@@ -136,7 +155,7 @@ const ClientDashboardPage: React.FC = () => {
                           <Calendar className="text-[#d4af37]" />
                           <div>
                             <p className="text-xs text-gray-400 uppercase tracking-wider">Fechas</p>
-                            <p className="font-medium">{currentStay.checkInDate} — {currentStay.checkOutDate}</p>
+                            <p className="font-medium">{formatDate(currentStay.checkInDate)} — {formatDate(currentStay.checkOutDate)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -231,8 +250,8 @@ const ClientDashboardPage: React.FC = () => {
                     <tr key={booking.id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-8 py-6 font-mono text-[#d4af37]">{booking.code}</td>
                       <td className="px-8 py-6">
-                          <span className="block text-sm font-medium">{booking.checkInDate}</span>
-                          <span className="block text-xs text-gray-500">al {booking.checkOutDate}</span>
+                          <span className="block text-sm font-medium">{formatDate(booking.checkInDate)}</span>
+                          <span className="block text-xs text-gray-500">al {formatDate(booking.checkOutDate)}</span>
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex flex-wrap gap-1">
@@ -296,7 +315,7 @@ const ClientDashboardPage: React.FC = () => {
                   {invoices.length > 0 ? invoices.map((invoice: InvoiceDTO) => (
                     <tr key={invoice.id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-8 py-6 font-mono text-[#d4af37]">{invoice.code}</td>
-                      <td className="px-8 py-6 text-sm text-gray-300">{new Date(invoice.issueDate).toLocaleDateString()}</td>
+                      <td className="px-8 py-6 text-sm text-gray-300">{formatDate(invoice.issueDate)}</td>
                       <td className="px-8 py-6 font-bold text-lg">${invoice.totalAmount}</td>
                       <td className="px-8 py-6 text-right">
                          {invoice.status === 'PAID' ? (
@@ -363,11 +382,11 @@ const ClientDashboardPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-In</p>
-                  <p className="text-lg font-medium text-white">{selectedBooking.checkInDate}</p>
+                  <p className="text-lg font-medium text-white">{formatDate(selectedBooking.checkInDate)}</p>
                 </div>
                 <div className="space-y-1 text-right">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-Out</p>
-                  <p className="text-lg font-medium text-white">{selectedBooking.checkOutDate}</p>
+                  <p className="text-lg font-medium text-white">{formatDate(selectedBooking.checkOutDate)}</p>
                 </div>
               </div>
 
