@@ -25,6 +25,23 @@ const ClientServiceRequests: React.FC = () => {
     details: ''
   });
 
+  // Modal de Mensajes Globales
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+
+  const showNotification = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ show: true, title, message, type });
+  };
+
   useEffect(() => {
     if (!isAuthenticated || !roles.includes('ROLE_CLIENT')) {
       navigate('/');
@@ -85,9 +102,11 @@ const ClientServiceRequests: React.FC = () => {
       setMyRequests(updatedRequests.data);
 
       setShowModal(false);
-      alert('Solicitud enviada con éxito');
-    } catch (err) {
-      alert('Error al enviar la solicitud');
+      showNotification('¡Éxito!', 'Su solicitud de servicio ha sido enviada con éxito.', 'success');
+    } catch (err: any) {
+      console.error('Error creating service request:', err);
+      const serverMsg = err.response?.data?.detail || err.response?.data?.message || 'Error al enviar la solicitud';
+      showNotification('Atención', serverMsg, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -286,6 +305,39 @@ const ClientServiceRequests: React.FC = () => {
                     {isSubmitting ? 'Procesando...' : 'Confirmar Solicitud de Servicio'}
                   </button>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notification Modal */}
+        {notification.show && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setNotification({ ...notification, show: false })}></div>
+            <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/10 w-full max-w-md rounded-[2rem] overflow-hidden relative z-10 animate-in zoom-in-95 duration-200 shadow-2xl">
+              <div className={`h-2 w-full ${notification.type === 'success' ? 'bg-green-500' :
+                  notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                }`} />
+
+              <div className="p-8 text-center">
+                <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center ${notification.type === 'success' ? 'bg-green-500/10 text-green-500' :
+                    notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'
+                  }`}>
+                  {notification.type === 'success' ? <Heart size={40} /> :
+                    notification.type === 'error' ? <AlertCircle size={40} /> : <Info size={40} />}
+                </div>
+
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{notification.title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+                  {notification.message}
+                </p>
+
+                <button
+                  onClick={() => setNotification({ ...notification, show: false })}
+                  className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg"
+                >
+                  Entendido
+                </button>
               </div>
             </div>
           </div>
