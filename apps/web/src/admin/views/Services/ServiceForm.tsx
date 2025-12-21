@@ -17,6 +17,8 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
     const [cost, setCost] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isAvailable, setIsAvailable] = useState(true);
+    const [startHour, setStartHour] = useState('08:00');
+    const [endHour, setEndHour] = useState('22:00');
 
     const [loading, setLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -29,7 +31,9 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             setDescription(initialData.description || '');
             setCost(initialData.cost.toString());
             setImageUrl(initialData.imageUrl || '');
-            setIsAvailable(initialData.isAvailable);
+            setIsAvailable(initialData.status === 'OPERATIONAL');
+            setStartHour(initialData.startHour || '08:00');
+            setEndHour(initialData.endHour || '22:00');
 
             // Si la URL contiene el bucketName o endpoint de minio, lo marcamos como minio (opcional)
             if (initialData.imageUrl?.includes('/api/files') || initialData.imageUrl?.includes('9000')) {
@@ -71,28 +75,44 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
         }
 
         const payload: HotelServiceDTO = {
-            id: initialData?.id || 0, // ID is ignored on create usually, strictly typed
             name,
-            description,
+            description: description.trim() || undefined,
             cost: Number(cost),
-            imageUrl,
-            isAvailable
+            imageUrl: imageUrl.trim() || undefined,
+            startHour: startHour || '08:00',
+            endHour: endHour || '22:00',
+            isDeleted: false,
+            status: isAvailable ? 'OPERATIONAL' : 'DOWN'
         };
 
+        console.log("Sending payload to backend:", JSON.stringify(payload, null, 2));
         setLoading(true);
         try {
             if (initialData?.id) {
+                payload.id = initialData.id;
                 await updateHotelService(initialData.id, payload);
             } else {
-                // api expects Omit<HotelServiceDTO, 'id'> mostly, but let's check strict type
-                // Usually we cast or object literal without ID for create
-                const { id, ...createPayload } = payload;
-                await createHotelService(createPayload as HotelServiceDTO);
+                await createHotelService(payload);
             }
             onSuccess();
         } catch (err: any) {
             console.error("Error saving service", err);
-            const serverMsg = err.response?.data?.detail || err.response?.data?.message || 'Error al guardar el servicio';
+
+            // Extract more detailed error message if available
+            let serverMsg = 'Error al guardar el servicio';
+            if (err.response?.data) {
+                const data = err.response.data;
+                serverMsg = data.detail || data.message || data.title || serverMsg;
+
+                // If there are field errors (common in JHipster/Spring)
+                if (data.fieldErrors && Array.isArray(data.fieldErrors)) {
+                    const fields = data.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join(', ');
+                    serverMsg += ` (${fields})`;
+                } else if (data.params) {
+                    serverMsg += ` - ${JSON.stringify(data.params)}`;
+                }
+            }
+
             setError(serverMsg);
         } finally {
             setLoading(false);
@@ -170,8 +190,8 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                                     placeholder="https://example.com/image.jpg"
                                     disabled={isMinioImage || isUploading}
                                     className={`${inputClass} pl-10 ${(isMinioImage || isUploading)
-                                            ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
-                                            : ''
+                                        ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
+                                        : ''
                                         }`}
                                 />
                             </div>
@@ -227,6 +247,28 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                                 ? "✨ Imagen subida a almacenamiento interno (Minio). Quita la foto para usar una URL externa."
                                 : "💡 Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
                         </p>
+                    </div>
+                </div>
+
+                {/* Hours */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelClass}>Hora Inicio</label>
+                        <input
+                            type="time"
+                            value={startHour}
+                            onChange={(e) => setStartHour(e.target.value)}
+                            className={inputClass}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Hora Fin</label>
+                        <input
+                            type="time"
+                            value={endHour}
+                            onChange={(e) => setEndHour(e.target.value)}
+                            className={inputClass}
+                        />
                     </div>
                 </div>
 

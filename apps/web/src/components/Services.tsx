@@ -31,7 +31,7 @@ const Services: React.FC = () => {
   const [selectedBookingId, setSelectedBookingId] = useState<string>('');
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     requestDate: '',
     details: '',
@@ -55,7 +55,7 @@ const Services: React.FC = () => {
       try {
         setLoading(true);
         const response = await getAllHotelServices(0, 100);
-        const premiumServices = response.data.filter(s => s.isAvailable && s.cost > 0);
+        const premiumServices = response.data.filter(s => s.status === 'OPERATIONAL' && s.cost > 0);
         setServices(premiumServices);
       } catch (err) {
         console.error('[Services] Error fetching services:', err);
@@ -81,7 +81,7 @@ const Services: React.FC = () => {
       // Only active bookings
       const active = response.data.filter(b => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN');
       setUserBookings(active);
-      
+
       if (active.length > 0) {
         setSelectedBookingId(active[0].id.toString());
       }
@@ -128,24 +128,24 @@ const Services: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.requestDate) {
       alert('Por favor, selecciona una fecha y hora para la solicitud');
       return;
     }
-    
+
     if (!formData.details.trim()) {
       alert('Por favor, proporciona detalles sobre tu solicitud');
       return;
     }
-    
+
     const selectedDate = new Date(formData.requestDate);
     const now = new Date();
     if (selectedDate < now) {
       alert('La fecha y hora de solicitud no pueden ser en el pasado');
       return;
     }
-    
+
     if (!selectedBookingId) {
       alert('Debes seleccionar una reserva activa para solicitar este servicio');
       return;
@@ -181,27 +181,27 @@ const Services: React.FC = () => {
               {header?.subtitle || 'Experimenta el lujo de nuestros servicios exclusivos diseñados para tu máximo confort'}
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[30px]">
             {loading ? (
-               <div className="flex justify-center items-center py-20 col-span-full">
-                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
-               </div>
+              <div className="flex justify-center items-center py-20 col-span-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
+              </div>
             ) : error ? (
-               <div className="col-span-full text-center py-10 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
-                 {error}
-               </div>
+              <div className="col-span-full text-center py-10 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
+                {error}
+              </div>
             ) : services.length === 0 ? (
-               <div className="col-span-full text-center py-20">
-                  <AlertCircle className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">No hay servicios premium disponibles</h3>
-               </div>
+              <div className="col-span-full text-center py-20">
+                <AlertCircle className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">No hay servicios premium disponibles</h3>
+              </div>
             ) : (
               services.map((service, index) => {
                 const colors = serviceColors[index % serviceColors.length];
                 return (
-                  <div 
-                    key={service.id} 
+                  <div
+                    key={service.id}
                     className="group bg-white dark:bg-[#1e1e3e] p-10 px-8 rounded-xl text-center shadow-[0_5px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_5px_20px_rgba(0,0,0,0.3)] transition-all duration-300 relative overflow-hidden border border-gray-200 dark:border-gray-700 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_15px_30px_rgba(0,0,0,0.5)] hover:border-[rgba(212,175,55,0.2)] before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:${colors.border} before:scale-x-0 before:transition-transform before:duration-300 before:origin-left hover:before:scale-x-100"
                   >
                     <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${colors.iconBg} border-2 ${colors.borderColor} transition-all duration-300 group-hover:scale-105 group-hover:bg-white dark:group-hover:bg-white`}>
@@ -223,7 +223,7 @@ const Services: React.FC = () => {
                     <div className="text-center mt-2 font-bold text-[#d4af37] text-lg">
                       ${service.cost}
                     </div>
-                    <button 
+                    <button
                       className={`mt-6 bg-transparent text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-600 px-6 py-2.5 rounded-md font-semibold cursor-pointer transition-all duration-300 text-sm uppercase tracking-wide hover:bg-[#d4af37] hover:border-transparent hover:text-white flex items-center justify-center gap-2 mx-auto`}
                       onClick={() => navigate(isAuthenticated ? '/client/services' : '/client/dashboard')}
                       type="button"
@@ -235,14 +235,14 @@ const Services: React.FC = () => {
               })
             )}
           </div>
-          
+
           <div className="mt-12 p-6 bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm flex items-center gap-4 animate-[fadeIn_0.6s_ease_forwards]">
             <div className="w-10 h-10 rounded-full bg-gold-default/10 flex items-center justify-center text-gold-default flex-shrink-0">
               <Info size={20} />
             </div>
             <p className="m-0 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-              <strong className="text-gray-900 dark:text-white font-bold">Nota importante:</strong> Todos nuestros servicios exclusivos están disponibles 
-              únicamente para huéspedes registrados. Puede solicitar cualquier servicio directamente 
+              <strong className="text-gray-900 dark:text-white font-bold">Nota importante:</strong> Todos nuestros servicios exclusivos están disponibles
+              únicamente para huéspedes registrados. Puede solicitar cualquier servicio directamente
               a través de este panel durante su estadía en el hotel.
             </p>
           </div>
@@ -251,11 +251,11 @@ const Services: React.FC = () => {
 
       {/* Modal de Solicitud de Servicio */}
       {showModal && selectedService && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/70 flex justify-center items-center z-[9999] p-5"
           onClick={handleOverlayClick}
         >
-          <div 
+          <div
             className="bg-white dark:bg-[#1e1e3e] rounded-2xl w-full max-w-[800px] max-h-[90vh] overflow-y-auto shadow-[0_20px_40px_rgba(0,0,0,0.2)] animate-[modalSlideIn_0.3s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
@@ -273,7 +273,7 @@ const Services: React.FC = () => {
                   <p className="m-0 text-gray-600 dark:text-gray-400 text-sm">{selectedService.description}</p>
                 </div>
               </div>
-              <button 
+              <button
                 className="bg-transparent border-none cursor-pointer text-gray-600 dark:text-gray-400 p-2 rounded-full transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                 onClick={closeModal}
                 type="button"
@@ -282,7 +282,7 @@ const Services: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="p-8">
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 {/* Información del servicio */}
@@ -353,7 +353,7 @@ const Services: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Fecha y hora */}
                 <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                   <h4 className="flex items-center gap-2.5 m-0 mb-4 text-gray-900 dark:text-white text-xl">
@@ -380,7 +380,7 @@ const Services: React.FC = () => {
                     </small>
                   </div>
                 </div>
-                
+
                 {/* Detalles */}
                 <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                   <h4 className="flex items-center gap-2.5 m-0 mb-4 text-gray-900 dark:text-white text-xl">
@@ -407,7 +407,7 @@ const Services: React.FC = () => {
                     </small>
                   </div>
                 </div>
-                
+
                 {/* Resumen */}
                 <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-xl border border-green-200 dark:border-green-700">
                   <h4 className="m-0 mb-4 text-gray-900 dark:text-white text-xl">Resumen de la Solicitud</h4>
@@ -428,31 +428,31 @@ const Services: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Botones */}
                 <div className="flex justify-end gap-4 mt-5 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="px-7 py-3.5 bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg font-semibold cursor-pointer transition-all duration-200 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-900 dark:hover:text-white"
                     onClick={closeModal}
                     disabled={isSubmitting}
                   >
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="px-8 py-3.5 bg-gradient-to-br from-[#1a1a2e] to-[#2c3e50] text-white rounded-lg font-semibold cursor-pointer transition-all duration-300 shadow-[0_4px_12px_rgba(26,26,46,0.2)] hover:from-[#2c3e50] hover:to-[#1a1a2e] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(26,26,46,0.3)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                     disabled={isSubmitting || userBookings.length === 0}
                   >
                     {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
                   </button>
                 </div>
-                
+
                 {/* Información legal */}
                 <div className="mt-5 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border-l-4 border-[#2a9d8f]">
                   <p className="m-0 text-gray-600 dark:text-gray-400 text-sm leading-snug">
                     <small>
-                      Al enviar esta solicitud, aceptas nuestros términos de servicio. 
+                      Al enviar esta solicitud, aceptas nuestros términos de servicio.
                       Nos contactaremos contigo para confirmar la disponibilidad.
                     </small>
                   </p>
