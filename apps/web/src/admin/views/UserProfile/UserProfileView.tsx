@@ -8,6 +8,7 @@ const UserProfileView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { reloadProfile } = useAuth();
     const [formData, setFormData] = useState<Partial<AdminUserDTO>>({
@@ -77,9 +78,12 @@ const UserProfileView: React.FC = () => {
         }
     };
 
-    const handleDeletePhoto = async () => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?')) return;
+    const handleDeletePhoto = () => {
+        setShowDeleteConfirm(true);
+    };
 
+    const confirmDeletePhoto = async () => {
+        setShowDeleteConfirm(false);
         setIsUploading(true);
         try {
             await deleteProfilePicture();
@@ -318,6 +322,43 @@ const UserProfileView: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 max-w-sm w-full p-6 transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full">
+                                <Trash2 size={32} />
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                                    ¿Eliminar foto de perfil?
+                                </h3>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                                    ¿Estás seguro de que deseas eliminar tu foto de perfil?
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3 w-full pt-2">
+                                <button
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmDeletePhoto}
+                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-lg shadow-red-500/30 transition-colors"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -4,7 +4,7 @@ import {
   User, Calendar, Shield,
   ArrowLeft, Key, Globe, CreditCard, Package,
   Bed, Coffee, ConciergeBell,
-  X, Edit, Save, ChevronDown, Camera, Loader2, Trash2, CheckCircle2
+  X, Edit, Save, ChevronDown, Camera, Loader2, Trash2, CheckCircle2, AlertCircle, Info
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
 import { useAuth } from '../contexts/AuthProvider';
@@ -81,6 +81,23 @@ const UserProfilePage: React.FC = () => {
       currency: 'USD'
     }
   });
+
+  // Modal de Mensajes Globales
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+
+  const showNotification = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ show: true, title, message, type });
+  };
 
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
@@ -216,10 +233,10 @@ const UserProfilePage: React.FC = () => {
       await reloadProfile();
 
       setIsEditing(false);
-      alert('¡Perfil actualizado exitosamente!');
+      showNotification('¡Perfil Actualizado!', 'Sus datos han sido guardados correctamente.', 'success');
     } catch (error) {
       console.error('[UserProfile] Failed to update profile', error);
-      alert('Error al actualizar el perfil.');
+      showNotification('Error', 'No se pudieron guardar los cambios. Por favor, intente de nuevo.', 'error');
     }
   };
 
@@ -234,11 +251,11 @@ const UserProfilePage: React.FC = () => {
 
       // Actualización reactiva instantánea y del contexto global
       await reloadProfile(); // Force update of token and claims
-      alert('Foto de perfil actualizada');
+      showNotification('¡Foto Actualizada!', 'Su imagen de perfil se ha actualizado correctamente.', 'success');
 
     } catch (error) {
       console.error('[UserProfile] Upload failed', error);
-      alert('Error al subir la imagen');
+      showNotification('Error', 'Hubo un problema al subir la imagen.', 'error');
     } finally {
       setIsUploading(false);
     }
@@ -476,10 +493,10 @@ const UserProfilePage: React.FC = () => {
               <div className="relative group">
                 {userData.imageUrl ? (
                   <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 ring-4 ring-gold-default/20">
-                    <img 
-                      src={userData.imageUrl} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover" 
+                    <img
+                      src={userData.imageUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
                       onError={() => {
                         console.warn('Profile image failed to load, falling back to initials');
                         setUserData(prev => ({ ...prev, imageUrl: '' }));
@@ -779,12 +796,12 @@ const UserProfilePage: React.FC = () => {
                             )}
                           </div>
 
-                          <button 
-                             onClick={() => setSelectedBookingForService({ 
-                               id: booking.id, 
-                               roomTypeName: getRoomSummary(booking.items) 
-                             })} 
-                             className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                          <button
+                            onClick={() => setSelectedBookingForService({
+                              id: booking.id,
+                              roomTypeName: getRoomSummary(booking.items)
+                            })}
+                            className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
                           >
                             <ConciergeBell size={14} /> Servicios
                           </button>
@@ -826,8 +843,44 @@ const UserProfilePage: React.FC = () => {
           bookingId={selectedBookingForService.id}
           roomTypeName={selectedBookingForService.roomTypeName}
           onClose={() => setSelectedBookingForService(null)}
-          onSuccess={() => alert('Solicitud enviada con éxito')}
+          onSuccess={() => showNotification('¡Solicitud Enviada!', 'Su solicitud de servicio ha sido procesada correctamente.', 'success')}
         />
+      )}
+
+      {/* Global Notification Modal */}
+      {notification.show && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setNotification({ ...notification, show: false })}
+          ></div>
+          <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/10 w-full max-w-md rounded-[2.5rem] overflow-hidden relative z-10 animate-in zoom-in-95 duration-200 shadow-2xl">
+            <div className={`h-2 w-full ${notification.type === 'success' ? 'bg-emerald-500' :
+              notification.type === 'error' ? 'bg-red-500' : 'bg-gold-default'
+              }`} />
+
+            <div className="p-10 text-center">
+              <div className={`w-24 h-24 mx-auto mb-8 rounded-[2rem] flex items-center justify-center ${notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-gold-default/10 text-gold-default'
+                }`}>
+                {notification.type === 'success' ? <CheckCircle2 size={48} /> :
+                  notification.type === 'error' ? <AlertCircle size={48} /> : <Info size={48} />}
+              </div>
+
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 tracking-tight">{notification.title}</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-10 leading-relaxed text-sm">
+                {notification.message}
+              </p>
+
+              <button
+                onClick={() => setNotification({ ...notification, show: false })}
+                className="w-full py-5 bg-navy-default dark:bg-white text-white dark:text-navy-default font-bold rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-navy-default/10 dark:shadow-none uppercase text-xs tracking-widest"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

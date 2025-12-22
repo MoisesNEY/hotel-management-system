@@ -26,7 +26,8 @@ import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
 import CMSEditor from './views/CMS/CMSEditor';
-import EmployeeView from './views/Employee/EmployeeView';
+import EmployeeBookingsView from './views/Employee/EmployeeBookingsView';
+import EmployeeServiceRequestsView from './views/Employee/EmployeeServiceRequestsView';
 import FileManagerView from './views/FileManager/FileManagerView';
 import InvoiceList from './views/Finance/InvoiceList';
 import InvoiceForm from './views/Finance/InvoiceForm';
@@ -81,10 +82,17 @@ const routes: RouteConfig[] = [
         layout: '/admin'
     },
     {
-        path: '/employee',
-        name: 'Empleado',
+        path: '/employee/bookings',
+        name: 'Check-in/Check-out',
         icon: UserGroupIcon,
-        component: EmployeeView,
+        component: EmployeeBookingsView,
+        layout: '/admin'
+    },
+    {
+        path: '/employee/service-requests',
+        name: 'Solicitudes Servicio',
+        icon: UserGroupIcon,
+        component: EmployeeServiceRequestsView,
         layout: '/admin'
     },
     {

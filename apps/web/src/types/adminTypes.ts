@@ -38,6 +38,7 @@ export const defaultWebContent: Readonly<WebContent> = {
 export type BookingStatus = 'PENDING' | 'PENDING_APPROVAL' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT';
 export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'CLEANING' | 'DIRTY';
 export type RequestStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
+export type ServiceStatus = 'DOWN' | 'CLOSED' | 'FULL_CAPACITY' | 'OPERATIONAL';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 
 
@@ -116,13 +117,15 @@ export interface BookingDTO {
 }
 
 export interface HotelServiceDTO {
-  id: number;
+  id?: number;
   name: string;
   description?: string;
-  isAvailable: boolean;
-  isDeleted?: boolean;
   cost: number;
   imageUrl?: string;
+  isDeleted?: boolean;
+  startHour?: string;
+  endHour?: string;
+  status: ServiceStatus;
 }
 
 export interface ServiceRequestDTO {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, ChevronRight, ChevronLeft, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, ChevronRight, ChevronLeft, Plus, Trash2, Loader2, AlertCircle, Info } from 'lucide-react';
 import { useSingleContent } from '../hooks/useContent';
 import { useAuth } from '../contexts/AuthProvider';
 import { createBooking, getAvailability } from '../services/client/bookingService';
@@ -36,7 +36,18 @@ const RoomTypes: React.FC = () => {
   } | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  
+  const [feedback, setFeedback] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
+
   const [formData, setFormData] = useState({
     checkInDate: '',
     checkOutDate: '',
@@ -82,15 +93,20 @@ const RoomTypes: React.FC = () => {
 
   const handleReservation = async () => {
     if (!isAuthenticated) {
-        alert('Debes iniciar sesión para realizar una reserva.');
-        login();
-        return;
+      setFeedback({
+        show: true,
+        type: 'info',
+        title: 'Sesión Requerida',
+        message: 'Debes iniciar sesión para realizar una reserva en nuestro hotel.'
+      });
+      login();
+      return;
     }
 
     console.log('Abriendo modal de reserva');
     setCurrentStep(1);
     setShowModal(true);
-    
+
     setFormData({
       checkInDate: '',
       checkOutDate: '',
@@ -109,19 +125,34 @@ const RoomTypes: React.FC = () => {
   const nextStep = async () => {
     if (currentStep === 1) {
       if (!formData.checkInDate || !formData.checkOutDate) {
-        alert('Por favor selecciona las fechas');
+        setFeedback({
+          show: true,
+          type: 'warning',
+          title: 'Fechas Requeridas',
+          message: 'Por favor selecciona las fechas de entrada y salida para verificar disponibilidad.'
+        });
         return;
       }
       // Load availability
       await fetchAvailability();
     } else if (currentStep === 2) {
       if (selectedItems.length === 0) {
-        alert('Selecciona al menos una habitación');
+        setFeedback({
+          show: true,
+          type: 'warning',
+          title: 'Selección Requerida',
+          message: 'Por favor selecciona al menos una habitación para continuar.'
+        });
         return;
       }
     } else if (currentStep === 3) {
       if (selectedItems.some(i => !i.occupantName?.trim())) {
-        alert('Por favor introduce el nombre de los ocupantes para todas las habitaciones');
+        setFeedback({
+          show: true,
+          type: 'warning',
+          title: 'Datos Incompletos',
+          message: 'Por favor introduce el nombre de los ocupantes para todas las habitaciones seleccionadas.'
+        });
         return;
       }
     }
@@ -139,7 +170,12 @@ const RoomTypes: React.FC = () => {
       setAvailability(data);
     } catch (err) {
       console.error("Error fetching availability", err);
-      alert("Error al consultar disponibilidad");
+      setFeedback({
+        show: true,
+        type: 'error',
+        title: 'Error de Disponibilidad',
+        message: 'Hubo un problema al consultar la disponibilidad. Por favor, intenta de nuevo.'
+      });
     } finally {
       setLoadingAvailability(false);
     }
@@ -178,7 +214,12 @@ const RoomTypes: React.FC = () => {
 
     const currentCount = selectedItems.filter(i => i.roomTypeId === typeId).length;
     if (currentCount >= type.availableQuantity) {
-      alert("No hay más habitaciones disponibles de este tipo");
+      setFeedback({
+        show: true,
+        type: 'warning',
+        title: 'Sin Disponibilidad',
+        message: 'No hay más habitaciones disponibles de este tipo en las fechas seleccionadas.'
+      });
       return;
     }
 
@@ -199,10 +240,10 @@ const RoomTypes: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setIsSubmitting(true);
-      
+
       await createBooking({
         ...formData,
         items: selectedItems
@@ -250,28 +291,28 @@ const RoomTypes: React.FC = () => {
               </p>
             )}
           </div>
-          
+
           {loading ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
             </div>
           ) : error ? (
-             <div className="text-center py-10 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
-               {error}
-             </div>
+            <div className="text-center py-10 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
+              {error}
+            </div>
           ) : roomTypes.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-               <Bed className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
-               <h3 className="text-xl text-gray-600 dark:text-gray-400 font-medium">No hay tipos de habitación disponibles</h3>
-               <p className="text-gray-500 dark:text-gray-500 mt-2">Por favor, vuelve a consultar más tarde.</p>
+              <Bed className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+              <h3 className="text-xl text-gray-600 dark:text-gray-400 font-medium">No hay tipos de habitación disponibles</h3>
+              <p className="text-gray-500 dark:text-gray-500 mt-2">Por favor, vuelve a consultar más tarde.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {roomTypes.map((room) => (
                 <div key={room.id} className="group bg-white dark:bg-[#1e1e3e] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 dark:border-gray-700">
                   <div className="relative overflow-hidden h-64">
-                    <img 
-                      src={room.imageUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600'} 
+                    <img
+                      src={room.imageUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600'}
                       alt={room.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -282,7 +323,7 @@ const RoomTypes: React.FC = () => {
                   <div className="p-6">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{room.name}</h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">{room.description || 'Sin descripción disponible.'}</p>
-                    
+
                     <div className="flex justify-around mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                       <div className="flex flex-col items-center gap-2">
                         <Maximize size={18} className="text-[#2a9d8f]" />
@@ -297,7 +338,7 @@ const RoomTypes: React.FC = () => {
                         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.beds || 1} {(!room.beds || room.beds === 1) ? 'cama' : 'camas'}</span>
                       </div>
                     </div>
-                    
+
                     <div className="mt-6 pt-5 border-t border-gray-200 dark:border-gray-700">
                       <div className="text-center mb-5">
                         <div className="mb-2">
@@ -307,15 +348,15 @@ const RoomTypes: React.FC = () => {
                         </div>
                         <div className="text-sm text-[#2a9d8f] font-medium">Impuestos incluidos</div>
                       </div>
-                      
-                      <button 
+
+                      <button
                         className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
                         onClick={handleReservation}
                         type="button"
                       >
                         RESERVAR AHORA
                       </button>
-                      
+
                       <div className="flex justify-center gap-5 mt-4 mb-5">
                         <div className="text-center">
                           <div className="w-6 h-6 mx-auto mb-1 text-[#2a9d8f]">
@@ -334,7 +375,7 @@ const RoomTypes: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="inline-block bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-3 py-1 rounded text-xs text-[#2a9d8f] dark:text-[#4cc9f0] font-semibold mt-2.5">
                         Calidad Garantizada
                       </div>
@@ -349,11 +390,11 @@ const RoomTypes: React.FC = () => {
 
       {/* Modal de Reserva Multi-paso */}
       {showModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 sm:p-6"
           onClick={handleOverlayClick}
         >
-          <div 
+          <div
             className="relative bg-white dark:bg-[#111111] rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 flex flex-col border border-gray-100 dark:border-white/5"
             onClick={(e) => e.stopPropagation()}
           >
@@ -363,7 +404,7 @@ const RoomTypes: React.FC = () => {
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Reserva tu Estancia</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sigue los pasos para completar tu solicitud</p>
               </div>
-              <button 
+              <button
                 className="p-2.5 rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                 onClick={closeModal}
               >
@@ -376,18 +417,16 @@ const RoomTypes: React.FC = () => {
               <div className="flex items-center justify-between relative">
                 {[1, 2, 3, 4].map((step) => (
                   <div key={step} className="flex flex-col items-center z-10 relative">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                      currentStep === step 
-                        ? 'bg-[#d4af37] text-white shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-110' 
-                        : currentStep > step 
-                        ? 'bg-emerald-500 text-white' 
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${currentStep === step
+                      ? 'bg-[#d4af37] text-white shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-110'
+                      : currentStep > step
+                        ? 'bg-emerald-500 text-white'
                         : 'bg-gray-100 dark:bg-white/5 text-gray-400'
-                    }`}>
+                      }`}>
                       {currentStep > step ? <Check size={20} /> : step}
                     </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest mt-2 ${
-                      currentStep === step ? 'text-[#d4af37]' : 'text-gray-400'
-                    }`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest mt-2 ${currentStep === step ? 'text-[#d4af37]' : 'text-gray-400'
+                      }`}>
                       {step === 1 ? 'Fechas' : step === 2 ? 'Habitaciones' : step === 3 ? 'Ocupantes' : 'Confirmar'}
                     </span>
                   </div>
@@ -395,8 +434,8 @@ const RoomTypes: React.FC = () => {
                 {/* Progress Bar Background */}
                 <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-100 dark:bg-white/5 -z-0" />
                 {/* Progress Bar Active */}
-                <div 
-                  className="absolute top-5 left-0 h-0.5 bg-[#d4af37] transition-all duration-500 -z-0" 
+                <div
+                  className="absolute top-5 left-0 h-0.5 bg-[#d4af37] transition-all duration-500 -z-0"
                   style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
                 />
               </div>
@@ -466,7 +505,7 @@ const RoomTypes: React.FC = () => {
                     </div>
                   ) : availability.length === 0 ? (
                     <div className="p-8 bg-gray-50 dark:bg-white/5 rounded-3xl text-center border border-dashed border-gray-200 dark:border-white/10">
-                       No hay habitaciones disponibles para estas fechas.
+                      No hay habitaciones disponibles para estas fechas.
                     </div>
                   ) : (
                     <div className="grid gap-4">
@@ -492,7 +531,7 @@ const RoomTypes: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               {selectedItems.some(i => i.roomTypeId === type.id) && (
-                                <button 
+                                <button
                                   onClick={() => {
                                     const idx = [...selectedItems].reverse().findIndex(i => i.roomTypeId === type.id);
                                     if (idx !== -1) {
@@ -506,7 +545,7 @@ const RoomTypes: React.FC = () => {
                                   <Trash2 size={14} />
                                 </button>
                               )}
-                              <button 
+                              <button
                                 onClick={() => handleAddItem(type.id)}
                                 disabled={type.availableQuantity <= (selectedItems.filter(i => i.roomTypeId === type.id).length)}
                                 className="bg-[#111111] dark:bg-[#d4af37] text-white dark:text-[#111111] px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-2"
@@ -536,7 +575,7 @@ const RoomTypes: React.FC = () => {
                             <h5 className="font-bold text-[#d4af37] flex items-center gap-2">
                               <Bed size={16} /> {type?.name} #{idx + 1}
                             </h5>
-                            <button 
+                            <button
                               onClick={() => handleRemoveItem(idx)}
                               className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
                             >
@@ -618,8 +657,8 @@ const RoomTypes: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-white/10">
-                         <span className="text-gray-900 dark:text-white font-bold">TOTAL ESTIMADO</span>
-                         <span className="text-2xl font-black text-[#d4af37]">${calculateTotal()}</span>
+                        <span className="text-gray-900 dark:text-white font-bold">TOTAL ESTIMADO</span>
+                        <span className="text-2xl font-black text-[#d4af37]">${calculateTotal()}</span>
                       </div>
                     </div>
                   </div>
@@ -630,14 +669,14 @@ const RoomTypes: React.FC = () => {
             {/* Footer */}
             <div className="p-6 sm:p-8 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 flex gap-4">
               {currentStep > 1 && (
-                <button 
+                <button
                   onClick={prevStep}
                   className="px-8 py-4 rounded-2xl font-bold flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
                 >
                   <ChevronLeft size={20} /> Atrás
                 </button>
               )}
-              <button 
+              <button
                 onClick={currentStep === 4 ? handleSubmit : nextStep}
                 disabled={isSubmitting}
                 className="flex-1 bg-[#111111] dark:bg-[#d4af37] text-white dark:text-[#111111] px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-[#d4af37]/10 disabled:opacity-50 flex items-center justify-center gap-2"
@@ -664,17 +703,17 @@ const RoomTypes: React.FC = () => {
 
       {/* Modal de Éxito */}
       {showSuccessModal && successBookingDetails && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5"
           onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
         >
-          <div 
+          <div
             className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
               <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold text-center">¡Reserva Exitosa!</h3>
-              <button 
+              <button
                 className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
                 onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
                 type="button"
@@ -683,7 +722,7 @@ const RoomTypes: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="px-8 pb-8 text-center">
               <div className="mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -693,7 +732,7 @@ const RoomTypes: React.FC = () => {
                   Tu reserva ha sido enviada con éxito. Te contactaremos pronto para confirmar los detalles.
                 </p>
               </div>
-              
+
               <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
                 <h4 className="text-gray-900 dark:text-white font-semibold mb-4">Detalles de la Reserva</h4>
                 <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -719,8 +758,8 @@ const RoomTypes: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
                 onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
                 type="button"
@@ -734,17 +773,17 @@ const RoomTypes: React.FC = () => {
 
       {/* Modal de Error */}
       {showErrorModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/70 dark:bg-black/80 flex justify-center items-center z-[9999] p-5"
           onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
         >
-          <div 
+          <div
             className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
               <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold text-center">Error en la Reserva</h3>
-              <button 
+              <button
                 className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
                 onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
                 type="button"
@@ -753,7 +792,7 @@ const RoomTypes: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="px-8 pb-8 text-center">
               <div className="mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
@@ -763,8 +802,8 @@ const RoomTypes: React.FC = () => {
                   {errorMessage}
                 </p>
               </div>
-              
-              <button 
+
+              <button
                 className="w-full bg-red-600 text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
                 onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
                 type="button"
@@ -804,6 +843,50 @@ const RoomTypes: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* Global Feedback Modal */}
+      {feedback.show && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-[#111111] w-full max-w-md rounded-[2.5rem] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-white/5 animate-in zoom-in-95 duration-300 relative">
+            <button
+              onClick={() => setFeedback({ ...feedback, show: false })}
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <div className="flex flex-col items-center text-center space-y-7">
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                  feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                    feedback.type === 'warning' ? 'bg-amber-500/10 text-amber-500' :
+                      'bg-blue-500/10 text-blue-500'
+                } ring-1 ring-current/20 shadow-2xl shadow-current/10`}>
+                {feedback.type === 'success' && <Check size={48} />}
+                {feedback.type === 'error' && <X size={48} />}
+                {feedback.type === 'warning' && <AlertCircle size={48} />}
+                {feedback.type === 'info' && <Info size={48} />}
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white font-serif tracking-tight">{feedback.title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-[280px] mx-auto">
+                  {feedback.message}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setFeedback({ ...feedback, show: false })}
+                className={`w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl ${feedback.type === 'success' ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20' :
+                    feedback.type === 'error' ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/20' :
+                      feedback.type === 'warning' ? 'bg-amber-500 text-[#050a1f] hover:bg-amber-600 shadow-amber-500/20' :
+                        'bg-[#d4af37] text-[#050a1f] hover:bg-[#b39226] shadow-[#d4af37]/20'
+                  }`}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

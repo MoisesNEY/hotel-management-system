@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { getAllPayments, deletePayment } from '../../../services/admin/paymentService';
 import type { PaymentDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
@@ -12,6 +12,11 @@ const PaymentList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    
+    // Modal state
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState<PaymentDTO | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const loadPayments = async () => {
         setLoading(true);
@@ -30,15 +35,30 @@ const PaymentList: React.FC = () => {
         loadPayments();
     }, [page]);
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar este pago?')) {
-            try {
-                await deletePayment(id);
-                loadPayments();
-            } catch (error) {
-                console.error("Error deleting payment", error);
-            }
+    const handleDelete = (payment: PaymentDTO) => {
+        setSelectedPayment(payment);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!selectedPayment) return;
+        
+        setDeleting(true);
+        try {
+            await deletePayment(selectedPayment.id);
+            loadPayments();
+            setShowDeleteModal(false);
+            setSelectedPayment(null);
+        } catch (error) {
+            console.error("Error deleting payment", error);
+        } finally {
+            setDeleting(false);
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setSelectedPayment(null);
     };
 
     return (
@@ -100,7 +120,7 @@ const PaymentList: React.FC = () => {
                                                 variant="ghost"
                                             />
                                             <ActionButton 
-                                                onClick={() => handleDelete(payment.id)}
+                                                onClick={() => handleDelete(payment)}
                                                 icon={TrashIcon}
                                                 label="Eliminar"
                                                 variant="ghost"
@@ -132,6 +152,85 @@ const PaymentList: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Confirmar eliminación
+                            </h3>
+                            <button
+                                onClick={cancelDelete}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            >
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                                    <TrashIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-gray-900 dark:text-white font-medium mb-2">
+                                        ¿Estás seguro de eliminar este pago?
+                                    </p>
+                                    {selectedPayment && (
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <span className="text-gray-500 dark:text-gray-400">ID:</span>
+                                                    <span className="ml-2 text-gray-900 dark:text-white font-mono">#{selectedPayment.id}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-500 dark:text-gray-400">Monto:</span>
+                                                    <span className="ml-2 text-gray-900 dark:text-white font-bold">${selectedPayment.amount}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-500 dark:text-gray-400">Fecha:</span>
+                                                    <span className="ml-2 text-gray-900 dark:text-white">
+                                                        {new Date(selectedPayment.date).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-500 dark:text-gray-400">Método:</span>
+                                                    <span className="ml-2 text-gray-900 dark:text-white">{selectedPayment.method}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-3">
+                                        Esta acción no se puede deshacer.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                            <button
+                                onClick={cancelDelete}
+                                disabled={deleting}
+                                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={deleting}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg disabled:opacity-50 transition-colors flex items-center gap-2"
+                            >
+                                {deleting && (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                )}
+                                {deleting ? 'Eliminando...' : 'Eliminar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
