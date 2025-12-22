@@ -168,8 +168,7 @@ public class InvoiceService {
     org.hotel.domain.InvoiceItem item = invoiceItemMapper.toEntity(itemDTO);
     item.setInvoice(invoice);
     item.setDate(java.time.Instant.now());
-    
-    // Guardamos el item
+    // item.setQuantity(1) removed
     invoiceItemRepository.save(item); // Importante guardar el item antes de recalcular si usas JPA estricto
     invoice.addItems(item);
 
@@ -186,4 +185,89 @@ public class InvoiceService {
     
     return invoiceMapper.toDto(invoiceRepository.save(invoice));
 }
+    /**
+     * Creates the initial invoice for a booking with detailed items.
+     * @param booking The booking entity.
+     * @return The created InvoiceDTO.
+     */
+    public InvoiceDTO createInitialInvoice(Booking booking) {
+        LOG.debug("Creating initial invoice for booking : {}", booking.getId());
+
+        Invoice invoice = new Invoice();
+        invoice.setCode("INV-" + System.currentTimeMillis());
+        invoice.setIssuedDate(Instant.now());
+        invoice.setStatus(InvoiceStatus.ISSUED);
+        invoice.setBooking(booking);
+
+        // Save Header first to get ID
+        invoice = invoiceRepository.save(invoice);
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        // 1. Iterate Booking Items (Rooms)
+        if (booking.getBookingItems() != null) {
+            for (org.hotel.domain.BookingItem item : booking.getBookingItems()) {
+                if (item.getPrice() != null) {
+                    InvoiceItem invoiceItem = new InvoiceItem();
+                    invoiceItem.setInvoice(invoice);
+                    
+                    // Format Description: "Alojamiento: Suite Deluxe - (2025-12-01 al 2025-12-05)"
+                    String description = String.format("Alojamiento: %s - (%s al %s)",
+                        item.getRoomType() != null ? item.getRoomType().getName() : "Habitación",
+                        booking.getCheckInDate(),
+                        booking.getCheckOutDate()
+                    );
+                    invoiceItem.setDescription(description);
+                    
+                    // Amount
+                    invoiceItem.setAmount(item.getPrice());
+                    // quantity removed
+                    invoiceItem.setDate(Instant.now());
+
+                    invoiceItemRepository.save(invoiceItem);
+                    invoice.addItems(invoiceItem);
+                    
+                    subtotal = subtotal.add(item.getPrice());
+                }
+            }
+        }
+
+        // 2. Iterate Service Requests (Add-ons)
+        if (booking.getServiceRequests() != null) {
+            for (org.hotel.domain.ServiceRequest req : booking.getServiceRequests()) {
+                // Use totalCost if available, otherwise calculate or fallback
+                BigDecimal servicePrice = req.getTotalCost();
+                if (servicePrice == null && req.getService() != null) {
+                     servicePrice = req.getService().getCost();
+                }
+
+                if (servicePrice != null) {
+                     InvoiceItem serviceItem = new InvoiceItem();
+                     serviceItem.setInvoice(invoice);
+                     serviceItem.setDescription(req.getService() != null ? req.getService().getName() : "Servicio Adicional");
+                     serviceItem.setAmount(servicePrice);
+                     // setQuantity removed as it doesn't exist
+                     serviceItem.setDate(Instant.now());
+                     
+                     invoiceItemRepository.save(serviceItem);
+                     invoice.addItems(serviceItem);
+                     
+                     subtotal = subtotal.add(servicePrice);
+                }
+            }
+        }
+
+        // 3. Discounts (Dummy Logic as requested if specific field missing)
+        // Check if there is a 'coupon' or similar logic later. For now, skipping as field not found in entity inspection.
+
+        // 4. Calculate Taxes and Total
+        BigDecimal taxRate = new BigDecimal("0.15"); // 15% Tax
+        BigDecimal taxAmount = subtotal.multiply(taxRate);
+        BigDecimal totalAmount = subtotal.add(taxAmount);
+
+        invoice.setTaxAmount(taxAmount);
+        invoice.setTotalAmount(totalAmount);
+
+        return invoiceMapper.toDto(invoiceRepository.save(invoice));
+    }
 }

@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.hotel.repository.BookingRepository;
 import org.hotel.service.BookingQueryService;
 import org.hotel.service.BookingService;
@@ -249,10 +250,13 @@ public class BookingResource {
         return ResponseEntity.ok(result);
     }
 
+
+
     /**
-     * {@code PUT /bookings/:id/approve} : Approve a booking.
+     * {@code PATCH /:id/approve} : Approve a booking.
      */
-    @PutMapping("/{id}/approve")
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<BookingDTO> approveBooking(@PathVariable("id") Long id) {
         LOG.debug("REST request to approve Booking : {}", id);
         BookingDTO result = bookingService.approveBooking(id);

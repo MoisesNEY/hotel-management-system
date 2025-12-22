@@ -12,7 +12,7 @@ import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.ServiceRequestRepository;
-import org.hotel.service.client.ClientInvoiceService;
+// ClientInvoiceService import removed
 import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.mapper.BookingMapper;
 import org.hotel.web.rest.errors.BusinessRuleException;
@@ -41,12 +41,13 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRequestRepository serviceRequestRepository;
     private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository; // New injection
+    private final RoomRepository roomRepository;
     private final BookingMapper bookingMapper;
-    private final BookingDomainService bookingDomainService; // Injected
+    private final BookingDomainService bookingDomainService;
     private final MailService mailService;
     private final InvoiceRepository invoiceRepository;
-    private final ClientInvoiceService clientInvoiceService;
+    // ClientInvoiceService removed
+    private final InvoiceService invoiceService;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
@@ -56,7 +57,8 @@ public class BookingService {
                           BookingDomainService bookingDomainService,
                           MailService mailService,
                           InvoiceRepository invoiceRepository,
-                          ClientInvoiceService clientInvoiceService) {
+                          // ClientInvoiceService removed
+                          InvoiceService invoiceService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
@@ -65,7 +67,8 @@ public class BookingService {
         this.bookingDomainService = bookingDomainService;
         this.mailService = mailService;
         this.invoiceRepository = invoiceRepository;
-        this.clientInvoiceService = clientInvoiceService;
+        // this.clientInvoiceService removed
+        this.invoiceService = invoiceService;
     }
 
     /**
@@ -260,16 +263,15 @@ public class BookingService {
             throw new BusinessRuleException("Solo reservas pendientes de aprobación pueden ser aprobadas. Estado actual: " + booking.getStatus());
         }
 
-        // Re-Validar Disponibilidad en el momento de la aprobación (Race Condition Check)
-        // prepareBookingData recalcula todo y valida disponibilidad
+        // Re-Validar Disponibilidad en el momento de la aprobación
         prepareBookingData(booking, id);
 
         // Cambiar Estado y Guardar
         booking.setStatus(BookingStatus.PENDING_PAYMENT);
         Booking saved = bookingRepository.save(booking);
 
-        // Generar Factura Snapshot
-        clientInvoiceService.createInvoiceSnapshot(saved);
+        // Generar Factura Detallada (Usando la nueva lógica refactorizada)
+        invoiceService.createInitialInvoice(saved);
 
         // Notificar Usuario
         if (saved.getCustomer() != null) {
