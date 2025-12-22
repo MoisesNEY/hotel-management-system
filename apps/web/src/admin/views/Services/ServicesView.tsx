@@ -32,6 +32,7 @@ const ServicesView = () => {
         setFeedback({ show: true, title, message, type: 'success' });
     };
 
+
     const showError = (title: string, message: string) => {
         setFeedback({ show: true, title, message, type: 'error' });
     };
@@ -189,8 +190,8 @@ const ServicesView = () => {
         {
             header: 'Disponible',
             accessor: (row) => (
-                <Badge variant={row.isAvailable ? 'success' : 'warning'}>
-                    {row.isAvailable ? 'Sí' : 'No'}
+                <Badge variant={row.status === 'OPERATIONAL' ? 'success' : 'warning'}>
+                    {row.status === 'OPERATIONAL' ? 'Sí' : 'No'}
                 </Badge>
             )
         },
@@ -201,7 +202,7 @@ const ServicesView = () => {
                     <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
                         Editar
                     </Button>
-                    <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row.id)} iconOnly>
+                    <Button size="sm" variant="danger" onClick={() => row.id && handleDeleteClick(row.id)} iconOnly>
                         <Trash2 size={14} />
                     </Button>
                 </div>
@@ -239,7 +240,7 @@ const ServicesView = () => {
                     isLoading={loading}
                     title="Catálogo de Servicios"
                     emptyMessage="No hay servicios disponibles"
-                    keyExtractor={(item: HotelServiceDTO) => item.id}
+                    keyExtractor={(item: HotelServiceDTO) => item.id!}
                 />
             </Card>
 
@@ -265,11 +266,10 @@ const ServicesView = () => {
                 size="sm"
             >
                 <div className="p-10 flex flex-col items-center text-center space-y-6">
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
-                        feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
                         feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
-                        'bg-amber-500/10 text-amber-500'
-                    }`}>
+                            'bg-amber-500/10 text-amber-500'
+                        }`}>
                         {feedback.type === 'success' && <CheckCircle2 size={40} />}
                         {feedback.type === 'error' && <XCircle size={40} />}
                         {feedback.type === 'warning' && <AlertTriangle size={40} />}
@@ -280,8 +280,8 @@ const ServicesView = () => {
                             {feedback.message}
                         </p>
                     </div>
-                    <Button 
-                        variant={feedback.type === 'success' ? 'primary' : 'danger'} 
+                    <Button
+                        variant={feedback.type === 'success' ? 'primary' : 'danger'}
                         className="w-full rounded-2xl py-4"
                         onClick={() => setFeedback({ ...feedback, show: false })}
                     >

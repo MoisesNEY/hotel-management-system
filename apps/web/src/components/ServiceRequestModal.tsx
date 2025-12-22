@@ -40,7 +40,7 @@ const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       // Fetch all services, we can optimize pagination later if needed
       const response = await getAllHotelServices(0, 100);
       // Filter only available services
-      const availableServices = response.data.filter(s => s.isAvailable);
+      const availableServices = response.data.filter(s => s.status === 'OPERATIONAL');
       setServices(availableServices);
     } catch (err) {
       console.error('Error fetching services:', err);
@@ -77,7 +77,7 @@ const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   const selectedService = services.find(s => s.id === Number(selectedServiceId));
 
   return (
-   <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       {/* Click outside to close can be added here if needed */}
       <div
         className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-slideUp border border-gray-100 dark:border-gray-700 flex flex-col max-h-[90vh]"

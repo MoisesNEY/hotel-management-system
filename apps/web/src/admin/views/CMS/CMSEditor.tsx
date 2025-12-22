@@ -63,10 +63,27 @@ const CMSEditor: React.FC = () => {
         }
     };
 
-    const handleDelete = async (itemId: number) => {
-        if (!window.confirm("¿Seguro de eliminar este elemento?")) return;
-        await WebContentService.delete(itemId);
-        if (collection) loadData(collection.id!);
+    // Estado para el modal de eliminación
+    const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const handleDelete = (itemId: number) => {
+        setItemToDelete(itemId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
+
+        try {
+            await WebContentService.delete(itemToDelete);
+            if (collection) loadData(collection.id!);
+        } catch (error) {
+            console.error("Error deleting item", error);
+        } finally {
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+        }
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -313,6 +330,29 @@ const CMSEditor: React.FC = () => {
         );
     };
 
+    const renderDeleteModal = () => {
+        if (!isDeleteModalOpen) return null;
+        return (
+            <div className="fixed inset-0 bg-black/60 z-[1060] flex items-center justify-center p-4 backdrop-blur-sm transition-all animate-in fade-in duration-300">
+                <div className="bg-white dark:bg-[#1c1c1c] rounded-3xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden animate-in zoom-in duration-300 border border-gray-100 dark:border-white/10">
+                    <div className="p-6 text-center">
+                        <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash2 size={32} className="text-red-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">¿Eliminar elemento?</h3>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                            ¿Seguro de eliminar este elemento? Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                            <Button variant="ghost" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
+                            <Button variant="danger" onClick={confirmDelete} className="px-6">Sí, Eliminar</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <div className="w-12 h-12 border-4 border-gold-default/30 border-t-gold-default rounded-full animate-spin"></div>
@@ -327,6 +367,7 @@ const CMSEditor: React.FC = () => {
 
     return (
         <div className="content">
+            {renderDeleteModal()}
             {renderEditForm()}
             <Card title={`Sección: ${collection.name}`} subtitle={`ID: ${collection.code} • Tipo: ${collection.type}`} className="pb-8 overflow-visible">
                 <div className="mb-8 flex justify-end">

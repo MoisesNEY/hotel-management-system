@@ -18,6 +18,8 @@ const RoomsView = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingRoom, setEditingRoom] = useState<RoomDTO | null>(null);
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [roomToDelete, setRoomToDelete] = useState<number | null>(null);
 
     useEffect(() => {
         loadData();
@@ -44,15 +46,21 @@ const RoomsView = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar esta habitación?')) {
-            try {
-                await deleteRoom(id);
-                setRooms(rooms.filter(r => r.id !== id));
-            } catch (error) {
-                console.error(error);
-                alert('No se pudo eliminar la habitación.');
-            }
+    const handleDelete = (id: number) => {
+        setRoomToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!roomToDelete) return;
+        try {
+            await deleteRoom(roomToDelete);
+            setRooms(rooms.filter(r => r.id !== roomToDelete));
+            setShowDeleteModal(false);
+            setRoomToDelete(null);
+        } catch (error) {
+            console.error(error);
+            alert('No se pudo eliminar la habitación.');
         }
     };
 
@@ -73,20 +81,20 @@ const RoomsView = () => {
 
     const columns: Column<RoomDTO>[] = [
         { header: 'ID', accessor: (row) => row.id },
-        { 
-            header: 'Número', 
+        {
+            header: 'Número',
             accessor: (row) => <span className="font-bold text-gray-900 dark:text-white">{row.roomNumber}</span>
         },
-        { 
-            header: 'Tipo', 
+        {
+            header: 'Tipo',
             accessor: (row) => (
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                     {row.roomType?.name || 'Sin asignar'}
                 </span>
             )
         },
-        { 
-            header: 'Precio', 
+        {
+            header: 'Precio',
             accessor: (row) => (
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
                     ${row.roomType?.basePrice || 0}
@@ -98,7 +106,7 @@ const RoomsView = () => {
             accessor: (row) => {
                 const config = getRoomStatusConfig(row.status);
                 return (
-                    <span 
+                    <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${config.className}`}
                     >
                         {config.label}
@@ -176,6 +184,46 @@ const RoomsView = () => {
                     onSuccess={handleSuccess}
                     onCancel={handleCancel}
                 />
+            </Modal>
+
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                title="Confirmar Eliminación"
+                size="md"
+            >
+                <div className="flex flex-col items-center justify-center text-center space-y-4 py-2">
+                    <div className="p-4 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 ring-8 ring-red-50 dark:ring-red-900/10">
+                        <Trash2 size={32} />
+                    </div>
+
+                    <div className="space-y-2 px-4">
+                        <p className="text-lg font-medium text-gray-900 dark:text-white">
+                            ¿Estás seguro de eliminar esta habitación?
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Esta acción no se puede deshacer y la información asociada se perderá permanentemente.
+                        </p>
+                    </div>
+
+                    <div className="flex justify-center space-x-3 pt-4 w-full">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowDeleteModal(false)}
+                            className="px-6"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={confirmDelete}
+                            leftIcon={<Trash2 size={16} />}
+                            className="px-6"
+                        >
+                            Eliminar
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
