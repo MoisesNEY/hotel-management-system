@@ -16,10 +16,10 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
 
     return (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div className="bg-white text-black w-full max-w-3xl rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="bg-white text-black w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh]" onClick={e => e.stopPropagation()}>
                 
                 {/* Header Actions */}
-                <div className="bg-gray-100 border-b p-4 flex justify-between items-center">
+                <div className="bg-gray-100 border-b p-4 flex justify-between items-center shrink-0">
                     <h3 className="font-semibold text-gray-600">Detalle de Factura</h3>
                     <div className="flex gap-2">
                         <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors text-gray-600" title="Imprimir" onClick={() => window.print()}>
@@ -35,13 +35,13 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                 </div>
 
                 {/* Invoice Content - Printable Area */}
-                <div className="p-10 md:p-16 bg-white print:p-0" id="invoice-content">
+                <div className="p-6 md:p-12 bg-white print:p-0 overflow-y-auto" id="invoice-content">
                     
                     {/* Invoice Header */}
                     <div className="flex justify-between items-start mb-12">
                         <div>
-                             <h1 className="text-4xl font-bold text-[#d4af37] mb-2">GRAN HOTEL</h1>
-                             <p className="text-gray-500 text-sm tracking-wide">LUXURY & RESORT</p>
+                             <h1 className="text-4xl font-bold text-[#d4af37] mb-2 uppercase tracking-tighter">HOTEL</h1>
+                             <p className="text-gray-500 text-xs tracking-[0.2em] font-medium">LUXURY & RESORT</p>
                         </div>
                         <div className="text-right">
                             <h2 className="text-2xl font-bold text-gray-800 mb-1">FACTURA</h2>
@@ -56,11 +56,11 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                     <div className="flex justify-between mb-12 border-t border-b border-gray-100 py-8">
                         <div>
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Emisor</h4>
-                            <p className="font-bold text-gray-800">Gran Hotel León S.A.</p>
+                            <p className="font-bold text-gray-800">Hotel León S.A.</p>
                             <div className="text-sm text-gray-500 mt-1 flex flex-col gap-0.5">
                                 <span className="flex items-center gap-2"><Building2 size={12}/> Av. Central 123, León, Nicaragua</span>
                                 <span className="flex items-center gap-2"><Phone size={12}/> +505 2311-0000</span>
-                                <span className="flex items-center gap-2"><Globe size={12}/> www.granhotel.com.ni</span>
+                                <span className="flex items-center gap-2"><Globe size={12}/> www.hotel.com.ni</span>
                             </div>
                         </div>
                         <div className="text-right">
@@ -116,7 +116,7 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                     {/* Footer */}
                     <div className="mt-16 pt-8 border-t border-gray-100 text-center text-gray-400 text-xs">
                         <p>Gracias por su preferencia.</p>
-                        <p>Si tiene preguntas sobre esta factura, por favor contáctenos a billing@granhotel.com</p>
+                        <p>Si tiene preguntas sobre esta factura, por favor contáctenos a billing@hotel.com</p>
                     </div>
 
                 </div>

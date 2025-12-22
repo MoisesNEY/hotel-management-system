@@ -229,7 +229,7 @@ const ClientDashboardPage: React.FC = () => {
                     <Calendar size={32} className="text-gray-400 dark:text-gray-600" />
                   </div>
                   <h3 className="text-2xl font-light mb-2 text-gray-900 dark:text-white">No tienes estancias activas</h3>
-                  <p className="text-gray-500 mb-8 max-w-md mx-auto">Reserva tu próxima experiencia de lujo en Gran Hotel León.</p>
+                  <p className="text-gray-500 mb-8 max-w-md mx-auto">Reserva tu próxima experiencia de lujo en Hotel León.</p>
                   <button
                     onClick={handleScrollToRooms}
                     className="px-8 py-3 border border-[#d4af37] text-[#d4af37] font-semibold rounded-full hover:bg-[#d4af37] hover:text-black transition-all duration-300"

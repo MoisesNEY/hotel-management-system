@@ -104,7 +104,7 @@ const CustomerDetailsForm: React.FC = () => {
           </div>
           <h2 className="text-3xl font-bold text-white mb-3">Tu Perfil Noir</h2>
           <p className="text-gray-400 text-sm max-w-md mx-auto">
-            Completa tu información de perfil para disfrutar de una experiencia personalizada en Gran Hotel Antigravity.
+            Completa tu información de perfil para disfrutar de una experiencia personalizada en Hotel Antigravity.
           </p>
         </div>
 
