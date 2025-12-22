@@ -98,4 +98,20 @@ public class MailService {
         String subject = "Pago Confirmado - ¡Tu viaje está listo!";
         sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
     }
+
+    @Async
+    public void sendBookingApprovedEmail(User user, Booking booking) {
+        log.debug("Sending booking approved email to '{}'", user.getEmail());
+
+        // Fetch user with authorities to avoid LazyInitializationException in template
+        User userWithAuthorities = userRepository.findOneWithAuthoritiesByLogin(user.getLogin()).orElse(user);
+
+        Context context = new Context(Locale.forLanguageTag(userWithAuthorities.getLangKey() != null ? userWithAuthorities.getLangKey() : "es"));
+        context.setVariable(USER, userWithAuthorities);
+        context.setVariable("booking", booking);
+        context.setVariable(BASE_URL, "http://localhost:5173");
+        String content = templateEngine.process("mail/bookingApproved", context);
+        String subject = "¡Tu reserva ha sido Confirmada! - Hotel App";
+        sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
+    }
 }

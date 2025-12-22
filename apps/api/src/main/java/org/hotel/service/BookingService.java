@@ -64,6 +64,24 @@ public class BookingService {
     public BookingDTO save(BookingDTO bookingDTO) {
         LOG.debug("Request to save Booking : {}", bookingDTO);
 
+        boolean isNew = bookingDTO.getId() == null;
+        boolean isStatusChangeToConfirmed = false;
+
+        // Check status transition if updating
+        if (!isNew) {
+            Optional<Booking> oldBooking = bookingRepository.findById(bookingDTO.getId());
+            if (oldBooking.isPresent()) {
+                if (!BookingStatus.CONFIRMED.equals(oldBooking.get().getStatus()) &&
+                    BookingStatus.CONFIRMED.equals(bookingDTO.getStatus())) {
+                    isStatusChangeToConfirmed = true;
+                }
+            }
+        } else {
+             if (BookingStatus.CONFIRMED.equals(bookingDTO.getStatus())) {
+                 isStatusChangeToConfirmed = true;
+             }
+        }
+
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
@@ -81,15 +99,21 @@ public class BookingService {
         // Guardamos (Cascade persistirá los BookingItems automáticamente)
         Booking savedBooking = bookingRepository.save(booking);
 
-        // TODO: Llamar a invoiceService.createInvoiceFromBooking(savedBooking);
-
         // Send Email
         try {
             if (savedBooking.getCustomer() != null) {
-                mailService.sendBookingCreationEmail(savedBooking.getCustomer(), savedBooking);
+                // Creation Email (Only if new)
+                if (isNew) {
+                     mailService.sendBookingCreationEmail(savedBooking.getCustomer(), savedBooking);
+                }
+                
+                // Approved Email
+                if (isStatusChangeToConfirmed) {
+                     mailService.sendBookingApprovedEmail(savedBooking.getCustomer(), savedBooking);
+                }
             }
         } catch (Exception e) {
-            LOG.warn("Failed to send booking creation email for booking {}", savedBooking.getCode(), e);
+            LOG.warn("Failed to send email for booking {}", savedBooking.getCode(), e);
         }
 
         return bookingMapper.toDto(savedBooking);
@@ -106,19 +130,35 @@ public class BookingService {
             throw new ResourceNotFoundException("Booking", bookingDTO.getId());
         }
 
+        boolean isStatusChangeToConfirmed = false;
+        Optional<Booking> oldBookingOpt = bookingRepository.findById(bookingDTO.getId());
+        if (oldBookingOpt.isPresent()) {
+             if (!BookingStatus.CONFIRMED.equals(oldBookingOpt.get().getStatus()) &&
+                 BookingStatus.CONFIRMED.equals(bookingDTO.getStatus())) {
+                 isStatusChangeToConfirmed = true;
+             }
+        }
+
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
         // Preservar código si viene nulo en el DTO (Evitar validación fallida en DB si @NotNull existe en Entity)
-        if (booking.getCode() == null) {
-            Optional<Booking> existingOpt = bookingRepository.findById(bookingDTO.getId());
-            if (existingOpt.isPresent()) {
-                booking.setCode(existingOpt.get().getCode());
-            }
+        if (booking.getCode() == null && oldBookingOpt.isPresent()) {
+            booking.setCode(oldBookingOpt.get().getCode());
         }
 
         prepareBookingData(booking, booking.getId());
 
         Booking savedBooking = bookingRepository.save(booking);
+
+        // Send Email if Confirmed
+        if (isStatusChangeToConfirmed && savedBooking.getCustomer() != null) {
+             try {
+                mailService.sendBookingApprovedEmail(savedBooking.getCustomer(), savedBooking);
+             } catch (Exception e) {
+                LOG.warn("Failed to send approved email for booking {}", savedBooking.getCode(), e);
+             }
+        }
+
         return bookingMapper.toDto(savedBooking);
     }
 
@@ -131,6 +171,8 @@ public class BookingService {
         return bookingRepository
             .findById(bookingDTO.getId())
             .map(existingBooking -> {
+                BookingStatus oldStatus = existingBooking.getStatus();
+                
                 bookingMapper.partialUpdate(existingBooking, bookingDTO);
 
                 // Expansión si se enviaron items
@@ -143,9 +185,21 @@ public class BookingService {
                     prepareBookingData(existingBooking, existingBooking.getId());
                 }
 
-                return existingBooking;
+                Booking saved = bookingRepository.save(existingBooking);
+                
+                if (!BookingStatus.CONFIRMED.equals(oldStatus) && 
+                     BookingStatus.CONFIRMED.equals(saved.getStatus())) {
+                     if (saved.getCustomer() != null) {
+                          try {
+                            mailService.sendBookingApprovedEmail(saved.getCustomer(), saved);
+                          } catch (Exception e) {
+                             LOG.warn("Failed to send approved email for booking {}", saved.getCode(), e);
+                          }
+                     }
+                }
+
+                return saved;
             })
-            .map(bookingRepository::save)
             .map(bookingMapper::toDto);
     }
     @Transactional(readOnly = true)
