@@ -40,3 +40,18 @@ export const updateInvoice = async (id: number, invoice: Partial<InvoiceDTO>) =>
 export const deleteInvoice = async (id: number) => {
     await api.delete(`${BASE_URL}/${id}`);
 };
+
+export const getInvoicesByBooking = async (bookingId: number) => {
+    // Using JHipster filtering
+    const response = await api.get<InvoiceDTO[]>(BASE_URL, {
+        params: { 'bookingId.equals': bookingId }
+    });
+    return response.data;
+};
+
+export const addServiceCharge = async (bookingId: number, item: any) => {
+    const response = await api.post<InvoiceDTO>(`${BASE_URL}/charge`, item, {
+        params: { bookingId }
+    });
+    return response.data;
+};

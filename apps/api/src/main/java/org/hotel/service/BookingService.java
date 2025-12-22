@@ -2,13 +2,17 @@ package org.hotel.service;
 
 import org.hotel.domain.Booking;
 import org.hotel.domain.BookingItem;
+import org.hotel.domain.Invoice;
 import org.hotel.domain.RoomType;
 import org.hotel.domain.enumeration.BookingStatus;
+import org.hotel.domain.enumeration.InvoiceStatus;
 import org.hotel.domain.Room;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.ServiceRequestRepository;
+// ClientInvoiceService import removed
 import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.mapper.BookingMapper;
 import org.hotel.web.rest.errors.BusinessRuleException;
@@ -37,22 +41,34 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRequestRepository serviceRequestRepository;
     private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository; // New injection
+    private final RoomRepository roomRepository;
     private final BookingMapper bookingMapper;
-    private final BookingDomainService bookingDomainService; // Injected
+    private final BookingDomainService bookingDomainService;
+    private final MailService mailService;
+    private final InvoiceRepository invoiceRepository;
+    // ClientInvoiceService removed
+    private final InvoiceService invoiceService;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
                           RoomTypeRepository roomTypeRepository,
                           RoomRepository roomRepository,
                           BookingMapper bookingMapper,
-                          BookingDomainService bookingDomainService) {
+                          BookingDomainService bookingDomainService,
+                          MailService mailService,
+                          InvoiceRepository invoiceRepository,
+                          // ClientInvoiceService removed
+                          InvoiceService invoiceService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository;
         this.bookingMapper = bookingMapper;
         this.bookingDomainService = bookingDomainService;
+        this.mailService = mailService;
+        this.invoiceRepository = invoiceRepository;
+        // this.clientInvoiceService removed
+        this.invoiceService = invoiceService;
     }
 
     /**
@@ -60,6 +76,24 @@ public class BookingService {
      */
     public BookingDTO save(BookingDTO bookingDTO) {
         LOG.debug("Request to save Booking : {}", bookingDTO);
+
+        boolean isNew = bookingDTO.getId() == null;
+        boolean isStatusChangeToConfirmed = false;
+
+        // Check status transition if updating
+        if (!isNew) {
+            Optional<Booking> oldBooking = bookingRepository.findById(bookingDTO.getId());
+            if (oldBooking.isPresent()) {
+                if (!BookingStatus.CONFIRMED.equals(oldBooking.get().getStatus()) &&
+                    BookingStatus.CONFIRMED.equals(bookingDTO.getStatus())) {
+                    isStatusChangeToConfirmed = true;
+                }
+            }
+        } else {
+             if (BookingStatus.CONFIRMED.equals(bookingDTO.getStatus())) {
+                 isStatusChangeToConfirmed = true;
+             }
+        }
 
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
@@ -78,7 +112,22 @@ public class BookingService {
         // Guardamos (Cascade persistirá los BookingItems automáticamente)
         Booking savedBooking = bookingRepository.save(booking);
 
-        // TODO: Llamar a invoiceService.createInvoiceFromBooking(savedBooking);
+        // Send Email
+        try {
+            if (savedBooking.getCustomer() != null) {
+                // Creation Email (Only if new)
+                if (isNew) {
+                     mailService.sendBookingCreationEmail(savedBooking.getCustomer(), savedBooking);
+                }
+                
+                // Approved Email
+                if (isStatusChangeToConfirmed) {
+                     mailService.sendBookingApprovedEmail(savedBooking.getCustomer(), savedBooking);
+                }
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to send email for booking {}", savedBooking.getCode(), e);
+        }
 
         return bookingMapper.toDto(savedBooking);
     }
@@ -94,19 +143,35 @@ public class BookingService {
             throw new ResourceNotFoundException("Booking", bookingDTO.getId());
         }
 
+        boolean isStatusChangeToConfirmed = false;
+        Optional<Booking> oldBookingOpt = bookingRepository.findById(bookingDTO.getId());
+        if (oldBookingOpt.isPresent()) {
+             if (!BookingStatus.CONFIRMED.equals(oldBookingOpt.get().getStatus()) &&
+                 BookingStatus.CONFIRMED.equals(bookingDTO.getStatus())) {
+                 isStatusChangeToConfirmed = true;
+             }
+        }
+
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
         // Preservar código si viene nulo en el DTO (Evitar validación fallida en DB si @NotNull existe en Entity)
-        if (booking.getCode() == null) {
-            Optional<Booking> existingOpt = bookingRepository.findById(bookingDTO.getId());
-            if (existingOpt.isPresent()) {
-                booking.setCode(existingOpt.get().getCode());
-            }
+        if (booking.getCode() == null && oldBookingOpt.isPresent()) {
+            booking.setCode(oldBookingOpt.get().getCode());
         }
 
         prepareBookingData(booking, booking.getId());
 
         Booking savedBooking = bookingRepository.save(booking);
+
+        // Send Email if Confirmed
+        if (isStatusChangeToConfirmed && savedBooking.getCustomer() != null) {
+             try {
+                mailService.sendBookingApprovedEmail(savedBooking.getCustomer(), savedBooking);
+             } catch (Exception e) {
+                LOG.warn("Failed to send approved email for booking {}", savedBooking.getCode(), e);
+             }
+        }
+
         return bookingMapper.toDto(savedBooking);
     }
 
@@ -119,6 +184,8 @@ public class BookingService {
         return bookingRepository
             .findById(bookingDTO.getId())
             .map(existingBooking -> {
+                BookingStatus oldStatus = existingBooking.getStatus();
+                
                 bookingMapper.partialUpdate(existingBooking, bookingDTO);
 
                 // Expansión si se enviaron items
@@ -131,9 +198,21 @@ public class BookingService {
                     prepareBookingData(existingBooking, existingBooking.getId());
                 }
 
-                return existingBooking;
+                Booking saved = bookingRepository.save(existingBooking);
+                
+                if (!BookingStatus.CONFIRMED.equals(oldStatus) && 
+                     BookingStatus.CONFIRMED.equals(saved.getStatus())) {
+                     if (saved.getCustomer() != null) {
+                          try {
+                            mailService.sendBookingApprovedEmail(saved.getCustomer(), saved);
+                          } catch (Exception e) {
+                             LOG.warn("Failed to send approved email for booking {}", saved.getCode(), e);
+                          }
+                     }
+                }
+
+                return saved;
             })
-            .map(bookingRepository::save)
             .map(bookingMapper::toDto);
     }
     @Transactional(readOnly = true)
@@ -150,9 +229,60 @@ public class BookingService {
         return bookingRepository.findOneWithToOneRelationships(id).map(bookingMapper::toDto);
     }
 
-    public void delete(Long id) {
+    public String delete(Long id) {
         validateBookingForDeletion(id);
-        bookingRepository.deleteById(id);
+
+        // VALIDACIÓN FINANCIERA
+        java.util.List<Invoice> invoices = invoiceRepository.findAllByBookingId(id);
+        boolean hasPayments = invoices.stream().anyMatch(inv -> 
+            InvoiceStatus.PAID.equals(inv.getStatus())
+        );
+
+        Booking booking = bookingRepository.findById(id).orElseThrow();
+
+        if (hasPayments) {
+            // ACCIÓN: CANCELACIÓN LÓGICA
+            booking.setStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+            return "La reserva ha sido CANCELADA (No eliminada) debido a pagos existentes.";
+        } else {
+            // ACCIÓN: BORRADO FÍSICO
+            if (!invoices.isEmpty()) {
+                 invoiceRepository.deleteAll(invoices);
+            }
+            bookingRepository.deleteById(id);
+            return "La reserva ha sido eliminada correctamente.";
+        }
+    }
+
+    public BookingDTO approveBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+        if (!BookingStatus.PENDING_APPROVAL.equals(booking.getStatus()) && !BookingStatus.PENDING.equals(booking.getStatus())) {
+            throw new BusinessRuleException("Solo reservas pendientes de aprobación pueden ser aprobadas. Estado actual: " + booking.getStatus());
+        }
+
+        // Re-Validar Disponibilidad en el momento de la aprobación
+        prepareBookingData(booking, id);
+
+        // Cambiar Estado y Guardar
+        booking.setStatus(BookingStatus.PENDING_PAYMENT);
+        Booking saved = bookingRepository.save(booking);
+
+        // Generar Factura Detallada (Usando la nueva lógica refactorizada)
+        invoiceService.createInitialInvoice(saved);
+
+        // Notificar Usuario
+        if (saved.getCustomer() != null) {
+            try {
+                mailService.sendBookingApprovedEmail(saved.getCustomer(), saved);
+            } catch (Exception e) {
+                LOG.warn("Failed to send approval email for booking {}", saved.getCode(), e);
+            }
+        }
+
+        return bookingMapper.toDto(saved);
     }
 
     /**
@@ -213,8 +343,8 @@ public class BookingService {
             .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         if (BookingStatus.CHECKED_IN.equals(booking.getStatus()) ||
-            BookingStatus.CONFIRMED.equals(booking.getStatus())) {
-            throw new BusinessRuleException("No puede borrar una reserva en estado CONFIRMADO o CHECK-IN");
+            BookingStatus.CHECKED_OUT.equals(booking.getStatus())) {
+            throw new BusinessRuleException("No puede borrar una reserva en estado CHECK-IN o CHECK-OUT");
         }
         if (serviceRequestRepository.existsByBookingId(bookingId)) {
             throw new BusinessRuleException("La reserva tiene solicitudes de servicio asociadas, bórrelas primero");

@@ -16,6 +16,8 @@ import tech.jhipster.web.util.PaginationUtil;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/client/bookings")
@@ -43,5 +45,13 @@ public class ClientBookingResource {
     public ResponseEntity<List<RoomTypeAvailabilityDTO>> getAvailability(@RequestParam LocalDate checkIn, @RequestParam LocalDate checkOut) {
         var response = clientBookingService.getAvailability(checkIn, checkOut);
         return ResponseEntity.ok().body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteBooking(@PathVariable Long id) {
+        String resultMessage = clientBookingService.deleteBooking(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", resultMessage);
+        return ResponseEntity.ok(response);
     }
 }

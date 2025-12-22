@@ -6,11 +6,13 @@ import org.hotel.domain.RoomType;
 import org.hotel.domain.User;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.BookingDomainService;
+import org.hotel.service.MailService;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.request.booking.BookingItemRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
@@ -42,8 +44,9 @@ public class ClientBookingService {
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
-    private final BookingDomainService bookingDomainService; // Injected
-    private final ClientInvoiceService clientInvoiceService;
+    private final BookingDomainService bookingDomainService;
+    private final MailService mailService;
+    private final InvoiceRepository invoiceRepository;
 
     public ClientBookingService(
         BookingRepository bookingRepository,
@@ -52,7 +55,8 @@ public class ClientBookingService {
         RoomTypeRepository roomTypeRepository,
         RoomRepository roomRepository,
         BookingDomainService bookingDomainService,
-        ClientInvoiceService clientInvoiceService
+        MailService mailService,
+        InvoiceRepository invoiceRepository
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
@@ -60,7 +64,8 @@ public class ClientBookingService {
         this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository;
         this.bookingDomainService = bookingDomainService;
-        this.clientInvoiceService = clientInvoiceService;
+        this.mailService = mailService;
+        this.invoiceRepository = invoiceRepository;
     }
 
     /**
@@ -83,7 +88,7 @@ public class ClientBookingService {
         // 3. Convertir DTO a Entidad
         Booking booking = clientBookingMapper.toEntity(request);
         booking.setCustomer(customer);
-        booking.setStatus(BookingStatus.PENDING);
+        booking.setStatus(BookingStatus.PENDING_APPROVAL);
         booking.setCode("RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
         // 4. Lógica Multi-Habitación (Mapeo Directo)
@@ -126,8 +131,16 @@ public class ClientBookingService {
         // 6. Guardar (Cascade guardará los items)
         booking = bookingRepository.save(booking);
 
-        // 7. Crear Factura Automática
-        clientInvoiceService.createInvoiceForBooking(booking);
+        // 7. [REMOVED] Crear Factura Automática
+        // La factura se creará cuando el admin apruebe la reserva (PENDING_PAYMENT)
+        // clientInvoiceService.createInvoiceForBooking(booking);
+
+        // 8. Enviar Correo de Confirmación (Async) -> Solicitud Recibida
+        try {
+            mailService.sendBookingCreationEmail(customer, booking);
+        } catch (Exception e) {
+            log.warn("Fallo el envio de correo de confirmacion de reserva para usuario: {}", userLogin, e);
+        }
 
         return clientBookingMapper.toClientResponse(booking);
     }
@@ -174,5 +187,56 @@ public class ClientBookingService {
             
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * Elimina o Cancela una reserva del cliente.
+     * Retorna un mensaje indicando si fue eliminada o cancelada.
+     */
+    public String deleteBooking(Long bookingId) {
+        // 1. Obtener Usuario Actual
+        String userLogin = SecurityUtils.getCurrentUserLogin()
+            .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
+
+        // 2. Buscar Reserva con items (necesarios para validaciones)
+        Booking booking = bookingRepository.findOneWithToOneRelationships(bookingId)
+            .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
+
+        // 3. SEGURIDAD: Verificar pertenencia
+        if (!booking.getCustomer().getLogin().equals(userLogin)) {
+            throw new org.hotel.web.rest.errors.BadRequestAlertException("No tiene permisos para eliminar esta reserva", "booking", "accessDenied");
+        }
+
+        // 4. VALIDACIÓN DE ESTADO: No permitir si ya ingresó
+        if (BookingStatus.CHECKED_IN.equals(booking.getStatus()) || 
+            BookingStatus.CHECKED_OUT.equals(booking.getStatus())) {
+            throw new org.hotel.web.rest.errors.BusinessRuleException("No se puede eliminar una reserva que está en curso o ya finalizó.");
+        }
+
+        // 5. VALIDACIÓN DE TIEMPO: Política de 24h / No-Show
+        // Si la fecha de inicio es HOY o ANTES, y no hizo Check-in -> Es un cancelación tardía o No-Show.
+        if (!booking.getCheckInDate().isAfter(LocalDate.now())) {
+             throw new org.hotel.web.rest.errors.BusinessRuleException("No se puede cancelar una reserva el mismo día del ingreso o fecha pasada. Contacte a soporte.");
+        }
+
+        // 6. VALIDACIÓN FINANCIERA: ¿Hay dinero de por medio?
+        List<org.hotel.domain.Invoice> invoices = invoiceRepository.findAllByBookingId(bookingId);
+        boolean hasPayments = invoices.stream().anyMatch(inv -> 
+            org.hotel.domain.enumeration.InvoiceStatus.PAID.equals(inv.getStatus())
+        );
+
+        if (hasPayments) {
+            // ACCIÓN: CANCELACIÓN LÓGICA
+            booking.setStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+            return "La reserva ha sido CANCELADA (No eliminada) debido a pagos existentes. Por favor gestione el reembolso manualmente.";
+        } else {
+            // ACCIÓN: BORRADO FÍSICO
+            if (!invoices.isEmpty()) {
+                 invoiceRepository.deleteAll(invoices);
+            }
+            bookingRepository.delete(booking);
+            return "La reserva ha sido eliminada correctamente.";
+        }
     }
 }

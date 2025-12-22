@@ -1,5 +1,10 @@
 package org.hotel.service.client;
 
+import org.hotel.domain.Booking;
+import org.hotel.domain.BookingItem;
+import org.hotel.domain.Invoice;
+import org.hotel.domain.InvoiceItem;
+import org.hotel.repository.InvoiceItemRepository;
 import org.hotel.repository.InvoiceRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.dto.InvoiceDTO;
@@ -20,10 +25,14 @@ public class ClientInvoiceService {
     private final Logger log = LoggerFactory.getLogger(ClientInvoiceService.class);
 
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceItemRepository invoiceItemRepository;
     private final InvoiceMapper invoiceMapper;
 
-    public ClientInvoiceService(InvoiceRepository invoiceRepository, InvoiceMapper invoiceMapper) {
+    public ClientInvoiceService(InvoiceRepository invoiceRepository, 
+                                InvoiceItemRepository invoiceItemRepository,
+                                InvoiceMapper invoiceMapper) {
         this.invoiceRepository = invoiceRepository;
+        this.invoiceItemRepository = invoiceItemRepository;
         this.invoiceMapper = invoiceMapper;
     }
 
@@ -53,29 +62,49 @@ public class ClientInvoiceService {
     }
 
     @Transactional
-    public void createInvoiceForBooking(org.hotel.domain.Booking booking) {
+    public void createInvoiceSnapshot(Booking booking) {
         if (booking.getInvoices() != null && !booking.getInvoices().isEmpty()) {
             return;
         }
 
-        org.hotel.domain.Invoice invoice = new org.hotel.domain.Invoice();
+        Invoice invoice = new Invoice();
         invoice.setCode("INV-" + booking.getCode());
         invoice.setIssuedDate(java.time.Instant.now());
         invoice.setStatus(org.hotel.domain.enumeration.InvoiceStatus.ISSUED);
         invoice.setCurrency("USD");
         invoice.setBooking(booking);
+        
+        // Guardar Invoice primero para tener ID (si fuera necesario, pero con Cascade ALL en items se guarda todo junto)
+        // Pero items necesitan referencia a invoice.
+        invoice = invoiceRepository.save(invoice);
 
         java.math.BigDecimal totalAmount = java.math.BigDecimal.ZERO;
+        java.util.Set<InvoiceItem> invoiceItems = new java.util.HashSet<>();
+
         if (booking.getBookingItems() != null) {
-            for (org.hotel.domain.BookingItem item : booking.getBookingItems()) {
+            for (BookingItem item : booking.getBookingItems()) {
                 if (item.getPrice() != null) {
-                    totalAmount = totalAmount.add(item.getPrice());
+                    // Crear Snapshot Item
+                    InvoiceItem invoiceItem = new InvoiceItem();
+                    invoiceItem.setInvoice(invoice);
+                    
+                    String description = "Room Charge: " + item.getRoomType().getName();
+                    invoiceItem.setDescription(description);
+                    invoiceItem.setAmount(item.getPrice());
+                    invoiceItem.setDate(java.time.Instant.now());
+                    
+                    invoiceItemRepository.save(invoiceItem);
+                    
+                    invoiceItems.add(invoiceItem);
+                    totalAmount = totalAmount.add(invoiceItem.getAmount());
                 }
             }
         }
+        
         invoice.setTotalAmount(totalAmount);
         invoice.setTaxAmount(totalAmount.multiply(new java.math.BigDecimal("0.15"))); 
-
+        
+        // Guardar cambios finales
         invoiceRepository.save(invoice);
     }
 }

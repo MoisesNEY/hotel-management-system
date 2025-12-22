@@ -34,15 +34,18 @@ public class ClientPaymentService {
     private final PaymentRepository paymentRepository;
     private final InvoiceRepository invoiceRepository;
     private final PaypalServerSdkClient paypalClient;
+    private final org.hotel.service.MailService mailService;
 
     public ClientPaymentService(
         PaymentRepository paymentRepository,
         InvoiceRepository invoiceRepository,
-        PaypalServerSdkClient paypalClient
+        PaypalServerSdkClient paypalClient,
+        org.hotel.service.MailService mailService
     ) {
         this.paymentRepository = paymentRepository;
         this.invoiceRepository = invoiceRepository;
         this.paypalClient = paypalClient;
+        this.mailService = mailService;
     }
 
     /**
@@ -129,6 +132,15 @@ public class ClientPaymentService {
 
                 invoice.setStatus(InvoiceStatus.PAID);
                 invoiceRepository.save(invoice);
+
+                // Enviar Correo de Pago Exitoso (Async) 
+                if (invoice.getBooking() != null && invoice.getBooking().getCustomer() != null) {
+                    try {
+                        mailService.sendPaymentSuccessEmail(invoice.getBooking().getCustomer(), invoice);
+                    } catch (Exception e) {
+                        log.warn("Fallo el envio de correo de pago exitoso para factura: {}", invoice.getCode(), e);
+                    }
+                }
 
                 return new PaymentResponse(
                     payment.getId(),

@@ -40,3 +40,13 @@ export const updatePayment = async (id: number, payment: Partial<PaymentDTO>) =>
 export const deletePayment = async (id: number) => {
     await api.delete(`${BASE_URL}/${id}`);
 };
+
+export interface ManualPaymentRequest {
+  invoiceId: number;
+  amount: number;
+}
+
+export const registerManualPayment = async (request: ManualPaymentRequest) => {
+  const response = await api.post<PaymentDTO>(`${BASE_URL}/manual`, request);
+  return response.data;
+};

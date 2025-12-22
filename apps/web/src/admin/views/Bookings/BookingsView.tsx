@@ -3,20 +3,27 @@ import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { getAllBookings, deleteBooking } from '../../../services/admin/bookingService';
+import { getAllBookings, deleteBooking, approveBooking } from '../../../services/admin/bookingService';
+import { registerManualPayment } from '../../../services/admin/paymentService';
 import { checkIn, checkOut, assignRoom } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
 import type { BookingDTO, RoomDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getBookingStatusConfig } from '../../utils/helpers';
 import BookingForm from './BookingForm';
+import BookingDetailsModal from './BookingDetailsModal';
 import Modal from '../../components/shared/Modal';
-import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { extractErrorMessage } from '../../utils/errorHelper';
+import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle, Save, Eye } from 'lucide-react';
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingBooking, setEditingBooking] = useState<BookingDTO | null>(null);
+
+    // Details Modal State
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [detailsBooking, setDetailsBooking] = useState<BookingDTO | null>(null);
 
     // Assign Room State
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -43,6 +50,23 @@ const BookingsView = () => {
     };
 
     // Handlers
+    const loadBookings = async () => {
+        try {
+            setLoading(true);
+            const response = await getAllBookings();
+            setBookings(response.data);
+        } catch (error) {
+            console.error("Error loading data", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleViewDetails = (booking: BookingDTO) => {
+        setDetailsBooking(booking);
+        setShowDetailsModal(true);
+    };
+
     const openAssignModal = async (booking: BookingDTO) => {
         setSelectedBooking(booking);
         setSelectedItemId('');
@@ -71,6 +95,7 @@ const BookingsView = () => {
         }
     };
 
+
     const handleAssignRoom = async () => {
         if (!selectedBooking || !selectedItemId || !selectedRoomId) return;
         setAssignLoading(true);
@@ -84,8 +109,7 @@ const BookingsView = () => {
             showSuccess('Habitación Asignada', 'La habitación se ha vinculado correctamente al item de la reserva.');
         } catch (error: any) {
             console.error("Error assigning room", error);
-            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo asignar la habitación seleccionada.';
-            showError('Error de Asignación', serverMsg);
+            showError('Error de Asignación', extractErrorMessage(error));
         } finally {
             setAssignLoading(false);
         }
@@ -98,8 +122,7 @@ const BookingsView = () => {
             showSuccess('Check-In Exitoso', 'El huésped ha sido registrado en el hotel.');
         } catch (error: any) {
             console.error("Error during check-in", error);
-            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'Hubo un problema al procesar la entrada del huésped.';
-            showError('Error al Realizar Check-In', serverMsg);
+            showError('Error al Realizar Check-In', extractErrorMessage(error));
         }
     };
 
@@ -110,8 +133,7 @@ const BookingsView = () => {
             showSuccess('Check-Out Completado', 'La estancia ha finalizado correctamente.');
         } catch (error: any) {
             console.error("Error during check-out", error);
-            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'Hubo un problema al procesar la salida del huésped.';
-            showError('Error al Realizar Check-Out', serverMsg);
+            showError('Error al Realizar Check-Out', extractErrorMessage(error));
         }
     };
 
@@ -127,8 +149,7 @@ const BookingsView = () => {
             showSuccess('Reserva Eliminada', 'El registro ha sido removido del sistema permanentemente.');
         } catch (error: any) {
             console.error("Error deleting booking", error);
-            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo completar la eliminación del registro.';
-            showError('Error al Eliminar', serverMsg);
+            showError('Error al Eliminar', extractErrorMessage(error));
         }
     };
 
@@ -146,18 +167,6 @@ const BookingsView = () => {
     useEffect(() => {
         loadBookings();
     }, []);
-
-    const loadBookings = async () => {
-        try {
-            setLoading(true);
-            const response = await getAllBookings();
-            setBookings(response.data);
-        } catch (error) {
-            console.error("Error loading data", error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const columns: Column<BookingDTO>[] = [
         {
@@ -244,6 +253,66 @@ const BookingsView = () => {
             header: 'Acciones',
             accessor: (row) => (
                 <div className="flex gap-2">
+                     <Button size="sm" variant="ghost" onClick={() => handleViewDetails(row)} iconOnly title="Ver Detalles">
+                        <Eye size={18} className="text-gray-500" />
+                    </Button>
+
+                    {/* Quick Approve Action */}
+                    {row.status === 'PENDING_APPROVAL' && (
+                        <Button 
+                            size="sm" 
+                            variant="success" 
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                if(!window.confirm(`¿Aprobar reserva ${row.code || row.id}?`)) return;
+                                try {
+                                    setLoading(true);
+                                    await approveBooking(row.id);
+                                    showSuccess('Aprobada', `La reserva ${row.code} ha sido aprobada.`);
+                                    loadBookings();
+                                } catch (err: any) {
+                                    showError('Error', extractErrorMessage(err));
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }} 
+                            title="Aprobar Solicitud"
+                            iconOnly
+                        >
+                            <CheckCircle2 size={14} />
+                        </Button>
+                    )}
+                    
+                     {/* Quick Pay Action */}
+                     {row.status === 'PENDING_PAYMENT' && row.invoiceId && (
+                        <Button 
+                            size="sm" 
+                            variant="info" 
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                const amountStr = prompt(`Registrar pago manual para ${row.code}.\nMonto total: ${formatCurrency(row.totalPrice || 0)}`, row.totalPrice?.toString());
+                                if(!amountStr) return;
+                                const amount = parseFloat(amountStr);
+                                if(isNaN(amount) || amount <= 0) return;
+
+                                try {
+                                    setLoading(true);
+                                    await registerManualPayment({ invoiceId: row.invoiceId!, amount });
+                                    showSuccess('Pago Registrado', `Se ha registrado el pago para la reserva ${row.code}.`);
+                                    loadBookings();
+                                } catch (err) {
+                                    showError('Error', extractErrorMessage(err));
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }} 
+                            title="Registrar Pago"
+                            iconOnly
+                        >
+                            <Save size={14} />
+                        </Button>
+                    )}
+
                     {row.items?.some(i => !i.assignedRoom) && row.status !== 'CANCELLED' && row.status !== 'CHECKED_OUT' && (
                         <Button size="sm" variant="outline" onClick={() => openAssignModal(row)}>
                             Asignar
@@ -308,6 +377,16 @@ const BookingsView = () => {
                     onCancel={handleFormCancel}
                 />
             </Modal>
+            
+            <BookingDetailsModal 
+                isOpen={showDetailsModal}
+                onClose={() => {
+                   setShowDetailsModal(false);
+                   setDetailsBooking(null);
+                }}
+                booking={detailsBooking}
+            />
+
             {/* Modal de Asignación de Habitación */}
             <Modal
                 isOpen={showAssignModal}

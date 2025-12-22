@@ -1,7 +1,12 @@
 package org.hotel.service;
 
 import java.util.Optional;
+
+import org.hotel.domain.Booking;
 import org.hotel.domain.Payment;
+import org.hotel.domain.enumeration.BookingStatus;
+import org.hotel.domain.enumeration.InvoiceStatus;
+import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.PaymentRepository;
 import org.hotel.service.dto.PaymentDTO;
 import org.hotel.service.mapper.PaymentMapper;
@@ -22,12 +27,17 @@ public class PaymentService {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
+    private final InvoiceRepository invoiceRepository;
 
     private final PaymentMapper paymentMapper;
+    
+    private final MailService mailService;
 
-    public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper) {
+    public PaymentService(PaymentRepository paymentRepository, org.hotel.repository.InvoiceRepository invoiceRepository, PaymentMapper paymentMapper, MailService mailService) {
         this.paymentRepository = paymentRepository;
+        this.invoiceRepository = invoiceRepository;
         this.paymentMapper = paymentMapper;
+        this.mailService = mailService;
     }
 
     /**
@@ -39,8 +49,46 @@ public class PaymentService {
     public PaymentDTO save(PaymentDTO paymentDTO) {
         LOG.debug("Request to save Payment : {}", paymentDTO);
         Payment payment = paymentMapper.toEntity(paymentDTO);
-        payment = paymentRepository.save(payment);
-        return paymentMapper.toDto(payment);
+        
+        // Logic to Confirm Booking & Invoice
+        if (payment.getInvoice() != null && payment.getInvoice().getId() != null) {
+            invoiceRepository.findById(payment.getInvoice().getId()).ifPresent(invoice -> {
+                // 1. Mark Invoice as PAID
+                invoice.setStatus(InvoiceStatus.PAID);
+                
+                // 2. Mark Booking as CONFIRMED
+                if (invoice.getBooking() != null) {
+                    Booking booking = invoice.getBooking();
+                    // Solo confirmar si no estaba ya cancelada (aunque el flujo normal no debería permitirlo)
+                    if (!BookingStatus.CANCELLED.equals(booking.getStatus())) {
+                        booking.setStatus(BookingStatus.CONFIRMED);
+                    }
+                }
+                
+                // 3. Save Invoice (and Booking via cascade or transactional context)
+                invoiceRepository.save(invoice);
+                
+                // Refresh payment invoice reference to be safe
+                payment.setInvoice(invoice);
+            });
+        }
+
+        Payment savedPayment = paymentRepository.save(payment);
+        
+        // Send Email if linked to an invoice with a user
+        try {
+            if (savedPayment.getInvoice() != null) {
+                 invoiceRepository.findById(savedPayment.getInvoice().getId()).ifPresent(invoice -> {
+                     if (invoice.getBooking() != null && invoice.getBooking().getCustomer() != null) {
+                         mailService.sendPaymentSuccessEmail(invoice.getBooking().getCustomer(), invoice);
+                     }
+                 });
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to send payment success email for payment {}", savedPayment.getId(), e);
+        }
+        
+        return paymentMapper.toDto(savedPayment);
     }
 
     /**

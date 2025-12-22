@@ -52,3 +52,11 @@ export const getAvailability = async (
   });
   return response.data;
 };
+
+/**
+ * Get a specific booking by ID
+ */
+export const getBooking = async (id: number): Promise<BookingResponse> => {
+  const response = await apiClient.get<BookingResponse>(`${BOOKINGS_PATH}/${id}`);
+  return response.data;
+};

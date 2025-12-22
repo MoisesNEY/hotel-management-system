@@ -1,0 +1,9 @@
+name: hotelbackend
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: hotel-mailpit
+    restart: unless-stopped
+    ports:
+    - "8025:8025" # Interfaz Web (Para ver los correos)
+    - "1025:1025" # Puerto SMTP (Para que Keycloak envíe)

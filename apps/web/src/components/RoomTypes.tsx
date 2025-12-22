@@ -615,7 +615,7 @@ const RoomTypes: React.FC = () => {
                     <Check className="text-emerald-500 shrink-0" size={24} />
                     <div>
                       <h4 className="font-bold text-emerald-600">Revisa la información de tu reserva</h4>
-                      <p className="text-sm text-emerald-600/80">Estás por finalizar tu solicitud de reserva en Gran Hotel.</p>
+                      <p className="text-sm text-emerald-600/80">Estás por finalizar tu solicitud de reserva en Hotel.</p>
                     </div>
                   </div>
 

@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.math.BigDecimal;
 import org.hotel.domain.enumeration.BookingStatus;
 
 /**
@@ -279,6 +280,19 @@ public class Booking implements Serializable {
     public Booking customer(User user) {
         this.setCustomer(user);
         return this;
+    }
+
+    /**
+     * Helper method to calculate total price from items.
+     */
+    public BigDecimal getTotalPrice() {
+        if (bookingItems == null || bookingItems.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        return bookingItems.stream()
+            .map(BookingItem::getPrice)
+            .filter(java.util.Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

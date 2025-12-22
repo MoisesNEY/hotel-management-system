@@ -12,6 +12,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface InvoiceMapper extends EntityMapper<InvoiceDTO, Invoice> {
     @Mapping(target = "booking", source = "booking", qualifiedByName = "bookingCode")
+    @Mapping(target = "items", source = "items")
     InvoiceDTO toDto(Invoice s);
 
     @Named("bookingCode")

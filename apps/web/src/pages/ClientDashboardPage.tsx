@@ -4,10 +4,12 @@ import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle
 import { useAuth } from '../contexts/AuthProvider';
 import { getMyBookings } from '../services/client/bookingService';
 import { getMyInvoices } from '../services/client/invoiceService';
-import type { BookingResponse, BookingItemResponse } from '../types/clientTypes';
+import type { BookingResponse } from '../types/clientTypes';
 import type { InvoiceDTO } from '../types/adminTypes';
 import RoomTypes from '../components/RoomTypes';
 import { PayPalPaymentButton } from '../components/PayPalPaymentButton';
+import InvoiceDetailsModal from '../components/modals/InvoiceDetailsModal';
+import { getMyInvoice } from '../services/client/invoiceService';
 
 const ClientDashboardPage: React.FC = () => {
   const { userProfile: user } = useAuth();
@@ -17,7 +19,9 @@ const ClientDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'history'>('overview');
   const [selectedBooking, setSelectedBooking] = useState<BookingResponse | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDTO | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -64,10 +68,24 @@ const ClientDashboardPage: React.FC = () => {
     switch (status) {
       case 'CONFIRMED': return 'bg-green-500/20 text-green-400 border-green-500/50';
       case 'CHECKED_IN': return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
-      case 'PENDING': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
+      case 'PENDING_APPROVAL': return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
+      case 'PENDING_PAYMENT': return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
+      case 'PENDING': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50'; // Deprecated but fallback
       case 'CANCELLED': return 'bg-red-500/20 text-red-400 border-red-500/50';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+     switch (status) {
+         case 'PENDING_APPROVAL': return 'Pendiente de Aprobación';
+         case 'PENDING_PAYMENT': return 'Aprobada - Pendiente de Pago';
+         case 'CONFIRMED': return 'Confirmada';
+         case 'CHECKED_IN': return 'En Estancia';
+         case 'CHECKED_OUT': return 'Finalizada';
+         case 'CANCELLED': return 'Cancelada';
+         default: return status;
+     }
   };
 
 
@@ -211,7 +229,7 @@ const ClientDashboardPage: React.FC = () => {
                     <Calendar size={32} className="text-gray-400 dark:text-gray-600" />
                   </div>
                   <h3 className="text-2xl font-light mb-2 text-gray-900 dark:text-white">No tienes estancias activas</h3>
-                  <p className="text-gray-500 mb-8 max-w-md mx-auto">Reserva tu próxima experiencia de lujo en Gran Hotel León.</p>
+                  <p className="text-gray-500 mb-8 max-w-md mx-auto">Reserva tu próxima experiencia de lujo en Hotel León.</p>
                   <button
                     onClick={handleScrollToRooms}
                     className="px-8 py-3 border border-[#d4af37] text-[#d4af37] font-semibold rounded-full hover:bg-[#d4af37] hover:text-black transition-all duration-300"
@@ -280,15 +298,18 @@ const ClientDashboardPage: React.FC = () => {
                       </td>
                       <td className="px-8 py-6">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${getStatusColor(booking.status)}`}>
-                          {booking.status}
+                          {getStatusLabel(booking.status)}
                         </span>
                       </td>
                       <td className="px-8 py-6 text-right">
                         <div className="flex justify-end gap-3">
-                           {/* Botón de PayPal si hay saldo pendiente */}
-                           {booking.status === 'PENDING' && (
-                            <button className="flex items-center gap-2 px-4 py-2 bg-[#0070ba] text-white rounded-full hover:bg-[#005ea6] transition-colors text-xs font-bold">
-                              <CreditCard size={14} /> Pagar con PayPal
+                           {/* Botón de PayPal SOLO si está en PENDING_PAYMENT */}
+                           {booking.status === 'PENDING_PAYMENT' && (
+                            <button 
+                                onClick={() => { setSelectedBooking(booking); setShowDetailsModal(true); }}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#0070ba] text-white rounded-full hover:bg-[#005ea6] transition-colors text-xs font-bold"
+                            >
+                              <CreditCard size={14} /> Pagar Ahora
                             </button>
                            )}
                           <button 
@@ -334,15 +355,32 @@ const ClientDashboardPage: React.FC = () => {
                       <td className="px-8 py-6 text-sm text-gray-600 dark:text-gray-300">{formatDate(invoice.issuedDate)}</td>
                       <td className="px-8 py-6 font-bold text-lg text-gray-900 dark:text-white">${invoice.totalAmount}</td>
                       <td className="px-8 py-6 text-right">
+                        <div className="flex items-center justify-end gap-3">
                          {invoice.status === 'PAID' ? (
                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 rounded-full text-[10px] font-bold">
                               <CheckCircle2 size={12} /> PAGADO
                            </span>
                          ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 rounded-full text-[10px] font-bold">
+                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 rounded-full text-[10px] font-bold">
                               <Clock size={12} /> PENDIENTE
                            </span>
                          )}
+                         <button
+                            onClick={async () => {
+                                try {
+                                    const detailed = await getMyInvoice(invoice.id);
+                                    setSelectedInvoice(detailed);
+                                    setShowInvoiceModal(true);
+                                } catch (e) {
+                                    alert("No se pudo cargar el detalle de la factura.");
+                                }
+                            }}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-[#d4af37] transition-all"
+                            title="Ver Factura Detallada"
+                         >
+                            <ChevronRight size={18} />
+                         </button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
@@ -387,7 +425,7 @@ const ClientDashboardPage: React.FC = () => {
               </button>
               <div className="absolute bottom-6 left-8">
                 <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border mb-2 ${getStatusColor(selectedBooking.status)}`}>
-                  {selectedBooking.status}
+                  {getStatusLabel(selectedBooking.status)}
                 </div>
                 <h3 className="text-2xl font-bold text-white">Reserva {selectedBooking.code}</h3>
               </div>
@@ -395,6 +433,26 @@ const ClientDashboardPage: React.FC = () => {
 
             {/* Contenido */}
             <div className="p-8 space-y-8">
+              {/* Message Banner based on Status */}
+              {selectedBooking.status === 'PENDING_APPROVAL' && (
+                  <div className="bg-orange-500/10 border border-orange-500/20 text-orange-400 p-4 rounded-xl text-sm flex items-start gap-3">
+                      <Clock className="min-w-5 h-5 mt-0.5" />
+                      <div>
+                          <p className="font-bold">Solicitud enviada</p>
+                          <p className="opacity-80">El hotel está revisando tu solicitud. Recibirás un email cuando sea aprobada para proceder al pago.</p>
+                      </div>
+                  </div>
+              )}
+              {selectedBooking.status === 'PENDING_PAYMENT' && (
+                   <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 p-4 rounded-xl text-sm flex items-start gap-3">
+                      <CheckCircle2 className="min-w-5 h-5 mt-0.5" />
+                      <div>
+                          <p className="font-bold">¡Solicitud Aprobada!</p>
+                          <p className="opacity-80">Tu reserva ha sido aprobada. Tienes 24h para completar el pago y confirmar tu estancia.</p>
+                      </div>
+                   </div>
+              )}
+
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Check-In</p>
@@ -427,13 +485,15 @@ const ClientDashboardPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Only show Total/Payment section if approved or confirmed */}
               <div className="pt-6 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Pagado / Pendiente</p>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">${selectedBooking.totalPrice}</p>
                 </div>
                 <div className="flex gap-3">
-                   {(selectedBooking.status === 'PENDING' || selectedBooking.status === 'CONFIRMED') && selectedBooking.invoiceId && (selectedBooking.invoiceStatus === 'PENDING' || selectedBooking.invoiceStatus === 'ISSUED') && (
+                   {/* Payment Button Logic */}
+                   {selectedBooking.status === 'PENDING_PAYMENT' && selectedBooking.invoiceId && (
                      <div className="w-48">
                          <PayPalPaymentButton 
                             invoiceId={selectedBooking.invoiceId}
@@ -459,6 +519,13 @@ const ClientDashboardPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Detalles de Factura */}
+      <InvoiceDetailsModal 
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        invoice={selectedInvoice}
+      />
 
     </div>
   );

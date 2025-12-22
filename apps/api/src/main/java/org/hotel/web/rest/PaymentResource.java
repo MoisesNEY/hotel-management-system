@@ -185,4 +185,27 @@ public class PaymentResource {
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
     }
+
+    /**
+     * {@code POST  /payments/manual} : Register a manual payment (Cash).
+     */
+    @PostMapping("/manual")
+    public ResponseEntity<PaymentDTO> registerManualPayment(@RequestBody org.hotel.service.dto.ManualPaymentRequest request) throws URISyntaxException {
+        LOG.debug("REST request to register Manual Payment : {}", request);
+        
+        PaymentDTO paymentDTO = new PaymentDTO();
+        paymentDTO.setAmount(request.getAmount());
+        paymentDTO.setMethod(org.hotel.domain.enumeration.PaymentMethod.CASH);
+        paymentDTO.setDate(java.time.Instant.now());
+        paymentDTO.setReferenceId("MANUAL-" + java.time.Instant.now().toEpochMilli());
+
+        org.hotel.service.dto.InvoiceDTO invoiceDTO = new org.hotel.service.dto.InvoiceDTO();
+        invoiceDTO.setId(request.getInvoiceId());
+        paymentDTO.setInvoice(invoiceDTO);
+
+        PaymentDTO result = paymentService.save(paymentDTO);
+        return ResponseEntity.created(new URI("/api/payments/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
+            .body(result);
+    }
 }

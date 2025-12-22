@@ -1,6 +1,8 @@
 // Enums as union types (for erasableSyntaxOnly compatibility)
 export type BookingStatus =
     | 'PENDING'
+    | 'PENDING_APPROVAL'
+    | 'PENDING_PAYMENT'
     | 'CONFIRMED'
     | 'CHECKED_IN'
     | 'CHECKED_OUT'

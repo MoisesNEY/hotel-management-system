@@ -15,11 +15,14 @@ export const getUserDisplayInfo = (userObj: any, usersMap: Record<string | numbe
     };
 };
 
-export const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('es-MX', {
+import type { BookingStatus } from '../../types/adminTypes';
+
+export const formatCurrency = (amount: number | string) => {
+    const value = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'MXN'
-    }).format(amount);
+        currency: 'USD'
+    }).format(value);
 };
 
 export const formatDate = (dateString: string): string => {
@@ -63,14 +66,24 @@ export const getRoomStatusConfig = (status: string) => {
     }
 };
 
-export const getBookingStatusConfig = (status: string) => {
+export const getBookingStatusConfig = (status: BookingStatus) => {
     switch (status) {
-        case 'CONFIRMED': return { label: 'Confirmada', variant: 'success' };
-        case 'PENDING': return { label: 'Pendiente', variant: 'warning' };
-        case 'CANCELLED': return { label: 'Cancelada', variant: 'danger' };
-        case 'CHECKED_IN': return { label: 'En Casa', variant: 'info' };
-        case 'CHECKED_OUT': return { label: 'Finalizada', variant: 'secondary' };
-        default: return { label: status, variant: 'primary' };
+        case 'CONFIRMED':
+            return { label: 'Confirmada', variant: 'success' as const };
+        case 'PENDING_APPROVAL':
+            return { label: 'Pend. Aprobación', variant: 'warning' as const };
+        case 'PENDING_PAYMENT':
+            return { label: 'Pend. Pago', variant: 'info' as const };
+        case 'PENDING':
+            return { label: 'Pendiente', variant: 'warning' as const };
+        case 'CHECKED_IN':
+            return { label: 'Check-In', variant: 'primary' as const };
+        case 'CHECKED_OUT':
+            return { label: 'Check-Out', variant: 'default' as const };
+        case 'CANCELLED':
+            return { label: 'Cancelada', variant: 'danger' as const };
+        default:
+            return { label: status, variant: 'default' as const };
     }
 };
 

@@ -41,7 +41,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
         SELECT COUNT(b) FROM Booking b
         JOIN b.bookingItems bi
         WHERE bi.roomType.id = :roomTypeId
-        AND b.status <> 'CANCELLED'
+        AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'PENDING_PAYMENT')
         AND b.checkInDate < :checkOutDate
         AND b.checkOutDate > :checkInDate
     """)
@@ -60,7 +60,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
         JOIN b.bookingItems bi
         WHERE bi.roomType.id = :typeId
         AND b.id != :excludeId
-        AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+        AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'PENDING_PAYMENT')
         AND (b.checkInDate < :checkOut AND b.checkOutDate > :checkIn)
     """)
     long countOverlappingBookingsExcludingSelf(
@@ -74,7 +74,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     boolean existsByCustomerId(String userId);
 
     // Validar estado activo por ID
-    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.id = :id AND b.status IN ('CONFIRMED', 'CHECKED_IN')")
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.id = :id AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'PENDING_PAYMENT')")
     boolean existsActiveBookingById(@Param("id") Long id);
 
 }

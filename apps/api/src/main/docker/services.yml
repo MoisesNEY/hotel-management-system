@@ -13,5 +13,9 @@ services:
     extends:
       file: ./minio.yml
       service: minio
+  mailpit:
+    extends:
+      file: ./mailpit.yml
+      service: mailpit
 volumes:
   minio_data:
