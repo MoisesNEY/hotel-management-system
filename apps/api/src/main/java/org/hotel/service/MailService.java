@@ -9,7 +9,7 @@ import org.hotel.domain.Invoice;
 import org.hotel.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -31,18 +31,16 @@ public class MailService {
     private static final String BASE_URL = "baseUrl";
 
     private final JavaMailSender javaMailSender;
-    private final MessageSource messageSource;
+
     private final SpringTemplateEngine templateEngine;
     private final org.hotel.repository.UserRepository userRepository;
 
     public MailService(
         JavaMailSender javaMailSender,
-        MessageSource messageSource,
         SpringTemplateEngine templateEngine,
         org.hotel.repository.UserRepository userRepository
     ) {
         this.javaMailSender = javaMailSender;
-        this.messageSource = messageSource;
         this.templateEngine = templateEngine;
         this.userRepository = userRepository;
     }

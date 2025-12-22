@@ -8,12 +8,14 @@ import {
 import Badge from '../../components/shared/Badge';
 import Modal from '../../components/shared/Modal';
 import Button from '../../components/shared/Button';
-import { createBooking, updateBooking } from '../../../services/admin/bookingService';
+import { createBooking, updateBooking, approveBooking } from '../../../services/admin/bookingService';
+import { registerManualPayment } from '../../../services/admin/paymentService';
 import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
 import { getAllRooms } from '../../../services/admin/roomService';
 import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
 import { getAllUsers } from '../../../services/admin/userService';
 
+import { extractErrorMessage } from '../../utils/errorHelper';
 import type { 
     BookingDTO, 
     RoomTypeDTO, 
@@ -155,6 +157,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             return;
         }
 
+
         try {
             const selectedCustomer = customers.find(c => c.id === Number(selectedCustomerId));
             
@@ -162,6 +165,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 throw new Error("Datos de selección de cliente inválidos");
             }
 
+            // ... payload construction ...
             const payload_items = bookingItems.map(item => {
                 const rt = roomTypes.find(t => t.id === Number(item.roomTypeId));
                 const assignedRoom = item.assignedRoomId ? rooms.find(r => r.id === Number(item.assignedRoomId)) : undefined;
@@ -192,14 +196,13 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             onSuccess();
         } catch (err: any) {
             console.error(err);
-            const serverMsg = err.response?.data?.detail || err.response?.data?.message || 'Error crítico al procesar la reserva. Contacte a soporte.';
-            setError(serverMsg);
+            setError(extractErrorMessage(err));
         } finally {
             setLoading(false);
         }
     };
 
-    const statuses: BookingStatus[] = ['PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT'];
+    const statuses: BookingStatus[] = ['PENDING_APPROVAL', 'PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT', 'PENDING'];
 
     const inputStyle = "w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-default/20 focus:border-gold-default outline-none transition-all placeholder:text-gray-400 disabled:opacity-50 appearance-none";
     const labelStyle = "block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1";
@@ -467,9 +470,62 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             </div>
 
             <div className="flex items-center justify-between gap-4 pt-10 border-t border-gray-100 dark:border-white/5">
-                <p className="text-[11px] text-gray-400 font-medium italic">
-                    * Todos los cambios impactan la disponibilidad en tiempo real.
-                </p>
+                <div className="flex gap-2">
+                     {/* Acciones de Flujo de Reservas */}
+                     {initialData && status === 'PENDING_APPROVAL' && (
+                         <Button
+                             type="button"
+                             variant="success"
+                             onClick={async () => {
+                                 if (!window.confirm("¿Aprobar esta solicitud? Se verificará disponibilidad y se generará la factura.")) return;
+                                 try {
+                                     setLoading(true);
+                                     await approveBooking(initialData.id);
+                                     onSuccess();
+                                 } catch (err: any) {
+                                     setError(extractErrorMessage(err));
+                                 } finally {
+                                    setLoading(false);
+                                 }
+                             }}
+                             disabled={loading}
+                             leftIcon={<CheckCircle2 size={16} />}
+                         >
+                             Aprobar Solicitud
+                         </Button>
+                     )}
+
+                     {initialData && status === 'PENDING_PAYMENT' && initialData.invoiceId && (
+                         <Button
+                            type="button"
+                            variant="info"
+                            onClick={async () => {
+                                const amountStr = prompt(`Confirmar pago en efectivo para Factura #${initialData.invoiceId}.\nIngrese el monto recibido:`, initialData.totalPrice?.toString());
+                                if (!amountStr) return;
+                                const amount = parseFloat(amountStr);
+                                if (isNaN(amount) || amount <= 0) {
+                                    alert("Monto inválido");
+                                    return;
+                                }
+
+                                try {
+                                    setLoading(true);
+                                    await registerManualPayment({ invoiceId: initialData.invoiceId!, amount });
+                                    onSuccess();
+                                } catch (err: any) {
+                                    setError(extractErrorMessage(err));
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            disabled={loading}
+                             leftIcon={<Save size={16} />}
+                         >
+                             Registrar Pago Efectivo
+                         </Button>
+                     )}
+                </div>
+                
                 <div className="flex gap-4">
                     <Button 
                         type="button" 
