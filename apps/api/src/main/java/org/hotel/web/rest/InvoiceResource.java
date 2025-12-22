@@ -198,4 +198,30 @@ public class InvoiceResource {
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
     }
+
+    /**
+     * {@code POST  /invoices/charge} : Add a service charge to a booking invoice.
+     *
+     * @param bookingId the booking ID.
+     * @param itemDTO the invoice item to add.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    /**
+     * {@code POST  /invoices/charge} : Add a service charge to a booking invoice.
+     *
+     * @param bookingId the booking ID.
+     * @param itemDTO the invoice item to add.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the updated InvoiceDTO.
+     */
+    @PostMapping("/charge")
+    public ResponseEntity<InvoiceDTO> addServiceCharge(
+        @RequestParam(value = "bookingId") Long bookingId,
+        @Valid @RequestBody org.hotel.service.dto.InvoiceItemDTO itemDTO
+    ) {
+        LOG.debug("REST request to add service charge to booking : {}", bookingId);
+
+        InvoiceDTO updatedInvoice = invoiceService.addServiceCharge(bookingId, itemDTO);
+        
+        return ResponseEntity.ok().body(updatedInvoice);
+    }
 }
