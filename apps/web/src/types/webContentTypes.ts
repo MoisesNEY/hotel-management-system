@@ -5,6 +5,7 @@ export interface WebContent {
   imageUrl?: string;    // URL de la foto (si tiene)
   actionUrl?: string;   // Link, tel:, mailto: o src del iframe
   sortOrder?: number;   // Para ordenar carruseles
+  isActive?: boolean;   // Para filtrar contenidos activos
 }
 // Valores por defecto para evitar undefined crash
 export const defaultValue: Readonly<WebContent> = {};

@@ -4,13 +4,22 @@ import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react'
 
 const Footer: React.FC = () => {
   const { data: contactItems } = useListContent('CONTACT_INFO');
+  const { data: socialItems } = useListContent('SOCIAL_NETWORKS');
   const { data: footerInfo } = useSingleContent('FOOTER_INFO');
 
   const getContactVal = (key: string) => contactItems.find(c => c.title?.toLowerCase().includes(key.toLowerCase()));
-  
+
   const phone = getContactVal('phone') || getContactVal('teléfono');
   const email = getContactVal('email') || getContactVal('correo');
   const address = getContactVal('address') || getContactVal('dirección');
+
+  const getSocialIcon = (title?: string) => {
+    const t = title?.toLowerCase() || '';
+    if (t.includes('facebook')) return <Facebook size={18} />;
+    if (t.includes('instagram')) return <Instagram size={18} />;
+    if (t.includes('twitter') || t.includes('x')) return <Twitter size={18} />;
+    return <Facebook size={18} />;
+  };
 
   return (
     <footer className="bg-gray-100 dark:bg-[#050608] text-gray-900 dark:text-white py-16 border-t border-gray-200 dark:border-white/5 transition-colors duration-300" id="contacto">
@@ -23,9 +32,26 @@ const Footer: React.FC = () => {
               {footerInfo?.title || '"Donde cada estadía se convierte en un recuerdo inolvidable"'}
             </p>
             <div className="flex gap-4">
-               <a href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"><Facebook size={18} /></a>
-               <a href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"><Instagram size={18} /></a>
-               <a href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"><Twitter size={18} /></a>
+              {socialItems && socialItems.length > 0 ? (
+                socialItems.filter(s => s.isActive !== false).map((item, idx) => (
+                  <a
+                    key={item.id || idx}
+                    href={item.actionUrl || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"
+                    title={item.title || 'Red Social'}
+                  >
+                    {getSocialIcon(item.title)}
+                  </a>
+                ))
+              ) : (
+                <>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"><Facebook size={18} /></a>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"><Instagram size={18} /></a>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center hover:bg-gold-default/20 hover:text-gold-default transition-all duration-300 border border-gray-200 dark:border-white/10 text-gray-400"><Twitter size={18} /></a>
+                </>
+              )}
             </div>
           </div>
 
