@@ -261,7 +261,7 @@ public class InvoiceService {
         // Check if there is a 'coupon' or similar logic later. For now, skipping as field not found in entity inspection.
 
         // 4. Calculate Taxes and Total
-        BigDecimal taxRate = new BigDecimal("0.15"); // 15% Tax
+        BigDecimal taxRate = new BigDecimal("0.00"); // 0% Tax (N/A)
         BigDecimal taxAmount = subtotal.multiply(taxRate);
         BigDecimal totalAmount = subtotal.add(taxAmount);
 

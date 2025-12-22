@@ -100,11 +100,11 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                         <div className="w-64 bg-gray-50 rounded-lg p-6">
                             <div className="flex justify-between mb-2">
                                 <span className="text-sm text-gray-500">Subtotal</span>
-                                <span className="text-sm font-medium text-gray-800">${(invoice.totalAmount / 1.15).toFixed(2)}</span>
+                                <span className="text-sm font-medium text-gray-800">${invoice.totalAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between mb-4 pb-4 border-b border-gray-200">
-                                <span className="text-sm text-gray-500">Impuestos (15%)</span>
-                                <span className="text-sm font-medium text-gray-800">${(invoice.totalAmount - (invoice.totalAmount / 1.15)).toFixed(2)}</span>
+                                <span className="text-sm text-gray-500">Impuestos (0%)</span>
+                                <span className="text-sm font-medium text-gray-800">$0.00</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-base font-bold text-gray-800">Total</span>
