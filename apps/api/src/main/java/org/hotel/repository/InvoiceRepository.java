@@ -35,7 +35,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long>, JpaSpec
     @Query("select invoice from Invoice invoice left join fetch invoice.booking")
     List<Invoice> findAllWithToOneRelationships();
 
-    @Query("select invoice from Invoice invoice left join fetch invoice.booking where invoice.id =:id")
+    @Query("select invoice from Invoice invoice left join fetch invoice.booking left join fetch invoice.items where invoice.id =:id")
     Optional<Invoice> findOneWithToOneRelationships(@Param("id") Long id);
 
     Page<Invoice> findByBooking_Customer_Login(String login, Pageable pageable);

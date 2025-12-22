@@ -4,7 +4,9 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import org.hotel.domain.enumeration.InvoiceStatus;
 
 /**
@@ -31,6 +33,8 @@ public class InvoiceDTO implements Serializable {
     private String currency;
 
     private BookingDTO booking;
+
+    private Set<InvoiceItemDTO> items = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -94,6 +98,14 @@ public class InvoiceDTO implements Serializable {
 
     public void setBooking(BookingDTO booking) {
         this.booking = booking;
+    }
+
+    public Set<InvoiceItemDTO> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<InvoiceItemDTO> items) {
+        this.items = items;
     }
 
     @Override

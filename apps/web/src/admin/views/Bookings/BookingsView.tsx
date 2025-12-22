@@ -10,15 +10,20 @@ import { getAllRooms } from '../../../services/admin/roomService';
 import type { BookingDTO, RoomDTO } from '../../../types/adminTypes';
 import { formatCurrency, formatDate, getBookingStatusConfig } from '../../utils/helpers';
 import BookingForm from './BookingForm';
+import BookingDetailsModal from './BookingDetailsModal';
 import Modal from '../../components/shared/Modal';
 import { extractErrorMessage } from '../../utils/errorHelper';
-import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle, Save } from 'lucide-react';
+import { Edit, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle, Save, Eye } from 'lucide-react';
 
 const BookingsView = () => {
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingBooking, setEditingBooking] = useState<BookingDTO | null>(null);
+
+    // Details Modal State
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [detailsBooking, setDetailsBooking] = useState<BookingDTO | null>(null);
 
     // Assign Room State
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -55,6 +60,11 @@ const BookingsView = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleViewDetails = (booking: BookingDTO) => {
+        setDetailsBooking(booking);
+        setShowDetailsModal(true);
     };
 
     const openAssignModal = async (booking: BookingDTO) => {
@@ -126,8 +136,6 @@ const BookingsView = () => {
             showError('Error al Realizar Check-Out', extractErrorMessage(error));
         }
     };
-
-    // ...
 
     const handleEdit = (booking: BookingDTO) => {
         setEditingBooking(booking);
@@ -245,6 +253,10 @@ const BookingsView = () => {
             header: 'Acciones',
             accessor: (row) => (
                 <div className="flex gap-2">
+                     <Button size="sm" variant="ghost" onClick={() => handleViewDetails(row)} iconOnly title="Ver Detalles">
+                        <Eye size={18} className="text-gray-500" />
+                    </Button>
+
                     {/* Quick Approve Action */}
                     {row.status === 'PENDING_APPROVAL' && (
                         <Button 
@@ -365,6 +377,16 @@ const BookingsView = () => {
                     onCancel={handleFormCancel}
                 />
             </Modal>
+            
+            <BookingDetailsModal 
+                isOpen={showDetailsModal}
+                onClose={() => {
+                   setShowDetailsModal(false);
+                   setDetailsBooking(null);
+                }}
+                booking={detailsBooking}
+            />
+
             {/* Modal de Asignación de Habitación */}
             <Modal
                 isOpen={showAssignModal}

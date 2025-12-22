@@ -8,6 +8,8 @@ import type { BookingResponse } from '../types/clientTypes';
 import type { InvoiceDTO } from '../types/adminTypes';
 import RoomTypes from '../components/RoomTypes';
 import { PayPalPaymentButton } from '../components/PayPalPaymentButton';
+import InvoiceDetailsModal from '../components/modals/InvoiceDetailsModal';
+import { getMyInvoice } from '../services/client/invoiceService';
 
 const ClientDashboardPage: React.FC = () => {
   const { userProfile: user } = useAuth();
@@ -17,7 +19,9 @@ const ClientDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'history'>('overview');
   const [selectedBooking, setSelectedBooking] = useState<BookingResponse | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDTO | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -351,15 +355,32 @@ const ClientDashboardPage: React.FC = () => {
                       <td className="px-8 py-6 text-sm text-gray-600 dark:text-gray-300">{formatDate(invoice.issuedDate)}</td>
                       <td className="px-8 py-6 font-bold text-lg text-gray-900 dark:text-white">${invoice.totalAmount}</td>
                       <td className="px-8 py-6 text-right">
+                        <div className="flex items-center justify-end gap-3">
                          {invoice.status === 'PAID' ? (
                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 rounded-full text-[10px] font-bold">
                               <CheckCircle2 size={12} /> PAGADO
                            </span>
                          ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 rounded-full text-[10px] font-bold">
+                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 rounded-full text-[10px] font-bold">
                               <Clock size={12} /> PENDIENTE
                            </span>
                          )}
+                         <button
+                            onClick={async () => {
+                                try {
+                                    const detailed = await getMyInvoice(invoice.id);
+                                    setSelectedInvoice(detailed);
+                                    setShowInvoiceModal(true);
+                                } catch (e) {
+                                    alert("No se pudo cargar el detalle de la factura.");
+                                }
+                            }}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-[#d4af37] transition-all"
+                            title="Ver Factura Detallada"
+                         >
+                            <ChevronRight size={18} />
+                         </button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
@@ -498,6 +519,13 @@ const ClientDashboardPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Detalles de Factura */}
+      <InvoiceDetailsModal 
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        invoice={selectedInvoice}
+      />
 
     </div>
   );

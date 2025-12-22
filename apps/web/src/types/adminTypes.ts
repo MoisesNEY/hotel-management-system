@@ -139,9 +139,12 @@ export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED';
 export interface InvoiceItemDTO {
   id: number;
   description: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
+  amount: number;
+  tax?: number;
+  date?: string;
+  quantity?: number;
+  unitPrice?: number;
+  totalPrice?: number;
 }
 
 export interface InvoiceDTO {

@@ -52,7 +52,7 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                         </div>
                     </div>
 
-                    {/* Info Grid */}
+                     {/* Info Grid */}
                     <div className="flex justify-between mb-12 border-t border-b border-gray-100 py-8">
                         <div>
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Emisor</h4>
@@ -67,8 +67,7 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Cliente</h4>
                              <p className="font-bold text-gray-800">{userProfile?.firstName} {userProfile?.lastName}</p>
                              <p className="text-sm text-gray-500">{userProfile?.email}</p>
-                             <p className="text-sm text-gray-500 mt-4"><span className="font-medium">Fecha Emisión:</span> {new Date(invoice.issueDate).toLocaleDateString()}</p>
-                             <p className="text-sm text-gray-500"><span className="font-medium">Fecha Vencimiento:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                             <p className="text-sm text-gray-500 mt-4"><span className="font-medium">Fecha Emisión:</span> {invoice.issuedDate ? new Date(invoice.issuedDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                     </div>
 
@@ -77,23 +76,19 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b-2 border-gray-100">
-                                    <th className="py-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-1/2">Descripción</th>
-                                    <th className="py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Cant.</th>
-                                    <th className="py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Precio Unit.</th>
-                                    <th className="py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Total</th>
+                                    <th className="py-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-3/4">Descripción</th>
+                                    <th className="py-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Monto</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {invoice.items && invoice.items.length > 0 ? invoice.items.map((item, index) => (
                                     <tr key={index}>
                                         <td className="py-4 text-gray-700 font-medium">{item.description}</td>
-                                        <td className="py-4 text-right text-gray-600">{item.quantity}</td>
-                                        <td className="py-4 text-right text-gray-600">${item.unitPrice.toFixed(2)}</td>
-                                        <td className="py-4 text-right text-gray-800 font-bold">${item.totalPrice.toFixed(2)}</td>
+                                        <td className="py-4 text-right text-gray-800 font-bold">${item.amount.toFixed(2)}</td>
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan={4} className="py-8 text-center text-gray-400 italic">No hay items detallados en esta factura.</td>
+                                        <td colSpan={2} className="py-8 text-center text-gray-400 italic">No hay items detallados en esta factura.</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -113,7 +108,7 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ isOpen, onClo
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-base font-bold text-gray-800">Total</span>
-                                <span className="text-xl font-bold text-[#d4af37]">${invoice.totalAmount.toFixed(2)}</span>
+                                <span className="text-xl font-bold text-[#d4af37] border-b-2 border-[#d4af37]/20 pb-1">${invoice.totalAmount.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
