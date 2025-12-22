@@ -119,6 +119,7 @@ const CMSList: React.FC = () => {
         { code: 'HEADER_SERVICES', name: 'Encabezado: Servicios', type: CollectionType.SINGLE_IMAGE, description: 'Título y descripción de la sección Servicios' },
         { code: 'HEADER_GALLERY', name: 'Encabezado: Galería', type: CollectionType.SINGLE_IMAGE, description: 'Título y descripción de la sección Galería' },
         { code: 'CONTACT_INFO', name: 'Datos de Contacto', type: CollectionType.TEXT_LIST, description: 'Teléfono, Email y Redes Sociales' },
+        { code: 'SOCIAL_NETWORKS', name: 'Redes Sociales', type: CollectionType.TEXT_LIST, description: 'Enlaces a Facebook, Instagram, Twitter, etc.' },
         { code: 'MAIN_LOCATION', name: 'Ubicación Mapa', type: CollectionType.MAP_EMBED, description: 'URL de iframe de Google Maps' },
     ];
 
