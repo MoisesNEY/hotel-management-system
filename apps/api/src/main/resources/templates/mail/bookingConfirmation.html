@@ -4,57 +4,81 @@
     <title>Confirmación de Reserva</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f7f9fc; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
-        .header { background-color: #1a1a1a; color: #d4af37; padding: 20px; text-align: center; }
-        .content { padding: 30px; color: #333333; }
-        .footer { background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #666666; }
-        .button { display: inline-block; background-color: #d4af37; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 20px; font-weight: bold; }
-        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .details-table th, .details-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        .details-table th { color: #666; font-weight: 600; width: 40%; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background-color: #1a1a1a; color: #d4af37; padding: 30px; text-align: center; border-bottom: 4px solid #d4af37; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; }
+        .content { padding: 40px; color: #333333; line-height: 1.6; }
+        .greeting { font-size: 18px; color: #1a1a1a; margin-bottom: 20px; }
+        .details-box { background-color: #f9f9f9; border-left: 4px solid #d4af37; padding: 20px; margin: 25px 0; }
+        .details-table { width: 100%; border-collapse: collapse; }
+        .details-table th, .details-table td { padding: 8px 0; border-bottom: 1px solid #eeeeee; text-align: left; font-size: 14px; }
+        .details-table th { color: #888888; font-weight: 500; width: 40%; }
+        .details-table td { color: #333333; font-weight: 600; }
+        .details-table tr:last-child th, .details-table tr:last-child td { border-bottom: none; }
+        .highlight { color: #d4af37; font-weight: bold; }
+        .status-badge { display: inline-block; background-color: #fff8e1; color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid #fcd34d; }
+        .button-container { text-align: center; margin-top: 35px; }
+        .button { display: inline-block; background-color: #d4af37; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: background-color 0.3s; }
+        .button:hover { background-color: #b8962d; }
+        .footer { background-color: #1a1a1a; padding: 20px; text-align: center; font-size: 12px; color: #888888; }
+        .footer a { color: #d4af37; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="margin:0;">Hotel App</h1>
+            <h1>Hotel</h1>
         </div>
         <div class="content">
-            <p th:text="|Hola ${user.firstName},|">Hola Usuario,</p>
-            <p>Hemos recibido tu solicitud de reserva. A continuación te presentamos los detalles:</p>
+            <p class="greeting" th:text="|Hola ${user.firstName},|">Hola Cliente,</p>
+            <p>Gracias por elegirnos. Hemos recibido tu solicitud de reserva y estamos procesándola. A continuación encontrarás los detalles preliminares:</p>
+            
+            <div class="details-box">
+                <table class="details-table">
+                    <tr>
+                        <th>CÓDIGO DE RESERVA</th>
+                        <td class="highlight" th:text="${booking.code}">RES-0000</td>
+                    </tr>
+                    <tr>
+                        <th>FECHA CHECK-IN</th>
+                        <td th:text="${booking.checkInDate}">2023-01-01</td>
+                    </tr>
+                    <tr>
+                        <th>FECHA CHECK-OUT</th>
+                        <td th:text="${booking.checkOutDate}">2023-01-05</td>
+                    </tr>
+                    <tr>
+                        <th>HUÉSPEDES</th>
+                        <td th:text="${booking.guestCount}">2</td>
+                    </tr>
+                    <tr>
+                        <th>TOTAL ESTIMADO</th>
+                        <td th:text="|$${booking.totalPrice}|">$0.00</td>
+                    </tr>
+                </table>
+            </div>
 
-            <table class="details-table">
-                <tr>
-                    <th>Código de Reserva</th>
-                    <td th:text="${booking.code}" style="font-family: monospace; font-weight: bold; color: #d4af37;">RES-12345</td>
-                </tr>
-                <tr>
-                    <th>Check-in</th>
-                    <td th:text="${booking.checkInDate}">2023-10-01</td>
-                </tr>
-                <tr>
-                    <th>Check-out</th>
-                    <td th:text="${booking.checkOutDate}">2023-10-05</td>
-                </tr>
-                <tr>
-                    <th>HUéspedes</th>
-                    <td th:text="${booking.guestCount}">2</td>
-                </tr>
-                <tr>
-                    <th>Total Estimado</th>
-                    <td th:text="|$${booking.totalPrice}|">$500.00</td>
-                </tr>
-            </table>
-
-            <p>Tu reserva está actualmente en estado <strong style="color: #eab308;">PENDIENTE</strong>. Te notificaremos una vez que el pago haya sido confirmado.</p>
-
-            <div style="text-align: center;">
-                <a th:href="|${baseUrl}/client/dashboard|" class="button">Ver Mi Reserva</a>
+            <p style="text-align: center;">
+                Estado actual: <span class="status-badge" th:text="${booking.status}">PENDIENTE</span>
+            </p>
+            <p style="font-size: 13px; color: #666; text-align: center;">Te notificaremos tan pronto como tu pago sea confirmado para finalizar tu reserva.</p>
+            
+            <div class="button-container">
+                <!-- Check if user has 'ROLE_ADMIN' authority -->
+                <a th:if="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                   th:href="|${baseUrl}/admin/bookings|" 
+                   class="button">Gestionar Reserva</a>
+                   
+                <!-- Else (User) -->
+                <a th:unless="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                   th:href="|${baseUrl}/client/dashboard|" 
+                   class="button">Ver Mi Reserva</a>
             </div>
         </div>
         <div class="footer">
-            <p>© 2025 Hotel Management System. Todos los derechos reservados.</p>
+            <p>© 2025 Hotel Management. Todos los derechos reservados.</p>
+            <p>Si tienes alguna pregunta, contáctanos en <a href="mailto:support@hotelmanagement.com">support@hotelmanagement.com</a></p>
         </div>
     </div>
 </body>

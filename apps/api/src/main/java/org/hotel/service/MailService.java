@@ -33,15 +33,18 @@ public class MailService {
     private final JavaMailSender javaMailSender;
     private final MessageSource messageSource;
     private final SpringTemplateEngine templateEngine;
+    private final org.hotel.repository.UserRepository userRepository;
 
     public MailService(
         JavaMailSender javaMailSender,
         MessageSource messageSource,
-        SpringTemplateEngine templateEngine
+        SpringTemplateEngine templateEngine,
+        org.hotel.repository.UserRepository userRepository
     ) {
         this.javaMailSender = javaMailSender;
         this.messageSource = messageSource;
         this.templateEngine = templateEngine;
+        this.userRepository = userRepository;
     }
 
     @Async
@@ -67,24 +70,32 @@ public class MailService {
     @Async
     public void sendBookingCreationEmail(User user, Booking booking) {
         log.debug("Sending booking creation email to '{}'", user.getEmail());
-        Context context = new Context(Locale.forLanguageTag(user.getLangKey() != null ? user.getLangKey() : "es"));
-        context.setVariable(USER, user);
+        
+        // Fetch user with authorities to avoid LazyInitializationException in template
+        User userWithAuthorities = userRepository.findOneWithAuthoritiesByLogin(user.getLogin()).orElse(user);
+        
+        Context context = new Context(Locale.forLanguageTag(userWithAuthorities.getLangKey() != null ? userWithAuthorities.getLangKey() : "es"));
+        context.setVariable(USER, userWithAuthorities);
         context.setVariable("booking", booking);
         context.setVariable(BASE_URL, "http://localhost:5173");
         String content = templateEngine.process("mail/bookingConfirmation", context);
         String subject = "Recibimos tu solicitud de reserva - Hotel App";
-        sendEmail(user.getEmail(), subject, content, false, true);
+        sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
     }
 
     @Async
     public void sendPaymentSuccessEmail(User user, Invoice invoice) {
         log.debug("Sending payment success email to '{}'", user.getEmail());
-        Context context = new Context(Locale.forLanguageTag(user.getLangKey() != null ? user.getLangKey() : "es"));
-        context.setVariable(USER, user);
+        
+        // Fetch user with authorities to avoid LazyInitializationException in template
+        User userWithAuthorities = userRepository.findOneWithAuthoritiesByLogin(user.getLogin()).orElse(user);
+
+        Context context = new Context(Locale.forLanguageTag(userWithAuthorities.getLangKey() != null ? userWithAuthorities.getLangKey() : "es"));
+        context.setVariable(USER, userWithAuthorities);
         context.setVariable("invoice", invoice);
         context.setVariable(BASE_URL, "http://localhost:5173");
         String content = templateEngine.process("mail/paymentSuccess", context);
         String subject = "Pago Confirmado - ¡Tu viaje está listo!";
-        sendEmail(user.getEmail(), subject, content, false, true);
+        sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
     }
 }

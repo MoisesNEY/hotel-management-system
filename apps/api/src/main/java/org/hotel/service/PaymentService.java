@@ -22,12 +22,17 @@ public class PaymentService {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
+    private final org.hotel.repository.InvoiceRepository invoiceRepository;
 
     private final PaymentMapper paymentMapper;
+    
+    private final MailService mailService;
 
-    public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper) {
+    public PaymentService(PaymentRepository paymentRepository, org.hotel.repository.InvoiceRepository invoiceRepository, PaymentMapper paymentMapper, MailService mailService) {
         this.paymentRepository = paymentRepository;
+        this.invoiceRepository = invoiceRepository;
         this.paymentMapper = paymentMapper;
+        this.mailService = mailService;
     }
 
     /**
@@ -40,6 +45,21 @@ public class PaymentService {
         LOG.debug("Request to save Payment : {}", paymentDTO);
         Payment payment = paymentMapper.toEntity(paymentDTO);
         payment = paymentRepository.save(payment);
+        
+        // Send Email if linked to an invoice with a user
+        try {
+            if (payment.getInvoice() != null && payment.getInvoice().getId() != null) {
+                // Fetch full invoice to ensure relationships and data are loaded
+                 invoiceRepository.findById(payment.getInvoice().getId()).ifPresent(invoice -> {
+                     if (invoice.getBooking() != null && invoice.getBooking().getCustomer() != null) {
+                         mailService.sendPaymentSuccessEmail(invoice.getBooking().getCustomer(), invoice);
+                     }
+                 });
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to send payment success email for payment {}", payment.getId(), e);
+        }
+        
         return paymentMapper.toDto(payment);
     }
 

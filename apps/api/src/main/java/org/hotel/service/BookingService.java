@@ -40,19 +40,22 @@ public class BookingService {
     private final RoomRepository roomRepository; // New injection
     private final BookingMapper bookingMapper;
     private final BookingDomainService bookingDomainService; // Injected
+    private final MailService mailService;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
                           RoomTypeRepository roomTypeRepository,
                           RoomRepository roomRepository,
                           BookingMapper bookingMapper,
-                          BookingDomainService bookingDomainService) {
+                          BookingDomainService bookingDomainService,
+                          MailService mailService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository;
         this.bookingMapper = bookingMapper;
         this.bookingDomainService = bookingDomainService;
+        this.mailService = mailService;
     }
 
     /**
@@ -79,6 +82,15 @@ public class BookingService {
         Booking savedBooking = bookingRepository.save(booking);
 
         // TODO: Llamar a invoiceService.createInvoiceFromBooking(savedBooking);
+
+        // Send Email
+        try {
+            if (savedBooking.getCustomer() != null) {
+                mailService.sendBookingCreationEmail(savedBooking.getCustomer(), savedBooking);
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to send booking creation email for booking {}", savedBooking.getCode(), e);
+        }
 
         return bookingMapper.toDto(savedBooking);
     }
