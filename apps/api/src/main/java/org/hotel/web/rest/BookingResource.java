@@ -200,9 +200,9 @@ public class BookingResource {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Booking : {}", id);
-        bookingService.delete(id);
-        return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+        String result = bookingService.delete(id);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createAlert(applicationName, result, id.toString()))
             .build();
     }
 
@@ -247,5 +247,17 @@ public class BookingResource {
         LOG.debug("REST request to check-out booking : {}", id);
         BookingDTO result = employeeBookingService.checkOut(id);
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * {@code PUT /bookings/:id/approve} : Approve a booking.
+     */
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<BookingDTO> approveBooking(@PathVariable("id") Long id) {
+        LOG.debug("REST request to approve Booking : {}", id);
+        BookingDTO result = bookingService.approveBooking(id);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, id.toString()))
+            .body(result);
     }
 }

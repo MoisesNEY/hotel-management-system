@@ -2,13 +2,17 @@ package org.hotel.service;
 
 import org.hotel.domain.Booking;
 import org.hotel.domain.BookingItem;
+import org.hotel.domain.Invoice;
 import org.hotel.domain.RoomType;
 import org.hotel.domain.enumeration.BookingStatus;
+import org.hotel.domain.enumeration.InvoiceStatus;
 import org.hotel.domain.Room;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
 import org.hotel.repository.ServiceRequestRepository;
+import org.hotel.service.client.ClientInvoiceService;
 import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.mapper.BookingMapper;
 import org.hotel.web.rest.errors.BusinessRuleException;
@@ -41,6 +45,8 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final BookingDomainService bookingDomainService; // Injected
     private final MailService mailService;
+    private final InvoiceRepository invoiceRepository;
+    private final ClientInvoiceService clientInvoiceService;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
@@ -48,7 +54,9 @@ public class BookingService {
                           RoomRepository roomRepository,
                           BookingMapper bookingMapper,
                           BookingDomainService bookingDomainService,
-                          MailService mailService) {
+                          MailService mailService,
+                          InvoiceRepository invoiceRepository,
+                          ClientInvoiceService clientInvoiceService) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
@@ -56,6 +64,8 @@ public class BookingService {
         this.bookingMapper = bookingMapper;
         this.bookingDomainService = bookingDomainService;
         this.mailService = mailService;
+        this.invoiceRepository = invoiceRepository;
+        this.clientInvoiceService = clientInvoiceService;
     }
 
     /**
@@ -216,9 +226,61 @@ public class BookingService {
         return bookingRepository.findOneWithToOneRelationships(id).map(bookingMapper::toDto);
     }
 
-    public void delete(Long id) {
+    public String delete(Long id) {
         validateBookingForDeletion(id);
-        bookingRepository.deleteById(id);
+
+        // VALIDACIÓN FINANCIERA
+        java.util.List<Invoice> invoices = invoiceRepository.findAllByBookingId(id);
+        boolean hasPayments = invoices.stream().anyMatch(inv -> 
+            InvoiceStatus.PAID.equals(inv.getStatus())
+        );
+
+        Booking booking = bookingRepository.findById(id).orElseThrow();
+
+        if (hasPayments) {
+            // ACCIÓN: CANCELACIÓN LÓGICA
+            booking.setStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+            return "La reserva ha sido CANCELADA (No eliminada) debido a pagos existentes.";
+        } else {
+            // ACCIÓN: BORRADO FÍSICO
+            if (!invoices.isEmpty()) {
+                 invoiceRepository.deleteAll(invoices);
+            }
+            bookingRepository.deleteById(id);
+            return "La reserva ha sido eliminada correctamente.";
+        }
+    }
+
+    public BookingDTO approveBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+        if (!BookingStatus.PENDING_APPROVAL.equals(booking.getStatus()) && !BookingStatus.PENDING.equals(booking.getStatus())) {
+            throw new BusinessRuleException("Solo reservas pendientes de aprobación pueden ser aprobadas. Estado actual: " + booking.getStatus());
+        }
+
+        // Re-Validar Disponibilidad en el momento de la aprobación (Race Condition Check)
+        // prepareBookingData recalcula todo y valida disponibilidad
+        prepareBookingData(booking, id);
+
+        // Cambiar Estado y Guardar
+        booking.setStatus(BookingStatus.PENDING_PAYMENT);
+        Booking saved = bookingRepository.save(booking);
+
+        // Generar Factura Snapshot
+        clientInvoiceService.createInvoiceSnapshot(saved);
+
+        // Notificar Usuario
+        if (saved.getCustomer() != null) {
+            try {
+                mailService.sendBookingApprovedEmail(saved.getCustomer(), saved);
+            } catch (Exception e) {
+                LOG.warn("Failed to send approval email for booking {}", saved.getCode(), e);
+            }
+        }
+
+        return bookingMapper.toDto(saved);
     }
 
     /**
@@ -279,8 +341,8 @@ public class BookingService {
             .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         if (BookingStatus.CHECKED_IN.equals(booking.getStatus()) ||
-            BookingStatus.CONFIRMED.equals(booking.getStatus())) {
-            throw new BusinessRuleException("No puede borrar una reserva en estado CONFIRMADO o CHECK-IN");
+            BookingStatus.CHECKED_OUT.equals(booking.getStatus())) {
+            throw new BusinessRuleException("No puede borrar una reserva en estado CHECK-IN o CHECK-OUT");
         }
         if (serviceRequestRepository.existsByBookingId(bookingId)) {
             throw new BusinessRuleException("La reserva tiene solicitudes de servicio asociadas, bórrelas primero");
