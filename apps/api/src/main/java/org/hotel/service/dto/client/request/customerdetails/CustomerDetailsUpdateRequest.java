@@ -14,6 +14,10 @@ import java.io.Serializable;
 @Setter
 public class CustomerDetailsUpdateRequest implements Serializable {
     @NotNull
+    private String firstName;
+    @NotNull
+    private String lastName;
+    @NotNull
     private Gender gender;
     @NotNull
     @Pattern(regexp = "^\\+?[0-9]{7,15}$")

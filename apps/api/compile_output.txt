@@ -1,0 +1,349 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< org.hotel:hotel-backend >-----------------------
+[INFO] Building Hotel Backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.5.0:enforce (enforce-versions) @ hotel-backend ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] 
+[INFO] --- enforcer:3.5.0:enforce (enforce-dependencyConvergence) @ hotel-backend ---
+[WARNING] Rule 0: org.apache.maven.enforcer.rules.dependency.DependencyConvergence failed with message:
+Failed while enforcing releasability.
+
+Dependency convergence error for org.checkerframework:checker-qual:jar:3.37.0 paths to dependency are:
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-com.github.ben-manes.caffeine:caffeine:jar:3.1.8:compile
+    +-org.checkerframework:checker-qual:jar:3.37.0:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.postgresql:postgresql:jar:42.7.5:compile
+    +-org.checkerframework:checker-qual:jar:3.48.3:runtime
+
+
+Dependency convergence error for javax.xml.bind:jaxb-api:jar:2.2.12 paths to dependency are:
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.18.3:compile
+    +-javax.xml.bind:jaxb-api:jar:2.2.12:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.liquibase:liquibase-core:jar:4.29.2:compile
+    +-javax.xml.bind:jaxb-api:jar:2.3.1:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-com.paypal.sdk:paypal-server-sdk:jar:2.1.0:compile
+    +-io.apimatic:core:jar:0.6.16:compile
+      +-javax.xml.bind:jaxb-api:jar:2.4.0-b180830.0359:compile
+
+
+Dependency convergence error for commons-io:commons-io:jar:2.11.0 paths to dependency are:
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.keycloak:keycloak-admin-client:jar:26.0.7:compile
+    +-org.jboss.resteasy:resteasy-multipart-provider:jar:6.2.9.Final:compile
+      +-org.apache.james:apache-mime4j-dom:jar:0.8.11:compile
+        +-org.apache.james:apache-mime4j-core:jar:0.8.11:compile
+          +-commons-io:commons-io:jar:2.11.0:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.keycloak:keycloak-admin-client:jar:26.0.7:compile
+    +-org.jboss.resteasy:resteasy-multipart-provider:jar:6.2.9.Final:compile
+      +-org.apache.james:apache-mime4j-dom:jar:0.8.11:compile
+        +-commons-io:commons-io:jar:2.11.0:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.keycloak:keycloak-admin-client:jar:26.0.7:compile
+    +-org.jboss.resteasy:resteasy-multipart-provider:jar:6.2.9.Final:compile
+      +-org.apache.james:apache-mime4j-storage:jar:0.8.11:compile
+        +-commons-io:commons-io:jar:2.11.0:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.keycloak:keycloak-admin-client:jar:26.0.7:compile
+    +-org.jboss.resteasy:resteasy-multipart-provider:jar:6.2.9.Final:compile
+      +-commons-io:commons-io:jar:2.11.0:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.liquibase:liquibase-core:jar:4.29.2:compile
+    +-commons-io:commons-io:jar:2.16.1:compile
+
+
+Dependency convergence error for org.apache.commons:commons-text:jar:1.11.0 paths to dependency are:
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.liquibase:liquibase-core:jar:4.29.2:compile
+    +-com.opencsv:opencsv:jar:5.9:compile
+      +-org.apache.commons:commons-text:jar:1.11.0:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.liquibase:liquibase-core:jar:4.29.2:compile
+    +-org.apache.commons:commons-text:jar:1.12.0:compile
+
+
+Dependency convergence error for org.apache.httpcomponents:httpclient:jar:4.5.14 paths to dependency are:
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-org.keycloak:keycloak-admin-client:jar:26.0.7:compile
+    +-org.jboss.resteasy:resteasy-client:jar:6.2.9.Final:compile
+      +-org.apache.httpcomponents:httpclient:jar:4.5.14:compile
+and
++-org.hotel:hotel-backend:jar:0.0.1-SNAPSHOT
+  +-software.amazon.awssdk:s3:jar:2.29.52:compile
+    +-software.amazon.awssdk:apache-client:jar:2.29.52:runtime
+      +-org.apache.httpcomponents:httpclient:jar:4.5.13:runtime
+
+[INFO] 
+[INFO] --- properties:1.2.1:read-project-properties (default) @ hotel-backend ---
+[INFO] Loading 28 properties from File: C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\sonar-project.properties
+[INFO] 
+[INFO] --- jacoco:0.8.13:prepare-agent (pre-unit-tests) @ hotel-backend ---
+[INFO] surefireArgLine set to "-javaagent:C:\\Users\\YaderPR\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.13\\org.jacoco.agent-0.8.13-runtime.jar=destfile=C:\\Users\\YaderPR\\Software Development\\Learning Projects\\SEMANA 5 - Proyecto grupal\\hotel-management-system\\apps\\api\\target\\jacoco.exec"
+[INFO] 
+[INFO] --- openapi-generator:7.13.0:generate (default) @ hotel-backend ---
+[INFO] Generating with dryRun=false
+[INFO] No .openapi-generator-ignore file found.
+[INFO] OpenAPI Generator: spring (server)
+[INFO] Generator 'spring' is considered stable.
+[INFO] ----------------------------------
+[INFO] Environment variable JAVA_POST_PROCESS_FILE not defined so the Java code may not be properly formatted. To define it, try 'export JAVA_POST_PROCESS_FILE="/usr/local/bin/clang-format -i"' (Linux/Mac)
+[INFO] NOTE: To enable file post-processing, 'enablePostProcessFile' must be set to `true` (--enable-post-process-file for CLI).
+[INFO] Invoker Package Name, originally not set, is now derived from api package name: org.hotel.web
+[INFO] Inline schema created as inline_object. To have complete control of the model name, set the `title` field or use the modelNameMapping option (e.g. --model-name-mappings inline_object=NewModel,ModelA=NewModelA in CLI) or inlineSchemaNameMapping option (--inline-schema-name-mappings inline_object=NewModel,ModelA=NewModelA in CLI).
+[INFO] writing file C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\java\org\hotel\service\api\dto\InlineObject.java
+[INFO] Skipping generation of Webhooks.
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\pom.xml (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\README.md (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\java\org\openapitools\OpenApiGeneratorApplication.java (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\test\java\org\openapitools\OpenApiGeneratorApplicationTests.java (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\java\org\openapitools\RFC3339DateFormat.java (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\resources\application.properties (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\java\org\openapitools\configuration\HomeController.java (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\resources\openapi.yaml (Skipped by supportingFiles options supplied by user.)
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\java\org\openapitools\configuration\SpringDocConfiguration.java (Skipped by supportingFiles options supplied by user.)
+[INFO] writing file C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\src\main\java\org\hotel\web\api\ApiUtil.java
+[INFO] Skipped C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\.openapi-generator-ignore (Skipped by supportingFiles options supplied by user.)
+[INFO] writing file C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\.openapi-generator\VERSION
+[INFO] writing file C:\Users\YaderPR\Software Development\Learning Projects\SEMANA 5 - Proyecto grupal\hotel-management-system\apps\api\target\generated-sources\openapi\.openapi-generator\FILES
+################################################################################
+# Thanks for using OpenAPI Generator.                                          #
+# Please consider donation to help us maintain this project ?                 #
+# https://opencollective.com/openapi_generator/donate                          #
+################################################################################
+[INFO] 
+[INFO] --- spotless:2.44.4:apply (spotless) @ hotel-backend ---
+[INFO] Spotless.Java is keeping 304 files clean - 0 were changed to be clean, 0 were already clean, 304 were skipped because caching determined they were already clean
+[INFO] 
+[INFO] --- spring-boot:3.4.5:build-info (build-info) @ hotel-backend ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hotel-backend ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 51 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ hotel-backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 193 source files with javac [debug parameters release 17] to target\classes
+[INFO] Hibernate compile-time tooling 6.6.13.Final
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO booking.customer.user" to "User booking.customer.user". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO booking" to "Booking booking". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO booking.customer.user" to "User booking.customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO booking" to "Booking booking". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientServiceRequestMapper.java:[25,20] Unmapped target properties: "deliveryRoomNumber, quantity, totalCost".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[17,8] Unmapped target properties: "rooms, removeRooms". Mapping from property "RoomTypeDTO roomType" to "RoomType roomType". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[17,8] Unmapped target properties: "rooms, removeRooms". Mapping from property "RoomTypeDTO assignedRoom.roomType" to "RoomType assignedRoom.roomType". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[17,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO booking.customer.user" to "User booking.customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[17,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO booking" to "Booking booking". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[21,17] Unmapped target properties: "rooms, removeRooms". Mapping from property "RoomTypeDTO roomType" to "RoomType roomType".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[21,17] Unmapped target properties: "rooms, removeRooms". Mapping from property "RoomTypeDTO assignedRoom.roomType" to "RoomType assignedRoom.roomType".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[21,17] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO booking.customer.user" to "User booking.customer.user".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingItemMapper.java:[21,17] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO booking" to "Booking booking".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO invoice.booking.customer.user" to "User invoice.booking.customer.user". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO invoice.booking" to "Booking invoice.booking". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Mapping from property "InvoiceDTO invoice" to "Invoice invoice". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO invoice.items[].invoice.booking.customer.user" to "User invoice.items[].invoice.booking.customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO invoice.items[].invoice.booking" to "Booking invoice.items[].invoice.booking". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Mapping from property "InvoiceDTO invoice.items[].invoice" to "Invoice invoice.items[].invoice". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO invoice.booking.customer.user" to "User invoice.booking.customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO invoice.booking" to "Booking invoice.booking". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/PaymentMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Mapping from property "InvoiceDTO invoice" to "Invoice invoice". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/ServiceRequestMapper.java:[15,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO booking.customer.user" to "User booking.customer.user". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/ServiceRequestMapper.java:[15,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO booking" to "Booking booking". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/ServiceRequestMapper.java:[15,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO booking.customer.user" to "User booking.customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/ServiceRequestMapper.java:[15,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO booking" to "Booking booking". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/RoomMapper.java:[13,8] Unmapped target properties: "rooms, removeRooms". Mapping from property "RoomTypeDTO roomType" to "RoomType roomType". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/RoomMapper.java:[13,8] Unmapped target properties: "rooms, removeRooms". Mapping from property "RoomTypeDTO roomType" to "RoomType roomType". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/AssetCollectionMapper.java:[11,8] Unmapped target properties: "items, removeItems". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/AssetCollectionMapper.java:[11,8] Unmapped target properties: "items, removeItems". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[22,21] Unmapped target properties: "roomTypeName, roomTypeImage, assignedRoomNumber". Mapping from Collection element "BookingItem bookingItems" to "BookingResponse.BookingItemResponse items".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[22,21] Unmapped target property: "totalPrice".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[35,13] Unmapped target properties: "code, removeBookingItems, serviceRequests, removeServiceRequests".
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/RoomTypeMapper.java:[11,8] Unmapped target properties: "rooms, removeRooms". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/RoomTypeMapper.java:[11,8] Unmapped target properties: "rooms, removeRooms". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/CustomerMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO user" to "User user". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/CustomerMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO user" to "User user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/WebContentMapper.java:[13,8] Unmapped target properties: "items, removeItems". Mapping from property "AssetCollectionDTO collection" to "AssetCollection collection". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/WebContentMapper.java:[13,8] Unmapped target properties: "items, removeItems". Mapping from property "AssetCollectionDTO collection" to "AssetCollection collection". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO customer.user" to "User customer.user". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO customer.user" to "User customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/BookingMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceItemMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO invoice.booking.customer.user" to "User invoice.booking.customer.user". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceItemMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO invoice.booking" to "Booking invoice.booking". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceItemMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Mapping from property "InvoiceDTO invoice" to "Invoice invoice". Occured at 'E toEntity(D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceItemMapper.java:[13,8] Unmapped target properties: "createdBy, createdDate, lastModifiedBy, lastModifiedDate, imageUrl, activated, langKey, authorities". Mapping from property "UserDTO invoice.booking.customer.user" to "User invoice.booking.customer.user". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceItemMapper.java:[13,8] Unmapped target properties: "bookingItems, removeBookingItems, serviceRequests, removeServiceRequests". Mapping from property "BookingDTO invoice.booking" to "Booking invoice.booking". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[WARNING] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/InvoiceItemMapper.java:[13,8] Unmapped target properties: "removeItems, payments, removePayments". Mapping from property "InvoiceDTO invoice" to "Invoice invoice". Occured at 'void partialUpdate(E entity, D dto)' in 'EntityMapper'.
+[INFO] 51 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingDomainService.java:[62,46] cannot find symbol
+  symbol:   method countOverlappingBookings(java.lang.Long,java.time.LocalDate,java.time.LocalDate)
+  location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingDomainService.java:[64,46] cannot find symbol
+  symbol:   method countOverlappingBookingsExcludingSelf(java.lang.Long,java.time.LocalDate,java.time.LocalDate,java.lang.Long)
+  location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[134,83] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[139,83] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[183,78] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[206,31] cannot find symbol
+  symbol:   method getItems()
+  location: variable bookingDTO of type org.hotel.service.dto.BookingDTO
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[221,83] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[293,71] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[369,23] cannot find symbol
+  symbol:   method getItems()
+  location: variable bookingDTO of type org.hotel.service.dto.BookingDTO
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[374,71] cannot find symbol
+  symbol:   method getItems()
+  location: variable bookingDTO of type org.hotel.service.dto.BookingDTO
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/PaymentService.java:[83,94] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[90,29] incompatible types: org.hotel.domain.User cannot be converted to org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[160,33] cannot find symbol
+  symbol:   method findByCustomer_Login(java.lang.String,org.springframework.data.domain.Pageable)
+  location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[179,51] cannot find symbol
+  symbol:   method countOverlappingBookings(java.lang.Long,java.time.LocalDate,java.time.LocalDate)
+  location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[206,35] cannot find symbol
+  symbol:   method getLogin()
+  location: class org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[72,20] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[72,53] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[75,23] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[79,20] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[79,53] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[82,23] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientInvoiceService.java:[60,64] cannot find symbol
+  symbol:   method getLogin()
+  location: class org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientInvoiceService.java:[66,20] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientInvoiceService.java:[66,54] cannot find symbol
+  symbol:   method getInvoices()
+  location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientPaymentService.java:[153,93] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientPaymentService.java:[182,80] cannot find symbol
+  symbol:   method getLogin()
+  location: class org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientServiceRequestService.java:[62,44] cannot find symbol
+  symbol:   method findByIdAndCustomer_Login(java.lang.Long,java.lang.String)
+  location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[INFO] 27 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.703 s
+[INFO] Finished at: 2025-12-23T00:06:20-06:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.0:compile (default-compile) on project hotel-backend: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingDomainService.java:[62,46] cannot find symbol
+[ERROR]   symbol:   method countOverlappingBookings(java.lang.Long,java.time.LocalDate,java.time.LocalDate)
+[ERROR]   location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingDomainService.java:[64,46] cannot find symbol
+[ERROR]   symbol:   method countOverlappingBookingsExcludingSelf(java.lang.Long,java.time.LocalDate,java.time.LocalDate,java.lang.Long)
+[ERROR]   location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[134,83] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[139,83] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[183,78] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[206,31] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable bookingDTO of type org.hotel.service.dto.BookingDTO
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[221,83] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[293,71] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[369,23] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable bookingDTO of type org.hotel.service.dto.BookingDTO
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/BookingService.java:[374,71] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable bookingDTO of type org.hotel.service.dto.BookingDTO
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/PaymentService.java:[83,94] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[90,29] incompatible types: org.hotel.domain.User cannot be converted to org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[160,33] cannot find symbol
+[ERROR]   symbol:   method findByCustomer_Login(java.lang.String,org.springframework.data.domain.Pageable)
+[ERROR]   location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[179,51] cannot find symbol
+[ERROR]   symbol:   method countOverlappingBookings(java.lang.Long,java.time.LocalDate,java.time.LocalDate)
+[ERROR]   location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientBookingService.java:[206,35] cannot find symbol
+[ERROR]   symbol:   method getLogin()
+[ERROR]   location: class org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[72,20] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[72,53] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[75,23] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[79,20] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[79,53] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/mapper/client/ClientBookingMapper.java:[82,23] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientInvoiceService.java:[60,64] cannot find symbol
+[ERROR]   symbol:   method getLogin()
+[ERROR]   location: class org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientInvoiceService.java:[66,20] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientInvoiceService.java:[66,54] cannot find symbol
+[ERROR]   symbol:   method getInvoices()
+[ERROR]   location: variable booking of type org.hotel.domain.Booking
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientPaymentService.java:[153,93] incompatible types: org.hotel.domain.Customer cannot be converted to org.hotel.domain.User
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientPaymentService.java:[182,80] cannot find symbol
+[ERROR]   symbol:   method getLogin()
+[ERROR]   location: class org.hotel.domain.Customer
+[ERROR] /C:/Users/YaderPR/Software Development/Learning Projects/SEMANA 5 - Proyecto grupal/hotel-management-system/apps/api/src/main/java/org/hotel/service/client/ClientServiceRequestService.java:[62,44] cannot find symbol
+[ERROR]   symbol:   method findByIdAndCustomer_Login(java.lang.Long,java.lang.String)
+[ERROR]   location: variable bookingRepository of type org.hotel.repository.BookingRepository
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

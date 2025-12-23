@@ -1,14 +1,13 @@
 package org.hotel.service.client;
 
-import org.hotel.domain.CustomerDetails;
+import org.hotel.domain.Customer;
 import org.hotel.domain.User;
-import org.hotel.repository.CustomerDetailsRepository;
+import org.hotel.repository.CustomerRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsCreateRequest;
 import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsUpdateRequest;
 import org.hotel.service.dto.client.response.customerdetails.CustomerDetailsResponse;
-import org.hotel.service.mapper.client.ClientCustomerDetailsMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.hotel.web.rest.errors.BusinessRuleException;
 import org.slf4j.Logger;
@@ -26,99 +25,117 @@ public class ClientCustomerDetailsService {
 
     private final Logger log = LoggerFactory.getLogger(ClientCustomerDetailsService.class);
 
-    private final CustomerDetailsRepository customerDetailsRepository;
-    private final ClientCustomerDetailsMapper clientCustomerDetailsMapper;
-    private final UserRepository userRepository; // <--- NECESARIO
+    private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
 
     public ClientCustomerDetailsService(
-        CustomerDetailsRepository customerDetailsRepository,
-        ClientCustomerDetailsMapper clientCustomerDetailsMapper,
+        CustomerRepository customerRepository,
         UserRepository userRepository
     ) {
-        this.customerDetailsRepository = customerDetailsRepository;
-        this.clientCustomerDetailsMapper = clientCustomerDetailsMapper;
+        this.customerRepository = customerRepository;
         this.userRepository = userRepository;
     }
 
     /**
      * Obtiene el perfil del usuario logueado actualmente.
-     * Retorna Optional porque puede que el usuario exista en Keycloak/User,
-     * pero aún no haya rellenado este formulario de detalles.
      */
     @Transactional(readOnly = true)
     public Optional<CustomerDetailsResponse> findMyProfile() {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        // Buscamos por LOGIN
-        return customerDetailsRepository.findOneByUserLogin(userLogin)
-            .map(clientCustomerDetailsMapper::toClientResponse);
+        return customerRepository.findOneByUser_Login(userLogin)
+            .map(this::toClientResponse);
     }
 
     /**
-     * Crea el perfil inicial (Solo se debe llamar una vez).
+     * Crea el perfil inicial.
      */
     public CustomerDetailsResponse createProfile(CustomerDetailsCreateRequest request) {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        // Validar que no exista ya un perfil para evitar duplicados/errores
-        if (customerDetailsRepository.findOneByUserLogin(userLogin).isPresent()) {
+        if (customerRepository.findOneByUser_Login(userLogin).isPresent()) {
             throw new BadRequestAlertException(
                 "El perfil de cliente ya existe. Usa la opción de actualizar.",
-                "customerDetails",
+                "customer",
                 "profileExists"
             );
         }
 
-        // Obtener el User de JHipster para hacer el vínculo
         User currentUser = userRepository.findOneByLogin(userLogin)
             .orElseThrow(() -> new RuntimeException("Usuario JHipster no encontrado"));
 
-        CustomerDetails entity = clientCustomerDetailsMapper.toEntity(request);
-
-        // Validación de edad
-        // Calcula la edad exacta al día de hoy
-        int age = Period.between(request.getBirthDate(), LocalDate.now()).getYears();
-
-        if (age < 18) {
-            throw new BusinessRuleException(
-                "Debes ser mayor de 18 años para acceder nuestros servicios.");
-        }
-        // Validación de "Sanity Check"
-        // Nadie vivo tiene más de 120 años.
-        if (age > 120) {
-            throw new BusinessRuleException(
-                "La fecha de nacimiento no es válida. Verifica el año.");
-        }
-        entity.setUser(currentUser);
+        Customer entity = new Customer();
+        entity.setFirstName(request.getFirstName());
+        entity.setLastName(request.getLastName());
+        entity.setGender(request.getGender());
+        entity.setPhone(request.getPhone());
+        entity.setAddressLine1(request.getAddressLine1());
+        entity.setCity(request.getCity());
+        entity.setCountry(request.getCountry());
+        entity.setLicenseId(request.getLicenseId());
+        entity.setBirthDate(request.getBirthDate());
+        
+        // Asignar email del usuario si no viene en request (request anterior no tenía email)
         if (currentUser.getEmail() != null) {
             entity.setEmail(currentUser.getEmail());
-        } else {
-             // Fallback or error if email is strictly required by CustomerDetails
-             throw new BusinessRuleException("El usuario no tiene un email configurado.");
         }
 
-        entity = customerDetailsRepository.save(entity);
+        // Check Age
+        int age = Period.between(request.getBirthDate(), LocalDate.now()).getYears();
+        if (age < 18) {
+            throw new BusinessRuleException("Debes ser mayor de 18 años para acceder nuestros servicios.");
+        }
+        if (age > 120) {
+            throw new BusinessRuleException("La fecha de nacimiento no es válida.");
+        }
 
-        return clientCustomerDetailsMapper.toClientResponse(entity);
+        entity.setUser(currentUser); // Link User
+        entity.setIdentificationType("DNI"); // Default or add to request if needed
+
+        entity = customerRepository.save(entity);
+
+        return toClientResponse(entity);
     }
 
     /**
-     * Actualiza datos parciales (Teléfono, Dirección, etc.).
-     * No permite cambiar datos sensibles ni User.
+     * Actualiza datos parciales.
      */
     public CustomerDetailsResponse updateProfile(CustomerDetailsUpdateRequest request) {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        CustomerDetails entity = customerDetailsRepository.findOneByUserLogin(userLogin)
+        Customer entity = customerRepository.findOneByUser_Login(userLogin)
             .orElseThrow(() -> new RuntimeException("Perfil no encontrado. Debes crearlo primero."));
 
-        clientCustomerDetailsMapper.updateFromDto(request, entity);
+        // Update fields
+        entity.setFirstName(request.getFirstName());
+        entity.setLastName(request.getLastName());
+        entity.setGender(request.getGender());
+        entity.setPhone(request.getPhone());
+        entity.setAddressLine1(request.getAddressLine1());
+        entity.setCity(request.getCity());
+        entity.setCountry(request.getCountry());
 
-        entity = customerDetailsRepository.save(entity);
+        entity = customerRepository.save(entity);
 
-        return clientCustomerDetailsMapper.toClientResponse(entity);
+        return toClientResponse(entity);
+    }
+
+    private CustomerDetailsResponse toClientResponse(Customer entity) {
+        CustomerDetailsResponse response = new CustomerDetailsResponse();
+        response.setId(entity.getId());
+        response.setFirstName(entity.getFirstName());
+        response.setLastName(entity.getLastName());
+        response.setEmail(entity.getEmail());
+        response.setGender(entity.getGender());
+        response.setPhone(entity.getPhone());
+        response.setAddressLine1(entity.getAddressLine1());
+        response.setCity(entity.getCity());
+        response.setCountry(entity.getCountry());
+        response.setLicenseId(entity.getLicenseId());
+        response.setBirthDate(entity.getBirthDate());
+        return response;
     }
 }

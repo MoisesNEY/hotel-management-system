@@ -179,7 +179,11 @@ public class ClientPaymentService {
     }
 
     private void validateInvoiceOwnership(Invoice invoice, String userLogin) {
-        if (invoice.getBooking() == null || !invoice.getBooking().getCustomer().getLogin().equals(userLogin)) {
+        if (invoice.getBooking() == null || 
+            invoice.getBooking().getCustomer() == null || 
+            invoice.getBooking().getCustomer().getUser() == null || 
+            !invoice.getBooking().getCustomer().getUser().getLogin().equals(userLogin)) {
+            
             throw new BusinessRuleException("No tiene permisos para acceder a esta factura.");
         }
     }

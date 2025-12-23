@@ -66,50 +66,49 @@ public class MailService {
     }
 
     @Async
-    public void sendBookingCreationEmail(User user, Booking booking) {
-        log.debug("Sending booking creation email to '{}'", user.getEmail());
-        
-        // Fetch user with authorities to avoid LazyInitializationException in template
-        User userWithAuthorities = userRepository.findOneWithAuthoritiesByLogin(user.getLogin()).orElse(user);
-        
-        Context context = new Context(Locale.forLanguageTag(userWithAuthorities.getLangKey() != null ? userWithAuthorities.getLangKey() : "es"));
-        context.setVariable(USER, userWithAuthorities);
-        context.setVariable("booking", booking);
-        context.setVariable(BASE_URL, "http://localhost:5173");
-        String content = templateEngine.process("mail/bookingConfirmation", context);
-        String subject = "Recibimos tu solicitud de reserva - Hotel App";
-        sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
+    public void sendBookingCreationEmail(org.hotel.domain.Customer customer, Booking booking) {
+        log.debug("Sending booking creation email to '{}'", customer.getEmail());
+        sendCustomerEmail(customer, booking, null, "mail/bookingConfirmation", "Recibimos tu solicitud de reserva - Hotel App");
     }
 
     @Async
-    public void sendPaymentSuccessEmail(User user, Invoice invoice) {
-        log.debug("Sending payment success email to '{}'", user.getEmail());
-        
-        // Fetch user with authorities to avoid LazyInitializationException in template
-        User userWithAuthorities = userRepository.findOneWithAuthoritiesByLogin(user.getLogin()).orElse(user);
-
-        Context context = new Context(Locale.forLanguageTag(userWithAuthorities.getLangKey() != null ? userWithAuthorities.getLangKey() : "es"));
-        context.setVariable(USER, userWithAuthorities);
-        context.setVariable("invoice", invoice);
-        context.setVariable(BASE_URL, "http://localhost:5173");
-        String content = templateEngine.process("mail/paymentSuccess", context);
-        String subject = "Pago Confirmado - ¡Tu viaje está listo!";
-        sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
+    public void sendPaymentSuccessEmail(org.hotel.domain.Customer customer, Invoice invoice) {
+        log.debug("Sending payment success email to '{}'", customer.getEmail());
+        sendCustomerEmail(customer, null, invoice, "mail/paymentSuccess", "Pago Confirmado - ¡Tu viaje está listo!");
     }
 
     @Async
-    public void sendBookingApprovedEmail(User user, Booking booking) {
-        log.debug("Sending booking approved email to '{}'", user.getEmail());
+    public void sendBookingApprovedEmail(org.hotel.domain.Customer customer, Booking booking) {
+        log.debug("Sending booking approved email to '{}'", customer.getEmail());
+        sendCustomerEmail(customer, booking, null, "mail/bookingApproved", "¡Tu reserva ha sido Confirmada! - Hotel App");
+    }
 
-        // Fetch user with authorities to avoid LazyInitializationException in template
-        User userWithAuthorities = userRepository.findOneWithAuthoritiesByLogin(user.getLogin()).orElse(user);
+    private void sendCustomerEmail(org.hotel.domain.Customer customer, Booking booking, Invoice invoice, String templateName, String subject) {
+        if (customer.getEmail() == null) {
+            log.warn("Customer {} has no email, skipping email sending.", customer.getId());
+            return;
+        }
 
-        Context context = new Context(Locale.forLanguageTag(userWithAuthorities.getLangKey() != null ? userWithAuthorities.getLangKey() : "es"));
-        context.setVariable(USER, userWithAuthorities);
-        context.setVariable("booking", booking);
+        Locale locale = Locale.forLanguageTag("es");
+        User user = null;
+        if (customer.getUser() != null) {
+            // Fetch user with authorities to avoid LazyInitializationException if needed
+            user = userRepository.findOneWithAuthoritiesByLogin(customer.getUser().getLogin()).orElse(customer.getUser());
+            if (user.getLangKey() != null) {
+                locale = Locale.forLanguageTag(user.getLangKey());
+            }
+        }
+
+        Context context = new Context(locale);
+        context.setVariable(USER, customer); // Templates likely use 'user.firstName', which Customer has.
+        // Also provide 'customer' key just in case
+        context.setVariable("customer", customer);
+
+        if (booking != null) context.setVariable("booking", booking);
+        if (invoice != null) context.setVariable("invoice", invoice);
         context.setVariable(BASE_URL, "http://localhost:5173");
-        String content = templateEngine.process("mail/bookingApproved", context);
-        String subject = "¡Tu reserva ha sido Confirmada! - Hotel App";
-        sendEmail(userWithAuthorities.getEmail(), subject, content, false, true);
+
+        String content = templateEngine.process(templateName, context);
+        sendEmail(customer.getEmail(), subject, content, false, true);
     }
 }

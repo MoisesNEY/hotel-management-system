@@ -32,7 +32,7 @@
       "fieldName": "status",
       "fieldType": "BookingStatus",
       "fieldValidateRules": ["required"],
-      "fieldValues": "PENDING_APPROVAL, PENDING_PAYMENT,CONFIRMED,CHECKED_IN,CHECKED_OUT,CANCELLED"
+      "fieldValues": "PENDING_APPROVAL,PENDING_PAYMENT,CONFIRMED,CHECKED_IN,CHECKED_OUT,CANCELLED"
     },
     {
       "fieldName": "notes",
@@ -63,13 +63,12 @@
       "relationshipType": "one-to-many"
     },
     {
-      "otherEntityField": "login",
-      "otherEntityName": "user",
+      "otherEntityField": "licenseId",
+      "otherEntityName": "customer",
       "relationshipName": "customer",
       "relationshipSide": "left",
       "relationshipType": "many-to-one",
-      "relationshipValidateRules": "required",
-      "relationshipWithBuiltInEntity": true
+      "relationshipValidateRules": "required"
     }
   ],
   "searchEngine": "no",

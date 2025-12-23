@@ -1,1 +1,11 @@
 id;code;check_in_date;check_out_date;guest_count;status;notes;special_requests;customer_id
+1;deeply;2025-12-11;2025-12-11;28644;PENDING_PAYMENT;along joy footrest;unrealistic;1
+2;arraign gently;2025-12-10;2025-12-11;8978;PENDING_APPROVAL;crystallize;failing octave;2
+3;as;2025-12-11;2025-12-11;11411;CHECKED_IN;scale whether during;hyena;3
+4;foolish till fairly;2025-12-11;2025-12-11;23039;CANCELLED;abaft brr thoroughly;sternly utter;4
+5;generously surprise;2025-12-11;2025-12-11;24613;PENDING_PAYMENT;though big;blah than;5
+6;that with;2025-12-11;2025-12-11;19225;CHECKED_OUT;meaty limp;thorn until urgently;6
+7;duh reservation oof;2025-12-11;2025-12-11;21102;CHECKED_IN;when brr;attest;7
+8;soggy;2025-12-10;2025-12-10;31075;PENDING_PAYMENT;inasmuch finally;and humidity deploy;8
+9;nervously;2025-12-11;2025-12-11;5629;CONFIRMED;sentimental anti;in yawningly;9
+10;chime boastfully er;2025-12-11;2025-12-11;21222;PENDING_PAYMENT;except morbidity worthy;incidentally;10

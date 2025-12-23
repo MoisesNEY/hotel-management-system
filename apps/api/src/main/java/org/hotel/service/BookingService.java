@@ -48,6 +48,8 @@ public class BookingService {
     private final InvoiceRepository invoiceRepository;
     // ClientInvoiceService removed
     private final InvoiceService invoiceService;
+    private final CustomerService customerService;
+    private final org.hotel.repository.CustomerRepository customerRepository;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
@@ -57,8 +59,9 @@ public class BookingService {
                           BookingDomainService bookingDomainService,
                           MailService mailService,
                           InvoiceRepository invoiceRepository,
-                          // ClientInvoiceService removed
-                          InvoiceService invoiceService) {
+                          InvoiceService invoiceService,
+                          CustomerService customerService,
+                          org.hotel.repository.CustomerRepository customerRepository) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
@@ -67,8 +70,9 @@ public class BookingService {
         this.bookingDomainService = bookingDomainService;
         this.mailService = mailService;
         this.invoiceRepository = invoiceRepository;
-        // this.clientInvoiceService removed
         this.invoiceService = invoiceService;
+        this.customerService = customerService;
+        this.customerRepository = customerRepository;
     }
 
     /**
@@ -98,8 +102,15 @@ public class BookingService {
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
+        // Resolve Customer if needed (e.g. for Online Users)
+        if (booking.getCustomer() == null) {
+             org.hotel.security.SecurityUtils.getCurrentUserLogin().flatMap(customerRepository::findOneByUser_Login)
+                 .ifPresent(booking::setCustomer);
+        }
+
         // Generar código y estado si no existen
         if (booking.getCode() == null) {
+            booking.getCode(); // Ensure code generation logic is robust or let DB handle defaults if any
             booking.setCode("RES-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         }
         if (booking.getStatus() == null) {
@@ -117,7 +128,7 @@ public class BookingService {
 
         // Send Email
         try {
-            if (savedBooking.getCustomer() != null) {
+            if (savedBooking.getCustomer() != null && savedBooking.getCustomer().getEmail() != null) {
                 // Creation Email (Only if new)
                 if (isNew) {
                      mailService.sendBookingCreationEmail(savedBooking.getCustomer(), savedBooking);

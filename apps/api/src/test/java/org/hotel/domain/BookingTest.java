@@ -3,6 +3,7 @@ package org.hotel.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hotel.domain.BookingItemTestSamples.*;
 import static org.hotel.domain.BookingTestSamples.*;
+import static org.hotel.domain.CustomerTestSamples.*;
 import static org.hotel.domain.ServiceRequestTestSamples.*;
 
 import java.util.HashSet;
@@ -68,5 +69,17 @@ class BookingTest {
         booking.setServiceRequests(new HashSet<>());
         assertThat(booking.getServiceRequests()).doesNotContain(serviceRequestBack);
         assertThat(serviceRequestBack.getBooking()).isNull();
+    }
+
+    @Test
+    void customerTest() {
+        Booking booking = getBookingRandomSampleGenerator();
+        Customer customerBack = getCustomerRandomSampleGenerator();
+
+        booking.setCustomer(customerBack);
+        assertThat(booking.getCustomer()).isEqualTo(customerBack);
+
+        booking.customer(null);
+        assertThat(booking.getCustomer()).isNull();
     }
 }

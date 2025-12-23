@@ -6,15 +6,15 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
     <!--
-        Added the constraints for entity Booking.
+        Added the constraints for entity Customer.
     -->
-    <changeSet id="20251211184754-2" author="jhipster">
+    <changeSet id="20251223053129-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="customer_id"
-                                 baseTableName="booking"
-                                 constraintName="fk_booking__customer_id"
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="customer"
+                                 constraintName="fk_customer__user_id"
                                  referencedColumnNames="id"
-                                 referencedTableName="customer"
+                                 referencedTableName="jhi_user"
                                  />
     </changeSet>
 </databaseChangeLog>
