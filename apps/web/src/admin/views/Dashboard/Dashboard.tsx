@@ -62,16 +62,31 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [dashboardData, revenueData, roomsData, servicesData] = await Promise.all([
-                    dashboardService.getStats(),
-                    dashboardService.getRevenueChartData(),
-                    getRoomsChartData(),
-                    getServicesChartData()
-                ]);
-                setStats(dashboardData);
-                setChartData(revenueData);
-                setRoomsChartData(roomsData);
+                setLoading(true);
+
+                // Endpoints que todos pueden ver
+                const servicesData = await getServicesChartData();
                 setServicesChartData(servicesData);
+
+                // Endpoints solo para admin (o donde el empleado reciba 403)
+                if (isAdmin) {
+                    const [dashboardData, revenueData, roomsData] = await Promise.all([
+                        dashboardService.getStats(),
+                        dashboardService.getRevenueChartData(),
+                        getRoomsChartData()
+                    ]);
+                    setStats(dashboardData);
+                    setChartData(revenueData);
+                    setRoomsChartData(roomsData);
+                } else {
+                    // Carga mínima para empleados si tienen permiso para ver habitaciones básico
+                    try {
+                        const roomsData = await getRoomsChartData();
+                        setRoomsChartData(roomsData);
+                    } catch (e) {
+                        console.warn("Empleado no tiene acceso a estadísticas de habitaciones");
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching dashboard data", error);
             } finally {
@@ -79,7 +94,7 @@ const Dashboard = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [isAdmin]);
 
     const chartOptions: any = {
         maintainAspectRatio: false,

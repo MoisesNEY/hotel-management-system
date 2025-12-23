@@ -23,7 +23,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
     const location = useLocation();
-    const { roles: userRoles } = useAuth();
+    const { hasRole } = useAuth();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isActiveRoute = (path: string) => {
@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
             if (route.hidden) return false;
             // Si no hay roles definidos, lo mostramos si es admin o si queremos que sea público
             if (!route.allowedRoles) return true;
-            return route.allowedRoles.some(role => userRoles.includes(role));
+            return route.allowedRoles.some(role => hasRole(role as any));
         })
         .forEach(route => {
             const group = route.group || 'main';

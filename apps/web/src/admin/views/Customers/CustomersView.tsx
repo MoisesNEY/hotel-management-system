@@ -19,6 +19,7 @@ const CustomersView = () => {
     const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerToDeleteId, setCustomerToDeleteId] = useState<number | null>(null);
+    const [permissionError, setPermissionError] = useState(false);
 
     useEffect(() => {
         loadCustomers();
@@ -27,20 +28,25 @@ const CustomersView = () => {
     const loadCustomers = async () => {
         try {
             setLoading(true);
-            const [customersParams, usersParams] = await Promise.all([
-                getAllCustomerDetails(),
-                getAllUsers(0, 100) // Fetch list of users to stitch key details
-            ]);
 
+            // Fetch customers
+            const customersParams = await getAllCustomerDetails();
             setCustomers(customersParams.data);
 
-            // Create User Lookup
-            const map: Record<string, AdminUserDTO> = {};
-            usersParams.data.forEach(u => map[u.id] = u);
-            setUsersMap(map);
-
-        } catch (error) {
+            // Fetch users (optional, might fail if user is not admin)
+            try {
+                const usersParams = await getAllUsers(0, 200);
+                const map: Record<string, AdminUserDTO> = {};
+                usersParams.data.forEach(u => map[u.id] = u);
+                setUsersMap(map);
+            } catch (userError) {
+                console.warn("Could not load full users list for mapping (common for non-admins). Falling back to embedded user data.");
+            }
+        } catch (error: any) {
             console.error("Error loading customers", error);
+            if (error.response?.status === 403) {
+                setPermissionError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -174,16 +180,32 @@ const CustomersView = () => {
                 </Button>
             </div>
 
-            <Card className="card-plain">
-                <Table
-                    data={customers}
-                    columns={columns}
-                    isLoading={loading}
-                    title="Listado de Clientes"
-                    emptyMessage="No hay clientes registrados"
-                    keyExtractor={(item) => item.id}
-                />
-            </Card>
+            {permissionError ? (
+                <Card className="p-12 text-center flex flex-col items-center justify-center space-y-4">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center">
+                        <Trash2 size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403 )</h2>
+                    <p className="max-w-md text-gray-500 dark:text-gray-400">
+                        El servidor ha rechazado el acceso a la lista de clientes para tu rol actual.
+                        Por favor, contacta al administrador para que habilite los permisos de <code className="bg-gray-100 dark:bg-white/5 px-1 rounded text-red-500 font-bold">ROL_EMPLEADO</code> en el backend.
+                    </p>
+                    <Button variant="secondary" onClick={loadCustomers}>
+                        Reintentar
+                    </Button>
+                </Card>
+            ) : (
+                <Card className="card-plain">
+                    <Table
+                        data={customers}
+                        columns={columns}
+                        isLoading={loading}
+                        title="Listado de Clientes"
+                        emptyMessage="No hay clientes registrados"
+                        keyExtractor={(item) => item.id}
+                    />
+                </Card>
+            )}
 
             {/* Modal de Cliente */}
             <Modal

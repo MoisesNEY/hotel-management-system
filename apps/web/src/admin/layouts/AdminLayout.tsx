@@ -11,7 +11,7 @@ const AdminLayout: React.FC = () => {
     const [bgColor, setBgColor] = useState<string>('black');
     const [activeColor, setActiveColor] = useState<string>('primary');
     const location = useLocation();
-    const { roles: userRoles } = useAuth();
+    const { hasRole } = useAuth();
 
     // Load theme from localStorage
     useEffect(() => {
@@ -52,7 +52,7 @@ const AdminLayout: React.FC = () => {
                     <Routes>
                         {routes.map((route, index) => {
                             // Requisito de rol
-                            const isAuthorized = !route.allowedRoles || route.allowedRoles.some(role => userRoles.includes(role));
+                            const isAuthorized = !route.allowedRoles || route.allowedRoles.some(role => hasRole(role as any));
 
                             if (!isAuthorized) {
                                 return (
