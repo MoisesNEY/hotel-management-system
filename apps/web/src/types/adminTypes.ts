@@ -65,9 +65,9 @@ export interface CustomerDTO {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   gender: Gender;
-  phone: string;
+  phone?: string;
   addressLine1: string;
   addressLine2?: string;
   city: string;
@@ -106,9 +106,11 @@ export interface BookingItemDTO {
 }
 
 export interface RoomTypeAvailabilityDTO {
-  roomType: RoomTypeDTO;
-  availableCount: number;
-  totalPrice: number;
+  id: number;
+  name: string;
+  availableQuantity: number;
+  basePrice: number;
+  maxCapacity: number;
 }
 
 export interface BookingDTO {

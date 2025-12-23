@@ -11,8 +11,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { searchByLicenseId, createWalkInCustomer } from '../../../services/admin/customerService';
 import { checkAvailability, createWalkInBooking } from '../../../services/admin/bookingService';
-import { getAllRooms } from '../../../services/admin/roomService';
-import type { CustomerDTO, RoomTypeAvailabilityDTO, RoomDTO } from '../../../types/adminTypes';
+import type { CustomerDTO, RoomTypeAvailabilityDTO } from '../../../types/adminTypes';
 
 const WalkInWizard = () => {
     const navigate = useNavigate();
@@ -42,10 +41,10 @@ const WalkInWizard = () => {
     const [guestCount, setGuestCount] = useState(1);
     const [availability, setAvailability] = useState<RoomTypeAvailabilityDTO[]>([]);
     const [selectedRoomType, setSelectedRoomType] = useState<RoomTypeAvailabilityDTO | null>(null);
-    const [availableRooms, setAvailableRooms] = useState<RoomDTO[]>([]); // For specific room assignment
-    const [assignedRoom, setAssignedRoom] = useState<RoomDTO | null>(null);
-
-    // Step 1 Handlers
+    const [roomCount, setRoomCount] = useState(1);
+    const [bookingItems, setBookingItems] = useState<{ roomType: RoomTypeAvailabilityDTO, occupantName: string, assignedRoomId?: number }[]>([]);
+    
+    // Step 1 Handlers (existing...)
     const handleSearchCustomer = async () => {
         if (!licenseSearch) return;
         setLoading(true);
@@ -74,8 +73,13 @@ const WalkInWizard = () => {
     const handleCreateCustomer = async () => {
         setLoading(true);
         try {
+            // Filter out empty optional fields to avoid backend validation errors
+            const payload = { ...customerForm };
+            if (!payload.phone) delete (payload as any).phone;
+            if (!payload.email) delete (payload as any).email;
+            
             // @ts-ignore
-            const newCustomer = await createWalkInCustomer(customerForm);
+            const newCustomer = await createWalkInCustomer(payload);
             setSelectedCustomer(newCustomer);
             setIsCreatingCustomer(false);
             toast.success('Cliente creado correctamente');
@@ -93,65 +97,101 @@ const WalkInWizard = () => {
             toast.error('Seleccione fechas');
             return;
         }
+
+        const start = new Date(dates.checkIn);
+        const end = new Date(dates.checkOut);
+
+        if (end <= start) {
+            toast.error('La fecha de salida debe ser posterior a la de entrada');
+            return;
+        }
+
         setLoading(true);
         try {
             const results = await checkAvailability(dates.checkIn, dates.checkOut);
             setAvailability(results);
             if (results.length === 0) toast.error('No hay disponibilidad');
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error verificando disponibilidad');
+            const msg = error.response?.data?.detail || error.response?.data?.title || 'Error verificando disponibilidad';
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleRoomTypeSelect = async (type: RoomTypeAvailabilityDTO) => {
+    const handleRoomTypeSelect = (type: RoomTypeAvailabilityDTO) => {
         setSelectedRoomType(type);
-        setAssignedRoom(null); // Reset room
-        // Fetch specific rooms for this type that are available (Optional polish)
-        // For now, allow selecting from all rooms of this type? 
-        // Logic to get ONLY available rooms is complex without a dedicated endpoint.
-        // We will skip specific room assignment for the wizard or fetch all and filter client side?
-        // Let's implement partial logic: fetch all rooms of type.
-        try {
-            const allRoomsRes = await getAllRooms(0, 100, 'roomNumber,asc');
-            // Check if getAllRooms supports filtering by roomType? Assuming it returns data.
-            // Client side filter:
-            if (allRoomsRes.data) {
-                const filtered = allRoomsRes.data.filter(r => r.roomType.id === type.roomType.id && r.status === 'AVAILABLE');
-                setAvailableRooms(filtered);
-            }
-        } catch(e) { console.error(e) }
+        const newItems = Array(roomCount).fill(null).map((_, idx) => ({
+            roomType: type,
+            occupantName: idx === 0 && selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : '',
+            assignedRoomId: undefined
+        }));
+        setBookingItems(newItems);
     };
+
+    const updateRoomCount = (count: number) => {
+        if (count < 1) return;
+        setRoomCount(count);
+        if (selectedRoomType) {
+             const newItems = Array(count).fill(null).map((_, idx) => {
+                 if (idx < bookingItems.length) return bookingItems[idx];
+                 return {
+                    roomType: selectedRoomType,
+                    occupantName: idx === 0 && selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : '',
+                    assignedRoomId: undefined
+                 };
+             });
+             setBookingItems(newItems);
+        }
+    };
+
+    const updateItemOccupant = (index: number, name: string) => {
+        const newItems = [...bookingItems];
+        newItems[index] = { ...newItems[index], occupantName: name };
+        setBookingItems(newItems);
+    };
+
+    // Helper for Total Price Calculation
+    const getNights = () => {
+        if (!dates.checkIn || !dates.checkOut) return 1;
+        const s = new Date(dates.checkIn);
+        const e = new Date(dates.checkOut);
+        const diff = e.getTime() - s.getTime();
+        return Math.max(1, Math.ceil(diff / (1000 * 3600 * 24)));
+    }
 
     // Step 3 Confirmation
     const handleConfirmBooking = async () => {
-        if (!selectedCustomer || !selectedRoomType || !dates.checkIn || !dates.checkOut) return;
+        if (!selectedCustomer || bookingItems.length === 0 || !dates.checkIn || !dates.checkOut) return;
 
         setLoading(true);
+        const nights = getNights();
+
+        const itemsPayload = bookingItems.map(item => ({
+             roomType: { id: item.roomType.id, name: item.roomType.name },
+             price: item.roomType.basePrice * nights,
+             assignedRoom: item.assignedRoomId ? { id: item.assignedRoomId } : undefined,
+             occupantName: item.occupantName || undefined
+        }));
+
         const bookingDTO: any = { // BookingDTO
             customer: selectedCustomer,
             checkInDate: dates.checkIn,
             checkOutDate: dates.checkOut,
             guestCount: guestCount,
             status: 'PENDING_PAYMENT',
-            items: [
-                {
-                    roomType: selectedRoomType.roomType,
-                    price: selectedRoomType.totalPrice, // Or unit price? AvailabilityDTO total is usually total period
-                    assignedRoom: assignedRoom || undefined
-                }
-            ]
+            items: itemsPayload
         };
 
         try {
             const created = await createWalkInBooking(bookingDTO);
             toast.success('Reserva Walk-In creada!');
             navigate(`/admin/bookings/${created.id}`);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error al confirmar reserva');
+            const msg = error.response?.data?.detail || error.response?.data?.title || 'Error al confirmar reserva';
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -181,6 +221,7 @@ const WalkInWizard = () => {
                 {/* STEP 1: CUSTOMER */}
                 {step === 1 && (
                     <div className="animate-fadeIn">
+                        {/* ... (Step 1 content unchanged) ... */}
                         <h2 className="text-xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
                             <UserIcon className="w-6 h-6 mr-2 text-gold-500"/>
                              Identificación del Cliente
@@ -238,7 +279,7 @@ const WalkInWizard = () => {
                                         </button>
                                     </div>
                                     
-                                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 bg-white dark:bg-[#1c1c1c]">
+                                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 bg-white dark:bg-[#1c1c1c] overflow-y-auto flex-1">
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Nombre <span className="text-red-500">*</span></label>
                                             <input 
@@ -395,15 +436,38 @@ const WalkInWizard = () => {
                         <div className="flex gap-4 items-end mb-6 bg-gray-50 dark:bg-[#252525] p-4 rounded-lg">
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Check-In</label>
-                                <input type="date" className="p-2 border border-gray-300 dark:border-[#444] rounded w-40 text-gray-900 dark:text-white bg-white dark:bg-[#2a2a2a]" value={dates.checkIn} onChange={e => setDates({...dates, checkIn: e.target.value})} />
+                                <input 
+                                    type="date" 
+                                    className="p-2 border border-gray-300 dark:border-[#444] rounded w-40 text-gray-900 dark:text-white bg-white dark:bg-[#2a2a2a]" 
+                                    value={dates.checkIn} 
+                                    min={new Date().toISOString().split('T')[0]}
+                                    onChange={e => setDates({...dates, checkIn: e.target.value})} 
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Check-Out</label>
-                                <input type="date" className="p-2 border border-gray-300 dark:border-[#444] rounded w-40 text-gray-900 dark:text-white bg-white dark:bg-[#2a2a2a]" value={dates.checkOut} onChange={e => setDates({...dates, checkOut: e.target.value})} />
+                                <input 
+                                    type="date" 
+                                    className="p-2 border border-gray-300 dark:border-[#444] rounded w-40 text-gray-900 dark:text-white bg-white dark:bg-[#2a2a2a]" 
+                                    value={dates.checkOut} 
+                                    min={dates.checkIn ? new Date(new Date(dates.checkIn).getTime() + 86400000).toISOString().split('T')[0] : undefined}
+                                    onChange={e => setDates({...dates, checkOut: e.target.value})} 
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Guests</label>
                                 <input type="number" min="1" className="p-2 border border-gray-300 dark:border-[#444] rounded w-20 text-gray-900 dark:text-white bg-white dark:bg-[#2a2a2a]" value={guestCount} onChange={e => setGuestCount(parseInt(e.target.value))} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Habs.</label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    max="10"
+                                    className="p-2 border border-gray-300 dark:border-[#444] rounded w-20 text-gray-900 dark:text-white bg-white dark:bg-[#2a2a2a]" 
+                                    value={roomCount} 
+                                    onChange={e => updateRoomCount(parseInt(e.target.value))} 
+                                />
                             </div>
                             <button 
                                 onClick={handleCheckAvailability}
@@ -419,19 +483,21 @@ const WalkInWizard = () => {
                                 {availability.map((item, idx) => (
                                     <div 
                                         key={idx} 
-                                        onClick={() => handleRoomTypeSelect(item)}
-                                        className={`cursor-pointer border-2 p-4 rounded-xl transition ${
-                                            selectedRoomType?.roomType.id === item.roomType.id 
+                                        onClick={() => item.availableQuantity >= roomCount && handleRoomTypeSelect(item)}
+                                        className={`border-2 p-4 rounded-xl transition ${
+                                            selectedRoomType?.id === item.id 
                                             ? 'border-gold-500 bg-gold-50 dark:bg-opacity-10' 
-                                            : 'border-gray-100 hover:border-gold-300 dark:border-[#333] dark:hover:border-gold-500'
+                                            : item.availableQuantity < roomCount 
+                                                ? 'border-gray-200 dark:border-[#333] opacity-50 cursor-not-allowed'
+                                                : 'border-gray-100 hover:border-gold-300 dark:border-[#333] dark:hover:border-gold-500 cursor-pointer'
                                         }`}
                                     >
-                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{item.roomType.name}</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{item.roomType.description}</p>
+                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{item.name}</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Capacidad: {item.maxCapacity} pers.</p>
                                         <div className="mt-4 flex justify-between items-center">
-                                            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">${item.totalPrice}</span>
-                                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">
-                                                {item.availableCount} Disp.
+                                            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">${item.basePrice} <span className="text-xs text-gray-500">/noche</span></span>
+                                            <span className={`px-2 py-1 rounded text-xs font-bold ${item.availableQuantity >= roomCount ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {item.availableQuantity >= roomCount ? `${item.availableQuantity} Disp.` : 'AGOTADO'}
                                             </span>
                                         </div>
                                     </div>
@@ -439,25 +505,6 @@ const WalkInWizard = () => {
                             </div>
                         )}
                         
-                        {selectedRoomType && (
-                            <div className="mb-6 p-4 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                <label className="block text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Asignar Habitación Específica (Opcional)</label>
-                                <select 
-                                    className="w-full p-2 border border-gray-300 dark:border-gray-500 rounded text-gray-900 dark:text-white bg-white dark:bg-gray-800"
-                                    onChange={(e) => {
-                                        const r = availableRooms.find(room => room.id === parseInt(e.target.value));
-                                        setAssignedRoom(r || null);
-                                    }}
-                                    value={assignedRoom?.id || ''}
-                                >
-                                    <option value="">Automático (Cualquier disponible)</option>
-                                    {availableRooms.map(r => (
-                                        <option key={r.id} value={r.id}>Habitación {r.roomNumber}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
                         <div className="flex justify-between mt-8">
                              <button onClick={() => setStep(1)} className="text-gray-500 font-bold hover:text-gray-800">Atrás</button>
                              <button
@@ -482,27 +529,43 @@ const WalkInWizard = () => {
 
                         <div className="bg-gray-50 dark:bg-[#252525] p-6 rounded-xl border border-gray-200 dark:border-[#333] mb-8 space-y-4 text-gray-900 dark:text-white">
                             <div className="flex justify-between border-b dark:border-[#444] pb-2">
-                                <span className="text-gray-600 dark:text-gray-300">Cliente</span>
+                                <span className="text-gray-600 dark:text-gray-300">Cliente Principal</span>
                                 <span className="font-bold">{selectedCustomer?.firstName} {selectedCustomer?.lastName}</span>
                             </div>
                             <div className="flex justify-between border-b dark:border-[#444] pb-2">
-                                <span className="text-gray-600 dark:text-gray-300">DNI</span>
-                                <span className="font-bold">{selectedCustomer?.licenseId}</span>
-                            </div>
-                            <div className="flex justify-between border-b dark:border-[#444] pb-2">
                                 <span className="text-gray-600 dark:text-gray-300">Fechas</span>
-                                <span className="font-bold">{dates.checkIn} a {dates.checkOut}</span>
+                                <span className="font-bold">{dates.checkIn} a {dates.checkOut} ({getNights()} noches)</span>
                             </div>
-                            <div className="flex justify-between border-b dark:border-[#444] pb-2">
-                                <span className="text-gray-600 dark:text-gray-300">Habitación</span>
-                                <span className="font-bold">
-                                    {selectedRoomType?.roomType.name} 
-                                    {assignedRoom ? ` - #${assignedRoom.roomNumber}` : ' (Asignación Automática)'}
+                            
+                            <div className="py-4">
+                                <h3 className="font-bold mb-3 text-gold-600">Habitaciones y Ocupantes</h3>
+                                <div className="space-y-3">
+                                    {bookingItems.map((item, idx) => (
+                                        <div key={idx} className="bg-white dark:bg-[#1c1c1c] p-3 rounded border border-gray-200 dark:border-[#444]">
+                                            <div className="flex justify-between items-center mb-2">
+                                                 <span className="font-bold text-sm">Habitación {idx + 1}: {item.roomType.name}</span>
+                                                 <span className="text-sm font-bold">${item.roomType.basePrice * getNights()}</span>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">Nombre del Ocupante</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full p-2 border border-gray-300 dark:border-[#555] rounded text-sm bg-gray-50 dark:bg-[#2a2a2a] text-gray-900 dark:text-white"
+                                                    placeholder="Nombre Completo"
+                                                    value={item.occupantName}
+                                                    onChange={(e) => updateItemOccupant(idx, e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-[#444]">
+                                <span className="text-lg text-gray-800 dark:text-gray-100 font-bold">Total General</span>
+                                <span className="text-2xl font-bold text-gold-600">
+                                    ${bookingItems.reduce((acc, item) => acc + (item.roomType.basePrice * getNights()), 0)}
                                 </span>
-                            </div>
-                            <div className="flex justify-between pt-2">
-                                <span className="text-lg text-gray-800 dark:text-gray-100">Total a Pagar</span>
-                                <span className="text-2xl font-bold text-gold-600">${selectedRoomType?.totalPrice}</span>
                             </div>
                         </div>
 
@@ -512,10 +575,10 @@ const WalkInWizard = () => {
                                 onClick={handleConfirmBooking}
                                 className="bg-gold-500 text-white px-8 py-3 rounded-lg font-bold flex items-center hover:bg-gold-600 shadow-lg transform hover:scale-105 transition"
                                 disabled={loading}
-                             >
+                            >
                                 <CheckCircleIcon className="w-5 h-5 mr-2" />
                                 CONFIRMAR Y CREAR
-                             </button>
+                            </button>
                         </div>
                     </div>
                 )}

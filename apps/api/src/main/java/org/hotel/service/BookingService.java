@@ -126,6 +126,11 @@ public class BookingService {
         // Guardamos (Cascade persistirá los BookingItems automáticamente)
         Booking savedBooking = bookingRepository.save(booking);
 
+        // Auto-generate invoice if created with PENDING_PAYMENT (e.g. Walk-In)
+        if (isNew && BookingStatus.PENDING_PAYMENT.equals(savedBooking.getStatus())) {
+             invoiceService.createInitialInvoice(savedBooking);
+        }
+
         // Send Email
         try {
             if (savedBooking.getCustomer() != null && savedBooking.getCustomer().getEmail() != null) {
