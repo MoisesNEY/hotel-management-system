@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAccount, updateAccount, uploadProfilePicture, deleteProfilePicture } from '../../../services/accountService';
 import type { AdminUserDTO } from '../../../types/adminTypes';
-import { User, Mail, Globe, Shield, Save, Camera, Trash2 } from 'lucide-react';
+import { User, Mail, Globe, Shield, Save, Camera, Trash2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthProvider';
+import Modal from '../../components/shared/Modal';
+import Button from '../../components/shared/Button';
 
 const UserProfileView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { reloadProfile } = useAuth();
     const [formData, setFormData] = useState<Partial<AdminUserDTO>>({
@@ -47,7 +50,7 @@ const UserProfileView: React.FC = () => {
             if (formData.login) {
                 await updateAccount(formData as AdminUserDTO);
                 await reloadProfile(); // Fuerza actualización de token y claims en Keycloak
-                alert('Perfil actualizado correctamente');
+                setSuccessMessage('Perfil actualizado correctamente');
             }
         } catch (error) {
             console.error("Failed to update profile", error);
@@ -68,8 +71,7 @@ const UserProfileView: React.FC = () => {
 
             // Actualizar instantáneamente local y en el servidor
             await reloadProfile();
-
-            alert('Foto de perfil actualizada');
+            setSuccessMessage('Foto de perfil actualizada');
         } catch (error) {
             console.error("Failed to upload photo", error);
             alert('Error al subir la foto');
@@ -91,8 +93,7 @@ const UserProfileView: React.FC = () => {
 
             // Actualizar instantáneamente local y en el servidor
             await reloadProfile();
-
-            alert('Foto de perfil eliminada');
+            setSuccessMessage('Foto de perfil eliminada');
         } catch (error) {
             console.error("Failed to delete photo", error);
             alert('Error al eliminar la foto');
@@ -323,42 +324,70 @@ const UserProfileView: React.FC = () => {
                 </div>
             </div>
 
+            {/* Success Modal */}
+            <Modal
+                isOpen={!!successMessage}
+                onClose={() => setSuccessMessage(null)}
+                size="sm"
+            >
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mb-6 animate-in zoom-in duration-300">
+                        <CheckCircle2 size={40} />
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        ¡Todo listo!
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8">
+                        {successMessage}
+                    </p>
+
+                    <Button
+                        variant="primary"
+                        onClick={() => setSuccessMessage(null)}
+                        className="w-full justify-center py-3 text-base shadow-lg shadow-blue-500/20"
+                    >
+                        Aceptar
+                    </Button>
+                </div>
+            </Modal>
+
             {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 max-w-sm w-full p-6 transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
-                        <div className="flex flex-col items-center text-center space-y-4">
-                            <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full">
-                                <Trash2 size={32} />
-                            </div>
+            <Modal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                size="sm"
+            >
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="w-20 h-20 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-6">
+                        <Trash2 size={40} />
+                    </div>
 
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                                    ¿Eliminar foto de perfil?
-                                </h3>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                    ¿Estás seguro de que deseas eliminar tu foto de perfil?
-                                </p>
-                            </div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        ¿Eliminar foto?
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8">
+                        ¿Estás seguro de que deseas eliminar tu foto de perfil? Esta acción no se puede deshacer.
+                    </p>
 
-                            <div className="flex gap-3 w-full pt-2">
-                                <button
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={confirmDeletePhoto}
-                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-lg shadow-red-500/30 transition-colors"
-                                >
-                                    Eliminar
-                                </button>
-                            </div>
-                        </div>
+                    <div className="flex w-full gap-4">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            className="flex-1 justify-center py-3"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={confirmDeletePhoto}
+                            className="flex-1 justify-center py-3 shadow-lg shadow-red-500/20"
+                        >
+                            Eliminar
+                        </Button>
                     </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 };
