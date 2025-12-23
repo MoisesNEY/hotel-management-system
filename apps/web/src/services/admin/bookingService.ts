@@ -49,6 +49,6 @@ export const assignRoom = async (id: number, request: AssignRoomRequest) => {
 };
 
 export const approveBooking = async (id: number) => {
-  const response = await apiClient.put<BookingDTO>(`${API_URL}/${id}/approve`, {});
+  const response = await apiClient.patch<BookingDTO>(`${API_URL}/${id}/approve`, {});
   return response.data;
 };

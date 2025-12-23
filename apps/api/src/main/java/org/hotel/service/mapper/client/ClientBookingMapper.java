@@ -28,7 +28,7 @@ public interface ClientBookingMapper {
     BookingItemResponse toItemResponse(BookingItem item);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", constant = "PENDING")
+    @Mapping(target = "status", constant = "PENDING_APPROVAL")
     @Mapping(target = "customer", ignore = true)
     @Mapping(target = "bookingItems", source = "items")
     @Mapping(target = "notes", ignore = true)

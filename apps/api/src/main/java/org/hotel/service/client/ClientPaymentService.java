@@ -3,8 +3,10 @@ package org.hotel.service.client;
 import com.paypal.sdk.PaypalServerSdkClient;
 import com.paypal.sdk.exceptions.ApiException;
 import com.paypal.sdk.models.*;
+import org.hotel.domain.Booking;
 import org.hotel.domain.Invoice;
 import org.hotel.domain.Payment;
+import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.domain.enumeration.InvoiceStatus;
 import org.hotel.domain.enumeration.PaymentMethod;
 import org.hotel.repository.InvoiceRepository;
@@ -94,9 +96,12 @@ public class ClientPaymentService {
                 order.getId()
             );
 
-        } catch (ApiException | IOException e) {
-            log.error("Error al crear orden en PayPal", e);
-            throw new BadRequestAlertException("No se pudo iniciar el pago con PayPal", "payment", "paypalinitfailed");
+        } catch (ApiException e) {
+            log.error("Error al crear orden en PayPal. Status: {}, Response: {}", e.getResponseCode(), e.getHttpContext().getResponse().getRawBody());
+            throw new BadRequestAlertException("No se pudo iniciar el pago con PayPal: " + e.getMessage(), "payment", "paypalinitfailed");
+        } catch (IOException e) {
+            log.error("Error de IO al crear orden en PayPal", e);
+            throw new BadRequestAlertException("Error de conexión con PayPal", "payment", "paypalinitfailed");
         }
     }
 
@@ -131,6 +136,15 @@ public class ClientPaymentService {
                 payment = paymentRepository.save(payment);
 
                 invoice.setStatus(InvoiceStatus.PAID);
+                
+                // Confirm the booking upon payment
+                if (invoice.getBooking() != null) {
+                    Booking booking = invoice.getBooking();
+                    if (!BookingStatus.CANCELLED.equals(booking.getStatus())) {
+                        booking.setStatus(BookingStatus.CONFIRMED);
+                    }
+                }
+                
                 invoiceRepository.save(invoice);
 
                 // Enviar Correo de Pago Exitoso (Async) 
@@ -155,9 +169,12 @@ public class ClientPaymentService {
                 throw new BusinessRuleException("El pago no fue completado por PayPal.");
             }
 
-        } catch (ApiException | IOException e) {
-            log.error("Error al capturar pago en PayPal", e);
-            throw new BadRequestAlertException("Error al procesar el pago con PayPal", "payment", "paypalcapturefailed");
+        } catch (ApiException e) {
+            log.error("Error al capturar pago en PayPal. Status: {}, Response: {}", e.getResponseCode(), e.getHttpContext().getResponse().getRawBody());
+            throw new BadRequestAlertException("Error al procesar el pago con PayPal: " + e.getMessage(), "payment", "paypalcapturefailed");
+        } catch (IOException e) {
+            log.error("Error de IO al capturar pago en PayPal", e);
+            throw new BadRequestAlertException("Error de conexión con PayPal", "payment", "paypalcapturefailed");
         }
     }
 
