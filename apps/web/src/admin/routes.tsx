@@ -18,9 +18,9 @@ import {
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
 import RoomTypesView from './views/RoomTypes/RoomTypesView';
-import BookingsView from './views/Bookings/BookingsView'; 
+import BookingsView from './views/Bookings/BookingsView';
 import ServicesView from './views/Services/ServicesView';
-import CustomersView from './views/Customers/CustomersView'; 
+import CustomersView from './views/Customers/CustomersView';
 import MapsView from './views/Maps/MapsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
@@ -36,13 +36,14 @@ import PaymentForm from './views/Finance/PaymentForm';
 import { BanknotesIcon } from '@heroicons/react/24/outline';
 
 export interface RouteConfig {
-  // ...
+    // ...
     path: string;
     name: string;
     icon: React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>;
     component: React.ComponentType;
     layout: string;
     hidden?: boolean;
+    allowedRoles?: string[];
 }
 
 const routes: RouteConfig[] = [
@@ -51,85 +52,97 @@ const routes: RouteConfig[] = [
         name: 'Dashboard',
         icon: Squares2X2Icon,
         component: Dashboard,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/rooms',
         name: 'Habitaciones',
-        icon: HomeModernIcon, // Bed/Room icon
+        icon: HomeModernIcon,
         component: RoomsView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/room-types',
         name: 'Tipos Hab.',
-        icon: TableCellsIcon, // Grid icon for data/categories
+        icon: TableCellsIcon,
         component: RoomTypesView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/bookings',
         name: 'Reservas',
         icon: CalendarDaysIcon,
         component: BookingsView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/services',
         name: 'Servicios',
-        icon: SparklesIcon, // Sparkles for hotel services (cleaning, amenities)
+        icon: SparklesIcon,
         component: ServicesView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/employee/bookings',
         name: 'Check-in/Check-out',
         icon: UserGroupIcon,
         component: EmployeeBookingsView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/employee/service-requests',
         name: 'Solicitudes Servicio',
         icon: UserGroupIcon,
         component: EmployeeServiceRequestsView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/customers',
         name: 'Clientes',
         icon: UsersIcon,
         component: CustomersView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/maps',
         name: 'Mapas',
         icon: MapPinIcon,
         component: MapsView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/user-profile',
         name: 'Perfil',
         icon: UserIcon,
         component: UserProfileView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/tables',
         name: 'Tablas',
-        icon: ChartBarIcon, // Bar chart for reports/stats center
+        icon: ChartBarIcon,
         component: TablesView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     // --- NUEVA SECCIÓN DE CMS ---
     {
         path: '/cms',
-        name: 'Sitio Web', // Nombre en el Sidebar
-        icon: ComputerDesktopIcon,     // Icono
+        name: 'Sitio Web',
+        icon: ComputerDesktopIcon,
         component: CMSList,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     // --- RUTA OCULTA PARA EDICIÓN ---
     // Esta ruta existe para el Router, pero debemos ocultarla del Sidebar
@@ -139,22 +152,25 @@ const routes: RouteConfig[] = [
         icon: ComputerDesktopIcon,
         component: CMSEditor,
         layout: '/admin',
-        hidden: true // <--- Propiedad clave
+        hidden: true,
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/files',
         name: 'Documentos',
         icon: DocumentTextIcon,
         component: FileManagerView,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     // --- FINANCE MODULE ---
     {
         path: '/invoices',
         name: 'Facturas',
-        icon: DocumentTextIcon, // Reusing icon or getting new one
+        icon: DocumentTextIcon,
         component: InvoiceList,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/invoices/new',
@@ -162,7 +178,8 @@ const routes: RouteConfig[] = [
         icon: DocumentTextIcon,
         component: InvoiceForm,
         layout: '/admin',
-        hidden: true
+        hidden: true,
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/invoices/edit/:id',
@@ -170,14 +187,16 @@ const routes: RouteConfig[] = [
         icon: DocumentTextIcon,
         component: InvoiceForm,
         layout: '/admin',
-        hidden: true
+        hidden: true,
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/payments',
         name: 'Pagos',
-        icon: BanknotesIcon, // Need to import this
+        icon: BanknotesIcon,
         component: PaymentList,
-        layout: '/admin'
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/payments/new',
@@ -185,7 +204,8 @@ const routes: RouteConfig[] = [
         icon: BanknotesIcon,
         component: PaymentForm,
         layout: '/admin',
-        hidden: true
+        hidden: true,
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/payments/edit/:id',
@@ -193,7 +213,8 @@ const routes: RouteConfig[] = [
         icon: BanknotesIcon,
         component: PaymentForm,
         layout: '/admin',
-        hidden: true
+        hidden: true,
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
 ];
 
