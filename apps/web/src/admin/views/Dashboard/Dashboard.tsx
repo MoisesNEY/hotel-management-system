@@ -65,21 +65,24 @@ const Dashboard = () => {
                 setLoading(true);
 
                 // Endpoints que todos pueden ver
-                const servicesData = await getServicesChartData();
+                const [servicesData, dashboardData] = await Promise.all([
+                    getServicesChartData(),
+                    dashboardService.getStats()
+                ]);
+
                 setServicesChartData(servicesData);
+                setStats(dashboardData);
 
                 // Endpoints solo para admin (o donde el empleado reciba 403)
                 if (isAdmin) {
-                    const [dashboardData, revenueData, roomsData] = await Promise.all([
-                        dashboardService.getStats(),
+                    const [revenueData, roomsData] = await Promise.all([
                         dashboardService.getRevenueChartData(),
                         getRoomsChartData()
                     ]);
-                    setStats(dashboardData);
                     setChartData(revenueData);
                     setRoomsChartData(roomsData);
                 } else {
-                    // Carga mínima para empleados si tienen permiso para ver habitaciones básico
+                    // Carga mínima para empleados
                     try {
                         const roomsData = await getRoomsChartData();
                         setRoomsChartData(roomsData);
