@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   ChevronLeft, ChevronRight, MapPin, Star, Phone, Mail,
   Bed, Utensils, Heart, Briefcase, Umbrella, Car
 } from 'lucide-react';
@@ -13,13 +13,13 @@ const HotelGallery: React.FC = () => {
   const { data: galleryHeader } = useSingleContent('HEADER_GALLERY');
 
   const getContactVal = (key: string) => contactItems.find(c => c.title?.toLowerCase().includes(key.toLowerCase()));
-  
+
   const addressItem = getContactVal('address') || getContactVal('dirección');
   const phoneItem = getContactVal('phone') || getContactVal('teléfono');
   const emailItem = getContactVal('email') || getContactVal('correo');
 
   const iconColors = ['#4361ee', '#e63946', '#f72585', '#2a9d8f', '#4cc9f0', '#7209b7'];
-  
+
   const getFacilityIcon = (text: string) => {
     const t = text.toLowerCase();
     if (t.includes('hab') || t.includes('cuarto')) return <Bed size={20} />;
@@ -40,9 +40,9 @@ const HotelGallery: React.FC = () => {
     emailLink: emailItem?.actionUrl,
     mapSrc: mapItem?.actionUrl || '',
     features: facilities.length > 0 ? facilities.map((f, i) => ({
-        icon: getFacilityIcon(f.title || ''),
-        text: f.title || '',
-        color: iconColors[i % iconColors.length]
+      icon: getFacilityIcon(f.title || ''),
+      text: f.title || '',
+      color: iconColors[i % iconColors.length]
     })) : [
       { icon: <Bed size={20} />, text: '120 habitaciones y suites', color: '#4361ee' },
       { icon: <Utensils size={20} />, text: '3 restaurantes gourmet', color: '#e63946' },
@@ -74,6 +74,7 @@ const HotelGallery: React.FC = () => {
     return () => clearInterval(interval);
   }, [autoplay, imagesToShow.length]);
 
+  if (galleryItems.length === 0) return null;
 
   return (
     <section className="bg-white dark:bg-[#0f1115] py-[100px] relative overflow-hidden" id="galeria">
@@ -88,7 +89,7 @@ const HotelGallery: React.FC = () => {
         </div>
 
         {/* Slider */}
-        <div 
+        <div
           className="mb-20"
           onMouseEnter={() => setAutoplay(false)}
           onMouseLeave={() => setAutoplay(true)}
@@ -99,10 +100,10 @@ const HotelGallery: React.FC = () => {
                 <button className="absolute top-1/2 -translate-y-1/2 left-5 bg-white/90 dark:bg-gray-800/90 border-none w-[50px] h-[50px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 text-gray-900 dark:text-white z-10 hover:bg-white dark:hover:bg-gray-700 hover:scale-110 hover:shadow-lg" onClick={prevSlide} aria-label="Anterior">
                   <ChevronLeft size={24} />
                 </button>
-                
+
                 <div className="relative h-[500px] overflow-hidden">
-                  <img 
-                    src={imagesToShow[currentIndex].imageUrl} 
+                  <img
+                    src={imagesToShow[currentIndex].imageUrl}
                     alt={imagesToShow[currentIndex].title}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
@@ -125,7 +126,7 @@ const HotelGallery: React.FC = () => {
               {/* Thumbnails */}
               <div className="grid grid-cols-6 gap-4">
                 {imagesToShow.map((image, index) => (
-                  <div 
+                  <div
                     key={image.id || index}
                     className={`relative h-[120px] rounded-lg overflow-hidden cursor-pointer transition-all duration-300 border-[3px] ${index === currentIndex ? 'border-[#d4af37] -translate-y-1' : 'border-transparent hover:-translate-y-1'}`}
                     onClick={() => goToSlide(index)}
@@ -150,7 +151,7 @@ const HotelGallery: React.FC = () => {
               <MapPin className="text-[#d4af37]" size={24} />
               Nuestra Ubicación
             </h3>
-            
+
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 text-base bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#e63946] transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:translate-x-1">
@@ -177,13 +178,13 @@ const HotelGallery: React.FC = () => {
                 <h4 className="text-gray-900 dark:text-white text-3xl mb-6 font-bold font-serif tracking-tight">Características del Hotel:</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {hotelInfo.features.map((feature, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center gap-4 p-5 bg-white/5 dark:bg-white/[0.03] rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group" 
+                    <div
+                      key={index}
+                      className="flex items-center gap-4 p-5 bg-white/5 dark:bg-white/[0.03] rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group"
                       style={{ borderColor: feature.color + '40' }} // Subtle alpha for border
                     >
-                      <div 
-                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:scale-110 shadow-inner" 
+                      <div
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-black/5 dark:bg-white/5 transition-all duration-300 group-hover:scale-110 shadow-inner"
                         style={{ color: feature.color, border: `1px solid ${feature.color}30` }}
                       >
                         {feature.icon}
@@ -199,20 +200,20 @@ const HotelGallery: React.FC = () => {
           {/* Map */}
           <div className="bg-white dark:bg-[#1c1c1c] p-3 rounded-2xl shadow-lg dark:shadow-[0_5px_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.6s_ease_forwards] self-start border border-gray-100 dark:border-white/10">
             <div className="relative rounded-xl overflow-hidden h-[450px]">
-               {hotelInfo.mapSrc ? (
-                  <iframe
-                    src={hotelInfo.mapSrc}
-                    width="100%"
-                    height="450"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    title="Ubicación"
-                    className="grayscale-[0.2] dark:grayscale-[0.5] invert-[0] dark:invert-[0.1] contrast-[1.1]"
-                  />
-               ) : (
-                 <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">Cargando Mapa...</div>
-               )}
+              {hotelInfo.mapSrc ? (
+                <iframe
+                  src={hotelInfo.mapSrc}
+                  width="100%"
+                  height="450"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  title="Ubicación"
+                  className="grayscale-[0.2] dark:grayscale-[0.5] invert-[0] dark:invert-[0.1] contrast-[1.1]"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">Cargando Mapa...</div>
+              )}
             </div>
           </div>
         </div>

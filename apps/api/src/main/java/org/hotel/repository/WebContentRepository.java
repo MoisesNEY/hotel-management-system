@@ -36,11 +36,24 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
     Optional<WebContent> findOneWithToOneRelationships(@Param("id") Long id);
 
     // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, siempre que
-    // la sección esté activa.
-    List<WebContent> findAllByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(String code);
+    // la sección esté activa (o null).
+    @Query("select w from WebContent w join w.collection c where c.code = :code " +
+            "and (w.isActive = true or w.isActive is null) " +
+            "and (c.isActive = true or c.isActive is null) " +
+            "order by w.sortOrder asc")
+    List<WebContent> findAllByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
+            @Param("code") String code);
 
-    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo de una sección
-    // activa.
-    Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
-            String code);
+    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo de una sección activa
+    // (o null).
+    @Query("select w from WebContent w join w.collection c where c.code = :code " +
+            "and (w.isActive = true or w.isActive is null) " +
+            "and (c.isActive = true or c.isActive is null) " +
+            "order by w.sortOrder asc")
+    List<WebContent> findByCollectionCodeAndIsActiveRobust(@Param("code") String code);
+
+    default Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
+            String code) {
+        return findByCollectionCodeAndIsActiveRobust(code).stream().findFirst();
+    }
 }

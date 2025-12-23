@@ -169,6 +169,8 @@ const Services: React.FC = () => {
     }
   };
 
+  if (loading || services.length === 0) return null;
+
   return (
     <>
       <section className="bg-white dark:bg-[#1a1a2e] py-[100px] relative" id="servicios">

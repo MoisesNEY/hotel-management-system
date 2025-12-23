@@ -20,7 +20,7 @@ const Features: React.FC = () => {
         const t = title.toLowerCase();
         const colorClass = iconColors[index % iconColors.length];
         const iconProps = { size: 32, className: colorClass };
-        
+
         if (t.includes('seguridad')) return <Shield {...iconProps} />;
         if (t.includes('tiempo')) return <Clock {...iconProps} />;
         if (t.includes('wifi') || t.includes('conexión')) return <Wifi {...iconProps} />;
@@ -30,7 +30,7 @@ const Features: React.FC = () => {
         return <Star {...iconProps} />;
     };
 
-    if (loading) return null;
+    if (loading || features.length === 0) return null;
 
     return (
         <section className="bg-white dark:bg-[#1a1a2e] py-[70px] border-t border-b border-gray-200 dark:border-gray-700 flex flex-col items-center" id="caracteristicas">
