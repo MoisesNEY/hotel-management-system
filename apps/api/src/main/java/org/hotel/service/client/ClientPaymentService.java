@@ -96,9 +96,12 @@ public class ClientPaymentService {
                 order.getId()
             );
 
-        } catch (ApiException | IOException e) {
-            log.error("Error al crear orden en PayPal", e);
-            throw new BadRequestAlertException("No se pudo iniciar el pago con PayPal", "payment", "paypalinitfailed");
+        } catch (ApiException e) {
+            log.error("Error al crear orden en PayPal. Status: {}, Response: {}", e.getResponseCode(), e.getHttpContext().getResponse().getRawBody());
+            throw new BadRequestAlertException("No se pudo iniciar el pago con PayPal: " + e.getMessage(), "payment", "paypalinitfailed");
+        } catch (IOException e) {
+            log.error("Error de IO al crear orden en PayPal", e);
+            throw new BadRequestAlertException("Error de conexión con PayPal", "payment", "paypalinitfailed");
         }
     }
 
@@ -166,9 +169,12 @@ public class ClientPaymentService {
                 throw new BusinessRuleException("El pago no fue completado por PayPal.");
             }
 
-        } catch (ApiException | IOException e) {
-            log.error("Error al capturar pago en PayPal", e);
-            throw new BadRequestAlertException("Error al procesar el pago con PayPal", "payment", "paypalcapturefailed");
+        } catch (ApiException e) {
+            log.error("Error al capturar pago en PayPal. Status: {}, Response: {}", e.getResponseCode(), e.getHttpContext().getResponse().getRawBody());
+            throw new BadRequestAlertException("Error al procesar el pago con PayPal: " + e.getMessage(), "payment", "paypalcapturefailed");
+        } catch (IOException e) {
+            log.error("Error de IO al capturar pago en PayPal", e);
+            throw new BadRequestAlertException("Error de conexión con PayPal", "payment", "paypalcapturefailed");
         }
     }
 

@@ -154,6 +154,7 @@ public class InvoiceService {
         invoice.setCode("INV-" + System.currentTimeMillis()); // O tu lógica de generador de códigos
         invoice.setIssuedDate(Instant.now());
         invoice.setStatus(InvoiceStatus.ISSUED);
+        invoice.setCurrency("USD");
         
         // Buscamos la entidad Booking completa para asociarla
         Booking booking = bookingRepository.findById(bookingId)
@@ -197,6 +198,7 @@ public class InvoiceService {
         invoice.setCode("INV-" + System.currentTimeMillis());
         invoice.setIssuedDate(Instant.now());
         invoice.setStatus(InvoiceStatus.ISSUED);
+        invoice.setCurrency("USD");
         invoice.setBooking(booking);
 
         // Save Header first to get ID
