@@ -224,4 +224,30 @@ public class InvoiceResource {
         
         return ResponseEntity.ok().body(updatedInvoice);
     }
+
+    /**
+     * {@code POST  /invoices/:id/pay} : Pay an invoice manually.
+     *
+     * @param id the id of the invoice to pay.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the updated InvoiceDTO.
+     */
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<InvoiceDTO> payInvoice(@PathVariable("id") Long id) {
+        LOG.debug("REST request to pay Invoice : {}", id);
+        InvoiceDTO result = invoiceService.payInvoice(id);
+        return ResponseEntity.ok().body(result);
+    }
+
+    /**
+     * {@code POST  /invoices/:id/cancel} : Cancel an invoice manually.
+     *
+     * @param id the id of the invoice to cancel.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelInvoice(@PathVariable("id") Long id) {
+        LOG.debug("REST request to cancel Invoice : {}", id);
+        invoiceService.cancel(id);
+        return ResponseEntity.ok().build();
+    }
 }

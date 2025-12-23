@@ -342,6 +342,16 @@ public class BookingService {
 
             // C. Actualizar el objeto RoomType dentro del item (por si venía incompleto del DTO)
             item.setRoomType(roomType);
+
+            // D. Validar Habitación Específica si ha sido asignada
+            if (item.getAssignedRoom() != null) {
+                bookingDomainService.validateSpecificRoomAvailability(
+                    item.getAssignedRoom().getId(),
+                    booking.getCheckInDate(),
+                    booking.getCheckOutDate(),
+                    currentBookingId
+                );
+            }
         }
 
         // 5. Validar Disponibilidad (Bloque crítico delegago)

@@ -74,6 +74,16 @@ public class BookingDomainService {
     }
 
     /**
+     * Valida que una habitación física específica no esté ocupada en las fechas dadas.
+     */
+    public void validateSpecificRoomAvailability(Long roomId, LocalDate checkIn, LocalDate checkOut, Long excludeBookingId) {
+        long overlaps = bookingRepository.countOverlappingBookingsForSpecificRoom(roomId, checkIn, checkOut, excludeBookingId);
+        if (overlaps > 0) {
+            throw new BusinessRuleException("La habitación seleccionada ya está ocupada en las fechas solicitadas.");
+        }
+    }
+
+    /**
      * Calcula el precio total de un item basado en el tipo de habitación y noches.
      * Retorna el precio calculado.
      */

@@ -19,6 +19,9 @@ const InvoiceForm: React.FC = () => {
         totalAmount: 0 // Will generally be calculated
     });
 
+    const isReadOnly = formData.status === 'PAID' || formData.status === 'CANCELLED';
+    const isIssued = formData.status === 'ISSUED';
+
     useEffect(() => {
         if (isEditMode) {
             setLoading(true);
@@ -31,7 +34,7 @@ const InvoiceForm: React.FC = () => {
 
     // Recalculate total when items change
     useEffect(() => {
-        const total = formData.items?.reduce((sum, item) => sum + item.totalPrice, 0) || 0;
+        const total = formData.items?.reduce((sum, item) => sum + (item.totalPrice || 0), 0) || 0;
         setFormData(prev => ({ ...prev, totalAmount: total }));
     }, [formData.items]);
 
@@ -100,25 +103,35 @@ const InvoiceForm: React.FC = () => {
                 {/* Header Info */}
                 <div className="bg-white dark:bg-[#111111] p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm space-y-4">
                     <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Información General</h2>
+                    
+                    {isReadOnly && (
+                        <div className="bg-blue-50 text-blue-800 p-4 rounded-lg mb-4 text-sm dark:bg-blue-900/20 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                             Este documento está en modo de solo lectura porque se encuentra en estado Final ({formData.status}).
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código</label>
                             <input 
                                 type="text"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
                                 value={formData.code || ''}
                                 onChange={e => setFormData({...formData, code: e.target.value})}
                                 required
+                                disabled={isReadOnly || isIssued} // Code cannot be changed if Issued
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
                             <select 
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
                                 value={formData.status}
                                 onChange={e => setFormData({...formData, status: e.target.value as any})}
+                                disabled={true} // Status managed by actions (Pay/Cancel), usually not direct edit here unless DRAFT->ISSUED? keeping disabled for safety as per strict rules.
                             >
                                 <option value="PENDING">Pendiente</option>
+                                <option value="DRAFT">Borrador</option>
                                 <option value="ISSUED">Emitida</option>
                                 <option value="PAID">Pagada</option>
                                 <option value="CANCELLED">Cancelada</option>
@@ -128,19 +141,21 @@ const InvoiceForm: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Emisión</label>
                             <input 
                                 type="datetime-local"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
                                 value={formData.issuedDate ? formData.issuedDate.substring(0, 16) : ''}
                                 onChange={e => setFormData({...formData, issuedDate: new Date(e.target.value).toISOString()})}
                                 required
+                                disabled={isReadOnly}
                             />
                         </div>
                          <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Vencimiento</label>
                             <input 
                                 type="datetime-local"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
                                 value={formData.dueDate ? formData.dueDate.substring(0, 16) : ''}
                                 onChange={e => setFormData({...formData, dueDate: new Date(e.target.value).toISOString()})}
+                                disabled={isReadOnly}
                             />
                         </div>
                     </div>
@@ -150,13 +165,15 @@ const InvoiceForm: React.FC = () => {
                 <div className="bg-white dark:bg-[#111111] p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-medium text-gray-900 dark:text-white">Items de Factura</h2>
-                        <button 
-                            type="button"
-                            onClick={addItem}
-                            className="text-sm flex items-center gap-1 text-[#d4af37] hover:text-[#b8962d] font-medium"
-                        >
-                            <PlusIcon className="w-4 h-4" /> Agregar Item
-                        </button>
+                        {!isReadOnly && (
+                            <button 
+                                type="button"
+                                onClick={addItem}
+                                className="text-sm flex items-center gap-1 text-[#d4af37] hover:text-[#b8962d] font-medium"
+                            >
+                                <PlusIcon className="w-4 h-4" /> Agregar Item
+                            </button>
+                        )}
                     </div>
 
                     <div className="space-y-4">
@@ -167,10 +184,11 @@ const InvoiceForm: React.FC = () => {
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Descripción</label>
                                         <input 
                                             type="text"
-                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37]"
+                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-gray-100"
                                             value={item.description}
                                             onChange={e => handleItemChange(idx, 'description', e.target.value)}
                                             placeholder="Descripción del servicio"
+                                            disabled={isReadOnly}
                                         />
                                     </div>
                                     <div className="w-24">
@@ -178,9 +196,10 @@ const InvoiceForm: React.FC = () => {
                                         <input 
                                             type="number"
                                             min="1"
-                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37]"
+                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-gray-100"
                                             value={item.quantity}
                                             onChange={e => handleItemChange(idx, 'quantity', e.target.value)}
+                                            disabled={isReadOnly}
                                         />
                                     </div>
                                     <div className="w-32">
@@ -189,24 +208,27 @@ const InvoiceForm: React.FC = () => {
                                             type="number"
                                             min="0"
                                             step="0.01"
-                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37]"
+                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-gray-100"
                                             value={item.unitPrice}
                                             onChange={e => handleItemChange(idx, 'unitPrice', e.target.value)}
+                                            disabled={isReadOnly}
                                         />
                                     </div>
                                     <div className="w-32">
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Total</label>
                                         <div className="px-3 py-1.5 bg-gray-100 dark:bg-white/10 rounded border border-transparent text-gray-700 dark:text-gray-300 font-mono text-right">
-                                            ${item.totalPrice.toFixed(2)}
+                                            ${(item.totalPrice || 0).toFixed(2)}
                                         </div>
                                     </div>
-                                    <button 
-                                        type="button"
-                                        onClick={() => removeItem(idx)}
-                                        className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors"
-                                    >
-                                        <TrashIcon className="w-5 h-5" />
-                                    </button>
+                                    {!isReadOnly && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => removeItem(idx)}
+                                            className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors"
+                                        >
+                                            <TrashIcon className="w-5 h-5" />
+                                        </button>
+                                    )}
                                 </div>
                             ))
                         ) : (
@@ -226,15 +248,17 @@ const InvoiceForm: React.FC = () => {
                         onClick={() => navigate('/admin/invoices')}
                         className="px-6 py-2 border border-gray-300 dark:border-white/10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                     >
-                        Cancelar
+                        {isReadOnly ? 'Volver' : 'Cancelar'}
                     </button>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-2 bg-[#d4af37] text-white rounded-lg hover:bg-[#b8962d] transition-colors font-medium disabled:opacity-50"
-                    >
-                        {loading ? 'Guardando...' : 'Guardar Factura'}
-                    </button>
+                    {!isReadOnly && (
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-6 py-2 bg-[#d4af37] text-white rounded-lg hover:bg-[#b8962d] transition-colors font-medium disabled:opacity-50"
+                        >
+                            {loading ? 'Guardando...' : 'Guardar Factura'}
+                        </button>
+                    )}
                 </div>
             </form>
         </div>

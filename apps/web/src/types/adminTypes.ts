@@ -148,7 +148,7 @@ export interface ServiceRequestDTO {
   booking: BookingDTO;
 }
 
-export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED';
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'DRAFT' | 'ISSUED';
 
 export interface InvoiceItemDTO {
   id: number;

@@ -41,6 +41,10 @@ export const deleteInvoice = async (id: number) => {
     await api.delete(`${BASE_URL}/${id}`);
 };
 
+export const cancelInvoice = async (id: number) => {
+    await api.post(`${BASE_URL}/${id}/cancel`);
+};
+
 export const getInvoicesByBooking = async (bookingId: number) => {
     // Using JHipster filtering
     const response = await api.get<InvoiceDTO[]>(BASE_URL, {

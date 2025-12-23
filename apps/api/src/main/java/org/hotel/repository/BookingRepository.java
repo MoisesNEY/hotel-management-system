@@ -45,6 +45,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     @Query("select count(b) from Booking b join b.bookingItems bi where bi.roomType.id = :roomTypeId and b.status <> 'CANCELLED' and ((b.checkInDate < :checkOut and b.checkOutDate > :checkIn)) and b.id <> :excludeId")
     long countOverlappingBookingsExcludingSelf(@Param("roomTypeId") Long roomTypeId, @Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut, @Param("excludeId") Long excludeId);
 
+    @Query("select count(b) from Booking b join b.bookingItems bi where bi.assignedRoom.id = :roomId and b.status <> 'CANCELLED' and ((b.checkInDate < :checkOut and b.checkOutDate > :checkIn)) and (:excludeId is null or b.id <> :excludeId)")
+    long countOverlappingBookingsForSpecificRoom(@Param("roomId") Long roomId, @Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut, @Param("excludeId") Long excludeId);
+
     Page<Booking> findByCustomer_User_Login(String login, Pageable pageable);
 
     Optional<Booking> findByIdAndCustomer_User_Login(Long id, String login);
