@@ -38,7 +38,7 @@ interface ServiceRequest {
   id: string;
   serviceType: string;
   requestedDate: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED';
   notes?: string;
   price?: number;
 }
@@ -337,7 +337,8 @@ const UserProfilePage: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'CONFIRMED': return 'Confirmada';
-      case 'PENDING': return 'Pendiente';
+      case 'PENDING_APPROVAL': return 'Pendiente de Aprobación';
+      case 'PENDING_PAYMENT': return 'Pendiente de Pago';
       case 'CANCELLED': return 'Cancelada';
       case 'COMPLETED': return 'Completada';
       case 'IN_PROGRESS': return 'En Progreso';
@@ -351,7 +352,8 @@ const UserProfilePage: React.FC = () => {
     switch (status) {
       case 'CONFIRMED': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border dark:border-green-800';
       case 'COMPLETED': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border dark:border-blue-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border dark:border-yellow-800';
+      case 'PENDING_APPROVAL': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 dark:border dark:border-orange-800';
+      case 'PENDING_PAYMENT': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border dark:border-yellow-800';
       case 'CANCELLED': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border dark:border-red-800';
       case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:border dark:border-purple-800';
       case 'CHECKED_IN': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border dark:border-emerald-800';
@@ -360,7 +362,7 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  const activeBookings = bookings.filter(b => ['PENDING', 'CONFIRMED', 'CHECKED_IN'].includes(b.status));
+  const activeBookings = bookings.filter(b => ['PENDING_APPROVAL', 'PENDING_PAYMENT', 'CONFIRMED', 'CHECKED_IN'].includes(b.status));
   const pastBookings = bookings.filter(b => ['CHECKED_OUT', 'CANCELLED', 'COMPLETED'].includes(b.status));
 
   return (

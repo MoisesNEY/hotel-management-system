@@ -220,7 +220,7 @@ const EmployeeBookingsView = () => {
             header: 'Acciones',
             accessor: (item) => (
                 <div className="flex gap-2">
-                    {['PENDING', 'CONFIRMED'].includes(item.bookingStatus) && !item.assignedRoom && (
+                    {['CONFIRMED', 'CHECKED_IN'].includes(item.bookingStatus) && !item.assignedRoom && (
                         <Button
                             size="sm"
                             variant="outline"
@@ -231,7 +231,7 @@ const EmployeeBookingsView = () => {
                             Asignar
                         </Button>
                     )}
-                    {['PENDING', 'CONFIRMED'].includes(item.bookingStatus) && item.assignedRoom && (
+                    {['CONFIRMED'].includes(item.bookingStatus) && item.assignedRoom && (
                         <Button
                             size="sm"
                             variant="success"

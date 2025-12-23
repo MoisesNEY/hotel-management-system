@@ -64,7 +64,7 @@ class BookingResourceIT {
     private static final Integer UPDATED_GUEST_COUNT = 2;
     private static final Integer SMALLER_GUEST_COUNT = 1 - 1;
 
-    private static final BookingStatus DEFAULT_STATUS = BookingStatus.PENDING;
+    private static final BookingStatus DEFAULT_STATUS = BookingStatus.PENDING_APPROVAL;
     private static final BookingStatus UPDATED_STATUS = BookingStatus.CONFIRMED;
 
     private static final String DEFAULT_NOTES = "AAAAAAAAAA";

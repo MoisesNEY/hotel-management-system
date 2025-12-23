@@ -26,10 +26,9 @@ const TypeBadge: React.FC<TypeBadgeProps> = ({ type, value, category }) => {
         return collectionConfig[value as keyof typeof collectionConfig] || { color: 'bg-gray-100 text-gray-800', icon: '❓', label: value };
 
       case 'booking':
-        const bookingConfig: Record<BookingStatus, { color: string; icon: string; label: string }> = {
-          PENDING: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '⏳', label: 'Pendiente' },
-          PENDING_APPROVAL: { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '⚖️', label: 'Pendiente Aprobación' },
-          PENDING_PAYMENT: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '💳', label: 'Pendiente Pago' },
+        const bookingConfig = {
+          PENDING_APPROVAL: { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '⏳', label: 'Pendiente de Aprobación' },
+          PENDING_PAYMENT: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '💳', label: 'Pendiente de Pago' },
           CONFIRMED: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: '✅', label: 'Confirmada' },
           CANCELLED: { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: '❌', label: 'Cancelada' },
           CHECKED_IN: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '🏨', label: 'Check-in' },

@@ -98,9 +98,12 @@ public class BookingService {
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
-        // Generar código si no existe
+        // Generar código y estado si no existen
         if (booking.getCode() == null) {
             booking.setCode("RES-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        }
+        if (booking.getStatus() == null) {
+            booking.setStatus(BookingStatus.PENDING_APPROVAL);
         }
 
         // Expansión de items basada en quantity
@@ -259,7 +262,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
 
-        if (!BookingStatus.PENDING_APPROVAL.equals(booking.getStatus()) && !BookingStatus.PENDING.equals(booking.getStatus())) {
+        if (!BookingStatus.PENDING_APPROVAL.equals(booking.getStatus())) {
             throw new BusinessRuleException("Solo reservas pendientes de aprobación pueden ser aprobadas. Estado actual: " + booking.getStatus());
         }
 

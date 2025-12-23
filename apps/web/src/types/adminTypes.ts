@@ -36,7 +36,7 @@ export const defaultWebContent: Readonly<WebContent> = {
   sortOrder: 1,
   collection: null
 };
-export type BookingStatus = 'PENDING' | 'PENDING_APPROVAL' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT';
+export type BookingStatus = 'PENDING_APPROVAL' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT';
 export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'CLEANING' | 'DIRTY';
 export type RequestStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
 export type ServiceStatus = 'DOWN' | 'CLOSED' | 'FULL_CAPACITY' | 'OPERATIONAL';

@@ -36,7 +36,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     const [checkInDate, setCheckInDate] = useState('');
     const [checkOutDate, setCheckOutDate] = useState('');
     const [guestCount, setGuestCount] = useState(1);
-    const [status, setStatus] = useState<BookingStatus>('PENDING');
+    const [status, setStatus] = useState<BookingStatus>('PENDING_APPROVAL');
     const [notes, setNotes] = useState('');
 
     // Selection IDs and Data
@@ -90,7 +90,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             setCheckInDate(initialData.checkInDate || '');
             setCheckOutDate(initialData.checkOutDate || '');
             setGuestCount(initialData.guestCount || 1);
-            setStatus(initialData.status || 'PENDING');
+            setStatus(initialData.status || 'PENDING_APPROVAL');
             setNotes(initialData.notes || '');
 
             if (initialData.items) {
@@ -202,7 +202,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
         }
     };
 
-    const statuses: BookingStatus[] = ['PENDING_APPROVAL', 'PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT', 'PENDING'];
+    const statuses: BookingStatus[] = ['PENDING_APPROVAL', 'PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT'];
 
     const inputStyle = "w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-default/20 focus:border-gold-default outline-none transition-all placeholder:text-gray-400 disabled:opacity-50 appearance-none";
     const labelStyle = "block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1";
