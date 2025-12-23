@@ -5,9 +5,9 @@ import org.hotel.domain.User;
 import org.hotel.repository.CustomerRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.SecurityUtils;
-import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsCreateRequest;
-import org.hotel.service.dto.client.request.customerdetails.CustomerDetailsUpdateRequest;
-import org.hotel.service.dto.client.response.customerdetails.CustomerDetailsResponse;
+import org.hotel.service.dto.client.request.customer.CustomerCreateRequest;
+import org.hotel.service.dto.client.request.customer.CustomerUpdateRequest;
+import org.hotel.service.dto.client.response.customer.CustomerResponse;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.hotel.web.rest.errors.BusinessRuleException;
 import org.slf4j.Logger;
@@ -21,14 +21,14 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class ClientCustomerDetailsService {
+public class ClientCustomerService {
 
-    private final Logger log = LoggerFactory.getLogger(ClientCustomerDetailsService.class);
+    private final Logger log = LoggerFactory.getLogger(ClientCustomerService.class);
 
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
 
-    public ClientCustomerDetailsService(
+    public ClientCustomerService(
         CustomerRepository customerRepository,
         UserRepository userRepository
     ) {
@@ -40,7 +40,7 @@ public class ClientCustomerDetailsService {
      * Obtiene el perfil del usuario logueado actualmente.
      */
     @Transactional(readOnly = true)
-    public Optional<CustomerDetailsResponse> findMyProfile() {
+    public Optional<CustomerResponse> findMyProfile() {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
@@ -51,7 +51,7 @@ public class ClientCustomerDetailsService {
     /**
      * Crea el perfil inicial.
      */
-    public CustomerDetailsResponse createProfile(CustomerDetailsCreateRequest request) {
+    public CustomerResponse createProfile(CustomerCreateRequest request) {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
@@ -77,7 +77,6 @@ public class ClientCustomerDetailsService {
         entity.setLicenseId(request.getLicenseId());
         entity.setBirthDate(request.getBirthDate());
         
-        // Asignar email del usuario si no viene en request (request anterior no tenía email)
         if (currentUser.getEmail() != null) {
             entity.setEmail(currentUser.getEmail());
         }
@@ -91,8 +90,8 @@ public class ClientCustomerDetailsService {
             throw new BusinessRuleException("La fecha de nacimiento no es válida.");
         }
 
-        entity.setUser(currentUser); // Link User
-        entity.setIdentificationType("DNI"); // Default or add to request if needed
+        entity.setUser(currentUser); 
+        entity.setIdentificationType("DNI"); 
 
         entity = customerRepository.save(entity);
 
@@ -102,29 +101,28 @@ public class ClientCustomerDetailsService {
     /**
      * Actualiza datos parciales.
      */
-    public CustomerDetailsResponse updateProfile(CustomerDetailsUpdateRequest request) {
+    public CustomerResponse updateProfile(CustomerUpdateRequest request) {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
         Customer entity = customerRepository.findOneByUser_Login(userLogin)
             .orElseThrow(() -> new RuntimeException("Perfil no encontrado. Debes crearlo primero."));
 
-        // Update fields
-        entity.setFirstName(request.getFirstName());
-        entity.setLastName(request.getLastName());
-        entity.setGender(request.getGender());
-        entity.setPhone(request.getPhone());
-        entity.setAddressLine1(request.getAddressLine1());
-        entity.setCity(request.getCity());
-        entity.setCountry(request.getCountry());
+        if (request.getFirstName() != null) entity.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) entity.setLastName(request.getLastName());
+        if (request.getGender() != null) entity.setGender(request.getGender());
+        if (request.getPhone() != null) entity.setPhone(request.getPhone());
+        if (request.getAddressLine1() != null) entity.setAddressLine1(request.getAddressLine1());
+        if (request.getCity() != null) entity.setCity(request.getCity());
+        if (request.getCountry() != null) entity.setCountry(request.getCountry());
 
         entity = customerRepository.save(entity);
 
         return toClientResponse(entity);
     }
 
-    private CustomerDetailsResponse toClientResponse(Customer entity) {
-        CustomerDetailsResponse response = new CustomerDetailsResponse();
+    private CustomerResponse toClientResponse(Customer entity) {
+        CustomerResponse response = new CustomerResponse();
         response.setId(entity.getId());
         response.setFirstName(entity.getFirstName());
         response.setLastName(entity.getLastName());
