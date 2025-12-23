@@ -50,10 +50,12 @@ public class HotelServiceAsserts {
             .as("Verify HotelService relevant properties")
             .satisfies(a -> assertThat(a.getName()).as("check name").isEqualTo(expected.getName()))
             .satisfies(a -> assertThat(a.getDescription()).as("check description").isEqualTo(expected.getDescription()))
-            .satisfies(a -> assertThat(a.getIsAvailable()).as("check isAvailable").isEqualTo(expected.getIsAvailable()))
-            .satisfies(a -> assertThat(a.getIsDeleted()).as("check isDeleted").isEqualTo(expected.getIsDeleted()))
             .satisfies(a -> assertThat(a.getCost()).as("check cost").usingComparator(bigDecimalCompareTo).isEqualTo(expected.getCost()))
-            .satisfies(a -> assertThat(a.getImageUrl()).as("check imageUrl").isEqualTo(expected.getImageUrl()));
+            .satisfies(a -> assertThat(a.getImageUrl()).as("check imageUrl").isEqualTo(expected.getImageUrl()))
+            .satisfies(a -> assertThat(a.getIsDeleted()).as("check isDeleted").isEqualTo(expected.getIsDeleted()))
+            .satisfies(a -> assertThat(a.getStartHour()).as("check startHour").isEqualTo(expected.getStartHour()))
+            .satisfies(a -> assertThat(a.getEndHour()).as("check endHour").isEqualTo(expected.getEndHour()))
+            .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()));
     }
 
     /**

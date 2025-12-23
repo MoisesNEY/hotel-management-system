@@ -62,8 +62,8 @@ const Header: React.FC = () => {
     setActiveLink(sectionId);
     setIsMenuOpen(false);
 
-    if (window.location.pathname !== '/') {
-      navigate('/');
+    if (window.location.pathname !== '/landing') {
+      navigate('/landing');
       setTimeout(() => {
         const element = document.getElementById(sectionId);
         if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -109,7 +109,7 @@ const Header: React.FC = () => {
     'Usuario';
 
   const email = userProfile?.email || '';
-  
+
   const getInitials = (name?: string) => {
     if (!name) return '';
     return name
@@ -123,12 +123,11 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header 
-      className={`fixed top-0 w-full z-[1000] transition-all duration-300 border-b ${
-        isScrolled 
-          ? 'bg-white dark:bg-navy-default/95 backdrop-blur-md border-gray-200 dark:border-white/5 shadow-lg' 
-          : 'bg-transparent border-transparent'
-      }`}
+    <header
+      className={`fixed top-0 w-full z-[1000] transition-all duration-300 border-b ${isScrolled
+        ? 'bg-white dark:bg-navy-default/95 backdrop-blur-md border-gray-200 dark:border-white/5 shadow-lg'
+        : 'bg-transparent border-transparent'
+        }`}
     >
       <nav className="py-[15px]">
         <div className="max-w-7xl mx-auto px-5">
@@ -277,12 +276,20 @@ const Header: React.FC = () => {
                       onClick={toggleUserMenu}
                       aria-label="User menu"
                     >
-                      <div className="relative w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-gradient-to-br from-[#0B1D2A] to-[#102A43] border-[1.5px] border-[#D4AF37] flex items-center justify-center shadow-[0_2px_6px_rgba(11,29,42,0.45),inset_0_0_4px_rgba(212,175,55,0.25)] transition-all duration-250 hover:shadow-[0_4px_12px_rgba(212,175,55,0.35),inset_0_0_6px_rgba(212,175,55,0.3)] hover:scale-105">
-                        <span className="text-[#F5D76E] font-bold text-xs tracking-wider font-['Poppins'] select-none">
-                          {getInitials(username)}
-                        </span>
+                      <div className="relative w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-gradient-to-br from-[#0B1D2A] to-[#102A43] border-[1.5px] border-[#D4AF37] flex items-center justify-center shadow-[0_2px_6px_rgba(11,29,42,0.45),inset_0_0_4px_rgba(212,175,55,0.25)] transition-all duration-250 hover:shadow-[0_4px_12px_rgba(212,175,55,0.35),inset_0_0_6px_rgba(212,175,55,0.3)] hover:scale-105 overflow-hidden">
+                        {(userProfile?.attributes as any)?.picture?.[0] ? (
+                          <img
+                            src={(userProfile?.attributes as any).picture[0]}
+                            alt={username}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-[#F5D76E] font-bold text-xs tracking-wider font-['Poppins'] select-none">
+                            {getInitials(username)}
+                          </span>
+                        )}
                         {!hasCompletedExtraInfo && (
-                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#D4AF37] rounded-full animate-pulse z-10"></span>
                         )}
                       </div>
 
@@ -311,8 +318,16 @@ const Header: React.FC = () => {
                         {/* Header Section */}
                         <div className="p-6 pb-4">
                           <div className="flex items-center gap-3 mb-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d4af37] to-[#b39226] flex items-center justify-center text-[#0a143c] font-bold text-lg shadow-lg">
-                              {getInitials(username)}
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d4af37] to-[#b39226] flex items-center justify-center text-[#0a143c] font-bold text-lg shadow-lg overflow-hidden border-2 border-gold-default/30">
+                              {(userProfile?.attributes as any)?.picture?.[0] ? (
+                                <img
+                                  src={(userProfile?.attributes as any).picture[0]}
+                                  alt={username}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                getInitials(username)
+                              )}
                             </div>
                             <div className="flex flex-col overflow-hidden">
                               <span className="font-semibold text-gray-900 dark:text-white truncate text-base">
@@ -323,21 +338,21 @@ const Header: React.FC = () => {
                               </span>
                             </div>
                           </div>
-                          
+
                           {!hasCompletedExtraInfo ? (
-                             <div className="flex items-center gap-2 py-1.5 px-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-full">
-                               <AlertCircle size={12} className="text-amber-600 dark:text-amber-400" />
-                               <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                                 Perfil Incompleto
-                               </span>
-                             </div>
+                            <div className="flex items-center gap-2 py-1.5 px-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-full">
+                              <AlertCircle size={12} className="text-amber-600 dark:text-amber-400" />
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                                Perfil Incompleto
+                              </span>
+                            </div>
                           ) : (
                             <div className="flex items-center gap-2 py-1.5 px-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full w-fit">
-                               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                                 Cliente Verificado
-                               </span>
-                             </div>
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                                Cliente Verificado
+                              </span>
+                            </div>
                           )}
                         </div>
 
@@ -378,7 +393,7 @@ const Header: React.FC = () => {
                         {/* Footer Action */}
                         <div className="p-2 pb-3">
                           <div className="px-4 mb-2">
-                             <div className="h-px bg-gradient-to-r from-transparent via-gray-100 dark:via-white/5 to-transparent"></div>
+                            <div className="h-px bg-gradient-to-r from-transparent via-gray-100 dark:via-white/5 to-transparent"></div>
                           </div>
                           <button
                             className="group flex items-center gap-3 w-full p-3 px-4 rounded-xl text-red-600 dark:text-red-400 text-sm font-semibold transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/10"

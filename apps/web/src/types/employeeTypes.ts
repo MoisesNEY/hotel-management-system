@@ -1,6 +1,7 @@
 import { type RequestStatus } from './adminTypes';
 
 export interface AssignRoomRequest {
+  bookingItemId: number;
   roomId: number;
 }
 

@@ -2,7 +2,6 @@ package org.hotel.repository;
 
 import java.util.List;
 import java.util.Optional;
-
 import jakarta.validation.constraints.NotNull;
 import org.hotel.domain.Room;
 import org.springframework.data.domain.Page;
@@ -11,24 +10,17 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-/**
- * Spring Data JPA repository for the Room entity.
- */
 @Repository
-public interface RoomRepository extends JpaRepository<Room, Long> {
+public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificationExecutor<Room> {
     default Optional<Room> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
-
     default List<Room> findAllWithEagerRelationships() {
         return this.findAllWithToOneRelationships();
     }
-
     default Page<Room> findAllWithEagerRelationships(Pageable pageable) {
         return this.findAllWithToOneRelationships(pageable);
     }
-    // Cuenta cuántas habitaciones físicas existen de este tipo
-    long countByRoomTypeId(Long roomTypeId);
 
     @Query(value = "select room from Room room left join fetch room.roomType", countQuery = "select count(room) from Room room")
     Page<Room> findAllWithToOneRelationships(Pageable pageable);
@@ -38,8 +30,18 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
 
     @Query("select room from Room room left join fetch room.roomType where room.id =:id")
     Optional<Room> findOneWithToOneRelationships(@Param("id") Long id);
+    long countByRoomTypeId(Long roomTypeId);
 
     boolean existsByRoomNumber(@NotNull String roomNumber);
 
     boolean existsByRoomNumberAndIdNot(@NotNull String roomNumber, Long id);
+
+    @Query("""
+        SELECT COUNT(bi) > 0\s
+        FROM BookingItem bi\s
+        JOIN bi.booking b\s
+        WHERE bi.assignedRoom.id = :roomId\s
+        AND b.status IN ('CONFIRMED', 'CHECKED_IN')
+   \s""")
+    boolean existsActiveBookingForRoom(@Param("roomId") Long roomId);
 }

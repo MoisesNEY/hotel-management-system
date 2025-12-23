@@ -35,9 +35,10 @@ export const defaultWebContent: Readonly<WebContent> = {
   sortOrder: 1,
   collection: null
 };
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT';
-export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'CLEANING';
+export type BookingStatus = 'PENDING' | 'PENDING_APPROVAL' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT';
+export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'CLEANING' | 'DIRTY';
 export type RequestStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
+export type ServiceStatus = 'DOWN' | 'CLOSED' | 'FULL_CAPACITY' | 'OPERATIONAL';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 
 
@@ -93,27 +94,38 @@ export interface RoomDTO {
   roomType: RoomTypeDTO;
 }
 
+export interface BookingItemDTO {
+  id: number;
+  price: number;
+  occupantName?: string;
+  roomType: RoomTypeDTO;
+  assignedRoom?: RoomDTO;
+}
+
 export interface BookingDTO {
   id: number;
+  code: string;
   checkInDate: string; // ISO Date string YYYY-MM-DD
   checkOutDate: string; // ISO Date string YYYY-MM-DD
   guestCount: number;
   status: BookingStatus;
   totalPrice?: number;
   notes?: string;
-  roomType: RoomTypeDTO;
-  assignedRoom?: RoomDTO;
+  items: BookingItemDTO[];
   customer: AdminUserDTO;
+  invoiceId?: number;
 }
 
 export interface HotelServiceDTO {
-  id: number;
+  id?: number;
   name: string;
   description?: string;
-  isAvailable: boolean;
-  isDeleted?: boolean;
   cost: number;
   imageUrl?: string;
+  isDeleted?: boolean;
+  startHour?: string;
+  endHour?: string;
+  status: ServiceStatus;
 }
 
 export interface ServiceRequestDTO {
@@ -125,3 +137,40 @@ export interface ServiceRequestDTO {
   booking: BookingDTO;
 }
 
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED';
+
+export interface InvoiceItemDTO {
+  id: number;
+  description: string;
+  amount: number;
+  tax?: number;
+  date?: string;
+  quantity?: number;
+  unitPrice?: number;
+  totalPrice?: number;
+}
+
+export interface InvoiceDTO {
+  id: number;
+  code: string;
+  issuedDate: string; // ISO Date-Time
+  dueDate?: string;   // ISO Date-Time
+  totalAmount: number;
+  taxAmount?: number;
+  currency?: string;
+  status: InvoiceStatus;
+  items: InvoiceItemDTO[];
+  bookingId?: number;
+  booking?: BookingDTO;
+}
+
+export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'PAYPAL' | 'TRANSFER';
+
+export interface PaymentDTO {
+  id: number;
+  date: string; // ISO Date-Time
+  amount: number;
+  method: PaymentMethod;
+  referenceId?: string; // For external refs (e.g. PayPal Order ID or Bank Ref)
+  invoice: { id: number; code?: string };
+}

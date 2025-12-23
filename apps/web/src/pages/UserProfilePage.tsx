@@ -4,13 +4,15 @@ import {
   User, Calendar, Shield,
   ArrowLeft, Key, Globe, CreditCard, Package,
   Bed, Coffee, ConciergeBell,
-  X, Edit, Save, ChevronDown
+  X, Edit, Save, ChevronDown, Camera, Loader2, Trash2, CheckCircle2, AlertCircle, Info
 } from 'lucide-react';
 import keycloak from '../services/keycloak';
-import type { CustomerDetailsUpdateRequest, Gender, BookingResponse } from '../types/clientTypes';
+import { useAuth } from '../contexts/AuthProvider';
+import type { CustomerDetailsUpdateRequest, Gender, BookingResponse, BookingItemResponse } from '../types/clientTypes';
 import { getMyBookings } from '../services/client/bookingService';
 import ServiceRequestModal from '../components/ServiceRequestModal';
 import ThemeToggle from '../components/ThemeToggle';
+import * as accountService from '../services/accountService';
 
 interface UserData {
   firstName: string;
@@ -23,6 +25,7 @@ interface UserData {
   country: string;
   gender: string;
   licenseId: string;
+  imageUrl?: string;
   preferences: {
     notifications: boolean;
     newsletter: boolean;
@@ -42,15 +45,23 @@ interface ServiceRequest {
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const { userProfile, reloadProfile } = useAuth(); // Removed hasRole as it is no longer needed for this specific logic
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const [activeTab, setActiveTab] = useState<'profile' | 'bookings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [hasCompletedExtraInfo, setHasCompletedExtraInfo] = useState(() => {
     return localStorage.getItem('hasCompletedExtraInfo') === 'true';
   });
 
   const [showBookingsModal, setShowBookingsModal] = useState(false);
   const [showServicesModal, setShowServicesModal] = useState(false);
-  
+
   const [userData, setUserData] = useState<UserData>({
     firstName: '',
     lastName: '',
@@ -62,6 +73,7 @@ const UserProfilePage: React.FC = () => {
     country: '',
     gender: '',
     licenseId: '',
+    imageUrl: '',
     preferences: {
       notifications: true,
       newsletter: false,
@@ -69,6 +81,23 @@ const UserProfilePage: React.FC = () => {
       currency: 'USD'
     }
   });
+
+  // Modal de Mensajes Globales
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+
+  const showNotification = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ show: true, title, message, type });
+  };
 
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
@@ -87,16 +116,19 @@ const UserProfilePage: React.FC = () => {
     }
     loadUserData();
     loadBookings();
-  }, [navigate]);
+  }, [navigate, userProfile]); // Added userProfile to dependencies to react to context changes
 
   const loadUserData = async () => {
     try {
-      if (!keycloak.tokenParsed) return;
-      const token = keycloak.tokenParsed;
+      // Usar perfil del contexto o cargar última versión
+      // userProfile is already updated by reloadProfile, so we can use it directly
+      const profile = userProfile || await keycloak.loadUserProfile();
+
       const baseData = {
-        firstName: token.given_name || '',
-        lastName: token.family_name || '',
-        email: token.email || ''
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: profile.email || '',
+        imageUrl: (profile.attributes as any)?.picture?.[0] || ''
       };
 
       setUserData(prev => ({ ...prev, ...baseData }));
@@ -106,7 +138,10 @@ const UserProfilePage: React.FC = () => {
 
       setUserData(prev => ({
         ...prev,
-        ...baseData,
+        firstName: profile.firstName || prev.firstName,
+        lastName: profile.lastName || prev.lastName,
+        email: profile.email || prev.email,
+        imageUrl: (profile.attributes as any)?.picture?.[0] || prev.imageUrl,
         phone: profileResponse.phone || '',
         address: profileResponse.addressLine1 || '',
         city: profileResponse.city || '',
@@ -169,7 +204,16 @@ const UserProfilePage: React.FC = () => {
   const handleSave = async () => {
     try {
       const { updateProfile } = await import('../services/client/customerDetailsService');
-      
+
+      // 1. Actualizar Datos de Keycloak (Si cambiaron)
+      await accountService.updateAccount({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        imageUrl: userData.imageUrl
+      } as any);
+
+      // 2. Actualizar Datos de CustomerDetails (Backend)
       let apiGender: Gender = 'OTHER';
       const g = userData.gender.toUpperCase();
       if (g === 'MALE' || g === 'MASCULINO') apiGender = 'MALE';
@@ -184,11 +228,47 @@ const UserProfilePage: React.FC = () => {
       };
 
       await updateProfile(updateRequest);
+
+      // 3. Sincronizar UI Global (Refrescar token y perfil)
+      await reloadProfile();
+
       setIsEditing(false);
-      alert('¡Perfil actualizado exitosamente!');
+      showNotification('¡Perfil Actualizado!', 'Sus datos han sido guardados correctamente.', 'success');
     } catch (error) {
       console.error('[UserProfile] Failed to update profile', error);
-      alert('Error al actualizar el perfil.');
+      showNotification('Error', 'No se pudieron guardar los cambios. Por favor, intente de nuevo.', 'error');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const url = await accountService.uploadProfilePicture(file);
+      setUserData(prev => ({ ...prev, imageUrl: url }));
+
+      // Actualización reactiva instantánea y del contexto global
+      await reloadProfile(); // Force update of token and claims
+      showNotification('¡Foto Actualizada!', 'Su imagen de perfil se ha actualizado correctamente.', 'success');
+
+    } catch (error) {
+      console.error('[UserProfile] Upload failed', error);
+      showNotification('Error', 'Hubo un problema al subir la imagen.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!window.confirm('¿Eliminar foto de perfil?')) return;
+    try {
+      await accountService.deleteProfilePicture();
+      setUserData(prev => ({ ...prev, imageUrl: '' }));
+      await reloadProfile(); // Force update of token and claims
+    } catch (error) {
+      console.error('[UserProfile] Delete photo failed', error);
     }
   };
 
@@ -217,7 +297,16 @@ const UserProfilePage: React.FC = () => {
     if (keycloak.accountManagement) keycloak.accountManagement();
   };
 
-  const handleCompleteInfo = () => navigate('/customer');
+  const getRoomSummary = (items: BookingItemResponse[]) => {
+    if (!items || items.length === 0) return 'Sin habitaciones';
+    const first = items[0].roomTypeName;
+    if (items.length === 1) return first;
+    return `${first} (+${items.length - 1} más)`;
+  };
+
+  const handleCompleteInfo = () => {
+    navigate('/customer');
+  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'No especificada';
@@ -313,7 +402,7 @@ const UserProfilePage: React.FC = () => {
                   {bookings.map(booking => (
                     <div key={booking.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg">
                       <div className="flex justify-between items-center mb-4">
-                        <h3>{booking.roomTypeName}</h3>
+                        <h3>{getRoomSummary(booking.items)}</h3>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(booking.status)}`}>
                           {getStatusText(booking.status)}
                         </span>
@@ -389,26 +478,55 @@ const UserProfilePage: React.FC = () => {
       {/* Main Content Area */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
         <div className="bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-3xl p-8 mb-8 shadow-xl transition-all duration-300">
-          <button 
-            className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-300 hover:text-gold-default mb-8" 
-            onClick={() => navigate('/')}
+          <button
+            className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-300 hover:text-gold-default mb-8"
+            onClick={handleBack}
           >
             <div className="p-2 rounded-full bg-gray-100 dark:bg-white/5 group-hover:bg-gold-default/10 transition-colors">
               <ArrowLeft size={18} />
             </div>
-            Volver al inicio
+            Volver
           </button>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-5">
             <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-                  <span className="text-3xl font-bold">
-                    {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
-                  </span>
-                </div>
+              <div className="relative group">
+                {userData.imageUrl ? (
+                  <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 ring-4 ring-gold-default/20">
+                    <img
+                      src={userData.imageUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={() => {
+                        console.warn('Profile image failed to load, falling back to initials');
+                        setUserData(prev => ({ ...prev, imageUrl: '' }));
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-default to-gold-dark flex items-center justify-center text-navy-default shadow-lg transform -rotate-3 group-hover:rotate-0 transition-transform duration-300">
+                    <span className="text-3xl font-bold">
+                      {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
+                    </span>
+                  </div>
+                )}
+
+                {isEditing && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity">
+                    <label className="cursor-pointer p-2 bg-white/20 hover:bg-white/40 rounded-full text-white transition-colors">
+                      {isUploading ? <Loader2 size={24} className="animate-spin" /> : <Camera size={24} />}
+                      <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                    </label>
+                    {userData.imageUrl && !isUploading && (
+                      <button onClick={handleDeletePhoto} className="mt-2 text-white hover:text-red-400 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {!hasCompletedExtraInfo && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 border-4 border-white dark:border-navy-default rounded-full animate-pulse shadow-lg"></div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 border-4 border-white dark:border-navy-default rounded-full animate-pulse shadow-lg z-10"></div>
                 )}
               </div>
 
@@ -483,15 +601,23 @@ const UserProfilePage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Nombre</label>
-                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
-                      {userData.firstName || 'No especificado'}
-                    </div>
+                    {isEditing ? (
+                      <input name="firstName" value={userData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white" />
+                    ) : (
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                        {userData.firstName || 'No especificado'}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Apellido</label>
-                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
-                      {userData.lastName || 'No especificado'}
-                    </div>
+                    {isEditing ? (
+                      <input name="lastName" value={userData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl bg-white dark:bg-white/10 border-2 border-gold-default/30 text-gray-900 dark:text-white" />
+                    ) : (
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-medium">
+                        {userData.lastName || 'No especificado'}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Email</label>
@@ -516,10 +642,10 @@ const UserProfilePage: React.FC = () => {
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Género</label>
                     {isEditing ? (
                       <div className="relative group">
-                        <select 
-                          name="gender" 
-                          value={userData.gender} 
-                          onChange={handleInputChange} 
+                        <select
+                          name="gender"
+                          value={userData.gender}
+                          onChange={handleInputChange}
                           className="w-full p-4 rounded-xl bg-white dark:bg-[#1a1a2e] border-2 border-gold-default/30 text-gray-900 dark:text-white appearance-none outline-none focus:border-gold-default transition-all cursor-pointer"
                         >
                           <option value="Male" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">Masculino</option>
@@ -542,7 +668,7 @@ const UserProfilePage: React.FC = () => {
                       {formatDate(userData.birthDate)}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Dirección</label>
                     {isEditing ? (
@@ -652,14 +778,31 @@ const UserProfilePage: React.FC = () => {
                         <div key={booking.id} className="relative bg-white/80 dark:bg-navy-default/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/10 overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-gold-default to-gold-dark"></div>
                           <div className="flex justify-between items-start mb-6">
-                            <h4 className="font-bold dark:text-white">{booking.roomTypeName}</h4>
+                            <h4 className="font-bold dark:text-white truncate max-w-[180px]" title={booking.items?.[0]?.roomTypeName}>
+                              {getRoomSummary(booking.items)}
+                            </h4>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(booking.status)}`}>{getStatusText(booking.status)}</span>
                           </div>
                           <div className="space-y-4 mb-8 text-xs dark:text-gray-300">
-                            <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)}</div>
+                            <div className="flex items-center gap-2"><Calendar size={14} />{formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}</div>
                             <div className="flex items-center gap-2 text-lg font-bold text-gold-default"><CreditCard size={16} />${booking.totalPrice}</div>
                           </div>
-                          <button onClick={() => setSelectedBookingForService({ id: booking.id, roomTypeName: booking.roomTypeName })} className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2">
+
+                          <div className="space-y-3 mb-6">
+                            {booking.invoiceStatus === 'PAID' && (
+                              <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 text-[10px] font-bold uppercase">
+                                <CheckCircle2 size={14} /> Factura Pagada
+                              </div>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={() => setSelectedBookingForService({
+                              id: booking.id,
+                              roomTypeName: getRoomSummary(booking.items)
+                            })}
+                            className="w-full py-3 bg-navy-default dark:bg-white text-white dark:text-navy-default rounded-xl font-bold text-xs uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                          >
                             <ConciergeBell size={14} /> Servicios
                           </button>
                         </div>
@@ -677,7 +820,7 @@ const UserProfilePage: React.FC = () => {
                       {pastBookings.map(booking => (
                         <div key={booking.id} className="bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/5 rounded-3xl p-6">
                           <div className="flex justify-between items-center mb-4">
-                            <h4 className="text-sm font-bold dark:text-gray-200">{booking.roomTypeName}</h4>
+                            <h4 className="text-sm font-bold dark:text-gray-200 truncate">{getRoomSummary(booking.items)}</h4>
                             <span className="text-[10px] font-mono text-gray-400">#{booking.id}</span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -700,8 +843,44 @@ const UserProfilePage: React.FC = () => {
           bookingId={selectedBookingForService.id}
           roomTypeName={selectedBookingForService.roomTypeName}
           onClose={() => setSelectedBookingForService(null)}
-          onSuccess={() => alert('Solicitud enviada con éxito')}
+          onSuccess={() => showNotification('¡Solicitud Enviada!', 'Su solicitud de servicio ha sido procesada correctamente.', 'success')}
         />
+      )}
+
+      {/* Global Notification Modal */}
+      {notification.show && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setNotification({ ...notification, show: false })}
+          ></div>
+          <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-white/10 w-full max-w-md rounded-[2.5rem] overflow-hidden relative z-10 animate-in zoom-in-95 duration-200 shadow-2xl">
+            <div className={`h-2 w-full ${notification.type === 'success' ? 'bg-emerald-500' :
+              notification.type === 'error' ? 'bg-red-500' : 'bg-gold-default'
+              }`} />
+
+            <div className="p-10 text-center">
+              <div className={`w-24 h-24 mx-auto mb-8 rounded-[2rem] flex items-center justify-center ${notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-gold-default/10 text-gold-default'
+                }`}>
+                {notification.type === 'success' ? <CheckCircle2 size={48} /> :
+                  notification.type === 'error' ? <AlertCircle size={48} /> : <Info size={48} />}
+              </div>
+
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 tracking-tight">{notification.title}</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-10 leading-relaxed text-sm">
+                {notification.message}
+              </p>
+
+              <button
+                onClick={() => setNotification({ ...notification, show: false })}
+                className="w-full py-5 bg-navy-default dark:bg-white text-white dark:text-navy-default font-bold rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-navy-default/10 dark:shadow-none uppercase text-xs tracking-widest"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

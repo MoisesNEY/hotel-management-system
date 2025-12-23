@@ -10,7 +10,7 @@
         Added the entity WebContent.
     -->
     <changeSet id="20251218004956-1" author="jhipster">
-        <createTable tableName="web_content" remarks="El contenido real. Puede ser una imagen, un teléfono o una coordenada.">
+        <createTable tableName="web_content">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

@@ -2,10 +2,12 @@ package org.hotel.service.dto;
 
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.Objects;
 import org.hotel.domain.enumeration.BookingStatus;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A DTO for the {@link org.hotel.domain.Booking} entity.
@@ -14,6 +16,8 @@ import org.hotel.domain.enumeration.BookingStatus;
 public class BookingDTO implements Serializable {
 
     private Long id;
+
+    private String code;
 
     @NotNull
     private LocalDate checkInDate;
@@ -28,18 +32,16 @@ public class BookingDTO implements Serializable {
     @NotNull
     private BookingStatus status;
 
-    @DecimalMin(value = "0")
-    private BigDecimal totalPrice;
-
     private String notes;
 
-    @NotNull
-    private RoomTypeDTO roomType;
-
-    private RoomDTO assignedRoom;
+    private String specialRequests;
 
     @NotNull
-    private AdminUserDTO customer;
+    private UserDTO customer;
+
+    private BigDecimal totalPrice;
+
+    private Set<BookingItemDTO> items = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -47,6 +49,14 @@ public class BookingDTO implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public LocalDate getCheckInDate() {
@@ -81,14 +91,6 @@ public class BookingDTO implements Serializable {
         this.status = status;
     }
 
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
     public String getNotes() {
         return notes;
     }
@@ -97,28 +99,36 @@ public class BookingDTO implements Serializable {
         this.notes = notes;
     }
 
-    public RoomTypeDTO getRoomType() {
-        return roomType;
+    public String getSpecialRequests() {
+        return specialRequests;
     }
 
-    public void setRoomType(RoomTypeDTO roomType) {
-        this.roomType = roomType;
+    public void setSpecialRequests(String specialRequests) {
+        this.specialRequests = specialRequests;
     }
 
-    public RoomDTO getAssignedRoom() {
-        return assignedRoom;
-    }
-
-    public void setAssignedRoom(RoomDTO assignedRoom) {
-        this.assignedRoom = assignedRoom;
-    }
-
-    public AdminUserDTO getCustomer() {
+    public UserDTO getCustomer() {
         return customer;
     }
 
-    public void setCustomer(AdminUserDTO customer) {
+    public void setCustomer(UserDTO customer) {
         this.customer = customer;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public Set<BookingItemDTO> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<BookingItemDTO> items) {
+        this.items = items;
     }
 
     @Override
@@ -147,14 +157,13 @@ public class BookingDTO implements Serializable {
     public String toString() {
         return "BookingDTO{" +
             "id=" + getId() +
+            ", code='" + getCode() + "'" +
             ", checkInDate='" + getCheckInDate() + "'" +
             ", checkOutDate='" + getCheckOutDate() + "'" +
             ", guestCount=" + getGuestCount() +
             ", status='" + getStatus() + "'" +
-            ", totalPrice=" + getTotalPrice() +
             ", notes='" + getNotes() + "'" +
-            ", roomType=" + getRoomType() +
-            ", assignedRoom=" + getAssignedRoom() +
+            ", specialRequests='" + getSpecialRequests() + "'" +
             ", customer=" + getCustomer() +
             "}";
     }

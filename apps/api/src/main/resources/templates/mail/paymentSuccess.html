@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Pago Confirmado</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background-color: #1a1a1a; color: #d4af37; padding: 30px; text-align: center; border-bottom: 4px solid #d4af37; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; }
+        .content { padding: 40px; color: #333333; line-height: 1.6; }
+        .greeting { font-size: 18px; color: #1a1a1a; margin-bottom: 20px; }
+        .success-icon { text-align: center; margin: 20px 0; color: #10b981; font-size: 48px; }
+        .amount-box { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; padding: 25px; border-radius: 8px; text-align: center; margin: 30px 0; }
+        .amount-label { font-size: 12px; text-transform: uppercase; color: #166534; letter-spacing: 1px; margin-bottom: 5px; }
+        .amount-value { font-size: 36px; font-weight: bold; color: #15803d; }
+        .reference { font-family: monospace; color: #059669; font-size: 14px; margin-top: 10px; }
+        .button-container { text-align: center; margin-top: 35px; }
+        .button { display: inline-block; background-color: #10b981; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: background-color 0.3s; }
+        .button:hover { background-color: #059669; }
+        .footer { background-color: #1a1a1a; padding: 20px; text-align: center; font-size: 12px; color: #888888; }
+        .footer a { color: #d4af37; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pago Exitoso</h1>
+        </div>
+        <div class="content">
+            <div class="success-icon">✓</div>
+            <p class="greeting" th:text="|Hola ${user.firstName},|">Hola Cliente,</p>
+            <p>¡Buenas noticias! Hemos confirmado el recepción de tu pago. Tu reserva está asegurada y todo está listo para tu llegada.</p>
+            
+            <div class="amount-box">
+                <div class="amount-label">Monto Total Pagado</div>
+                <div class="amount-value" th:text="|$${invoice.totalAmount}|">$0.00</div>
+                <div class="reference" th:text="|REF: ${invoice.code}|">REF: INV-0000</div>
+            </div>
+
+            <p style="text-align: center; color: #666;">Gracias por confiar en Gran Hotel para tu estadía.</p>
+            
+            <div class="button-container">
+                 <!-- Check if user has 'ROLE_ADMIN' authority -->
+                 <a th:if="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                    th:href="|${baseUrl}/admin/invoices|" 
+                    class="button">Ver Factura</a>
+                    
+                 <!-- Else (User) -->
+                 <a th:unless="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                    th:href="|${baseUrl}/client/dashboard|" 
+                    class="button">Ver Detalles del Viaje</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2025 Hotel Management. Todos los derechos reservados.</p>
+            <p>¿Necesitas ayuda? Escríbenos a <a href="mailto:billing@hotelmanagement.com">billing@hotelmanagement.com</a></p>
+        </div>
+    </div>
+</body>
+</html>

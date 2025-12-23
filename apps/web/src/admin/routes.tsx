@@ -8,6 +8,7 @@ import {
     MapPinIcon,
     UserIcon,
     ComputerDesktopIcon,
+    UserGroupIcon,
     DocumentTextIcon,
     ChartBarIcon,
     TableCellsIcon
@@ -25,7 +26,14 @@ import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
 import CMSEditor from './views/CMS/CMSEditor';
+import EmployeeBookingsView from './views/Employee/EmployeeBookingsView';
+import EmployeeServiceRequestsView from './views/Employee/EmployeeServiceRequestsView';
 import FileManagerView from './views/FileManager/FileManagerView';
+import InvoiceList from './views/Finance/InvoiceList';
+import InvoiceForm from './views/Finance/InvoiceForm';
+import PaymentList from './views/Finance/PaymentList';
+import PaymentForm from './views/Finance/PaymentForm';
+import { BanknotesIcon } from '@heroicons/react/24/outline';
 
 export interface RouteConfig {
   // ...
@@ -71,6 +79,20 @@ const routes: RouteConfig[] = [
         name: 'Servicios',
         icon: SparklesIcon, // Sparkles for hotel services (cleaning, amenities)
         component: ServicesView,
+        layout: '/admin'
+    },
+    {
+        path: '/employee/bookings',
+        name: 'Check-in/Check-out',
+        icon: UserGroupIcon,
+        component: EmployeeBookingsView,
+        layout: '/admin'
+    },
+    {
+        path: '/employee/service-requests',
+        name: 'Solicitudes Servicio',
+        icon: UserGroupIcon,
+        component: EmployeeServiceRequestsView,
         layout: '/admin'
     },
     {
@@ -125,6 +147,53 @@ const routes: RouteConfig[] = [
         icon: DocumentTextIcon,
         component: FileManagerView,
         layout: '/admin'
+    },
+    // --- FINANCE MODULE ---
+    {
+        path: '/invoices',
+        name: 'Facturas',
+        icon: DocumentTextIcon, // Reusing icon or getting new one
+        component: InvoiceList,
+        layout: '/admin'
+    },
+    {
+        path: '/invoices/new',
+        name: 'Nueva Factura',
+        icon: DocumentTextIcon,
+        component: InvoiceForm,
+        layout: '/admin',
+        hidden: true
+    },
+    {
+        path: '/invoices/edit/:id',
+        name: 'Editar Factura',
+        icon: DocumentTextIcon,
+        component: InvoiceForm,
+        layout: '/admin',
+        hidden: true
+    },
+    {
+        path: '/payments',
+        name: 'Pagos',
+        icon: BanknotesIcon, // Need to import this
+        component: PaymentList,
+        layout: '/admin'
+    },
+    {
+        path: '/payments/new',
+        name: 'Nuevo Pago',
+        icon: BanknotesIcon,
+        component: PaymentForm,
+        layout: '/admin',
+        hidden: true
+    },
+    {
+        path: '/payments/edit/:id',
+        name: 'Editar Pago',
+        icon: BanknotesIcon,
+        component: PaymentForm,
+        layout: '/admin',
+        hidden: true
     },
 ];
 

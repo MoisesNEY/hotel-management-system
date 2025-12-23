@@ -23,6 +23,7 @@
       "fieldType": "Boolean"
     }
   ],
+  "jpaMetamodelFiltering": true,
   "microserviceName": "hotelBackend",
   "name": "Room",
   "pagination": "pagination",

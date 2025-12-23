@@ -1,9 +1,8 @@
 package org.hotel.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hotel.domain.BookingItemTestSamples.*;
 import static org.hotel.domain.BookingTestSamples.*;
-import static org.hotel.domain.RoomTestSamples.*;
-import static org.hotel.domain.RoomTypeTestSamples.*;
 import static org.hotel.domain.ServiceRequestTestSamples.*;
 
 import java.util.HashSet;
@@ -28,6 +27,28 @@ class BookingTest {
     }
 
     @Test
+    void bookingItemsTest() {
+        Booking booking = getBookingRandomSampleGenerator();
+        BookingItem bookingItemBack = getBookingItemRandomSampleGenerator();
+
+        booking.addBookingItems(bookingItemBack);
+        assertThat(booking.getBookingItems()).containsOnly(bookingItemBack);
+        assertThat(bookingItemBack.getBooking()).isEqualTo(booking);
+
+        booking.removeBookingItems(bookingItemBack);
+        assertThat(booking.getBookingItems()).doesNotContain(bookingItemBack);
+        assertThat(bookingItemBack.getBooking()).isNull();
+
+        booking.bookingItems(new HashSet<>(Set.of(bookingItemBack)));
+        assertThat(booking.getBookingItems()).containsOnly(bookingItemBack);
+        assertThat(bookingItemBack.getBooking()).isEqualTo(booking);
+
+        booking.setBookingItems(new HashSet<>());
+        assertThat(booking.getBookingItems()).doesNotContain(bookingItemBack);
+        assertThat(bookingItemBack.getBooking()).isNull();
+    }
+
+    @Test
     void serviceRequestsTest() {
         Booking booking = getBookingRandomSampleGenerator();
         ServiceRequest serviceRequestBack = getServiceRequestRandomSampleGenerator();
@@ -47,29 +68,5 @@ class BookingTest {
         booking.setServiceRequests(new HashSet<>());
         assertThat(booking.getServiceRequests()).doesNotContain(serviceRequestBack);
         assertThat(serviceRequestBack.getBooking()).isNull();
-    }
-
-    @Test
-    void roomTypeTest() {
-        Booking booking = getBookingRandomSampleGenerator();
-        RoomType roomTypeBack = getRoomTypeRandomSampleGenerator();
-
-        booking.setRoomType(roomTypeBack);
-        assertThat(booking.getRoomType()).isEqualTo(roomTypeBack);
-
-        booking.roomType(null);
-        assertThat(booking.getRoomType()).isNull();
-    }
-
-    @Test
-    void assignedRoomTest() {
-        Booking booking = getBookingRandomSampleGenerator();
-        Room roomBack = getRoomRandomSampleGenerator();
-
-        booking.setAssignedRoom(roomBack);
-        assertThat(booking.getAssignedRoom()).isEqualTo(roomBack);
-
-        booking.assignedRoom(null);
-        assertThat(booking.getAssignedRoom()).isNull();
     }
 }

@@ -52,6 +52,9 @@ public class CustomerDetailsAsserts {
             .satisfies(a -> assertThat(a.getAddressLine1()).as("check addressLine1").isEqualTo(expected.getAddressLine1()))
             .satisfies(a -> assertThat(a.getCity()).as("check city").isEqualTo(expected.getCity()))
             .satisfies(a -> assertThat(a.getCountry()).as("check country").isEqualTo(expected.getCountry()))
+            .satisfies(a -> assertThat(a.getEmail()).as("check email").isEqualTo(expected.getEmail()))
+            .satisfies(a -> assertThat(a.getIdentificationType()).as("check identificationType").isEqualTo(expected.getIdentificationType())
+            )
             .satisfies(a -> assertThat(a.getLicenseId()).as("check licenseId").isEqualTo(expected.getLicenseId()))
             .satisfies(a -> assertThat(a.getBirthDate()).as("check birthDate").isEqualTo(expected.getBirthDate()));
     }

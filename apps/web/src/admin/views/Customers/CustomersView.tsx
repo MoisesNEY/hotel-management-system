@@ -17,6 +17,8 @@ const CustomersView = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [customerToDeleteId, setCustomerToDeleteId] = useState<number | null>(null);
 
     useEffect(() => {
         loadCustomers();
@@ -54,15 +56,22 @@ const CustomersView = () => {
         setShowForm(true);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('¿Estás seguro de eliminar este cliente?')) {
-            try {
-                await deleteCustomerDetails(id);
-                setCustomers(prev => prev.filter(c => c.id !== id));
-            } catch (error) {
-                console.error("Error deleting customer", error);
-                alert('No se pudo eliminar el cliente');
-            }
+    const handleDelete = (id: number) => {
+        setCustomerToDeleteId(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!customerToDeleteId) return;
+
+        try {
+            await deleteCustomerDetails(customerToDeleteId);
+            setCustomers(prev => prev.filter(c => c.id !== customerToDeleteId));
+            setShowDeleteModal(false);
+            setCustomerToDeleteId(null);
+        } catch (error) {
+            console.error("Error deleting customer", error);
+            alert('No se pudo eliminar el cliente');
         }
     };
 
@@ -188,6 +197,44 @@ const CustomersView = () => {
                     onSuccess={handleFormSuccess}
                     onCancel={() => setShowForm(false)}
                 />
+            </Modal>
+
+            {/* Modal de Confirmación de Eliminación */}
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                title="Confirmar Eliminación"
+                size="md"
+            >
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="flex items-center justify-center w-12 h-12 mb-4 bg-red-100 rounded-full dark:bg-red-900/30">
+                        <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+
+                    <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+                        ¿Eliminar cliente?
+                    </h3>
+                    <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+                        ¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.
+                    </p>
+
+                    <div className="flex w-full space-x-3">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowDeleteModal(false)}
+                            className="w-full justify-center"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={confirmDelete}
+                            className="w-full justify-center"
+                        >
+                            Eliminar
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

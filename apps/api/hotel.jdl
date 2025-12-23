@@ -1,6 +1,4 @@
-// ==========================================
-// 1. CONFIGURACIÓN DE LA APLICACIÓN
-// ==========================================
+// CONFIGURACIÓN DE LA APLICACIÓN
 application {
   config {
     baseName hotelBackend
@@ -17,69 +15,88 @@ application {
   entities *
 }
 
-// ==========================================
-// 2. ENUMS (Negocio y CMS)
-// ==========================================
+
+// ENUMS
 
 enum BookingStatus {
-  PENDING,    // Reserva creada, espera pago/confirmación
-  CONFIRMED,  // Confirmada
-  CHECKED_IN, // Huésped en casa
-  CHECKED_OUT,// Huésped salió
-  CANCELLED   // Cancelada
-}
+  PENDING_APPROVAL,
+  PENDING_PAYMENT
+  CONFIRMED,
+  CHECKED_IN,
+  CHECKED_OUT,
+  CANCELLED
 
+}
 enum RoomStatus {
-  AVAILABLE,   // Lista
-  OCCUPIED,    // Ocupada
-  DIRTY,       // A limpiar
-  MAINTENANCE, // Reparaciones
-  UNAVAILABLE  // Bloqueada administrativamente
-}
+  AVAILABLE,
+  OCCUPIED,
+  DIRTY,
+  MAINTENANCE,
+  UNAVAILABLE
 
+}
 enum RequestStatus {
-  OPEN,        // Solicitud creada
-  IN_PROGRESS, // Staff trabajando en ello
-  COMPLETED,   // Entregado
-  REJECTED     // No se pudo cumplir
-}
+  OPEN,
+  IN_PROGRESS,
+  COMPLETED,
+  REJECTED
 
+}
 enum Gender {
-  MALE, FEMALE, OTHER
-}
+  MALE,
+  FEMALE,
+  OTHER
 
-// Enum para el CMS: Define cómo se comporta el editor en el Frontend
+}
 enum CollectionType {
-  SINGLE_IMAGE,   // Hero, Banners (1 sola foto)
-  GALLERY,        // Carruseles, Grids (N fotos)
-  TEXT_LIST,      // Lista de datos (Teléfonos, Features, Redes Sociales)
-  MAP_EMBED       // Mapas o Iframes
+  SINGLE_IMAGE,
+  GALLERY,
+  TEXT_LIST,
+  MAP_EMBED
+
+}
+enum ServiceStatus {
+  OPERATIONAL,
+  CLOSED,
+  FULL_CAPACITY,
+  DOWN
+
+}
+enum PaymentMethod {
+  CREDIT_CARD,
+  CASH,
+  PAYPAL,
+  BANK_TRANSFER
+
+}
+enum InvoiceStatus {
+  DRAFT,
+  ISSUED,
+  PAID,
+  CANCELLED
+
 }
 
-// ==========================================
-// 3. ENTIDADES DEL NÚCLEO (CORE)
-// ==========================================
+// ENTIDADES CORE
 
-/**
- * Perfil extendido del cliente.
- * Vinculado al User de Keycloak/Identity.
- */
 entity CustomerDetails {
   gender Gender required,
   phone String required pattern(/^\+?[0-9]{7,15}$/),
   addressLine1 String required,
   city String required,
   country String required,
-  licenseId String required, // DNI o Pasaporte
+  email String required,
+  identificationType String,
+  licenseId String required,
   birthDate LocalDate required
 }
 
 entity RoomType {
   name String required minlength(3),
   description TextBlob,
-  basePrice BigDecimal required min(0), // Precio por noche base
+  basePrice BigDecimal required min(0),
   maxCapacity Integer required min(1),
-  imageUrl String,                      // Thumbnail principal para el Backoffice
+  imageUrl String,
   area BigDecimal min(0),
   beds Integer min(1)
 }
@@ -91,104 +108,112 @@ entity Room {
 }
 
 entity Booking {
+  code String required unique,
   checkInDate LocalDate required,
   checkOutDate LocalDate required,
   guestCount Integer required min(1),
   status BookingStatus required,
-  totalPrice BigDecimal required min(0),
-  notes String
+  notes String,
+  specialRequests String
+}
+
+entity BookingItem {
+  price BigDecimal required min(0),
+  occupantName String // El "Dueño de las llaves" de esta habitación específica
 }
 
 entity HotelService {
   name String required,
   description String,
-  isAvailable Boolean required,
-  isDeleted Boolean,
   cost BigDecimal required min(0),
-  imageUrl String // Icono o foto pequeña del servicio
+  imageUrl String,
+  isDeleted Boolean,
+  startHour String pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  endHour String pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  status ServiceStatus required
 }
 
 entity ServiceRequest {
   requestDate Instant required,
+  status RequestStatus required,
   details String,
-  status RequestStatus required
+  deliveryRoomNumber String,
+  quantity Integer min(1),
+  totalCost BigDecimal
 }
 
-// ==========================================
-// 4. ENTIDADES DEL CMS (CONTENIDO WEB)
-// ==========================================
+// ENTIDADES FINANCIERAS
 
-/**
- * Define una "Sección" en la web pública.
- * Ej: 'CONTACT_INFO', 'HOME_HERO', 'FOOTER_MAP'
- */
+entity Invoice {
+  code String required unique,
+  issuedDate Instant,
+  status InvoiceStatus required,
+  taxAmount BigDecimal,
+  totalAmount BigDecimal,
+  currency String maxlength(3)
+}
+
+entity InvoiceItem {
+  description String required,
+  amount BigDecimal required,
+  tax BigDecimal,
+  date Instant required
+}
+
+entity Payment {
+  date Instant required,
+  amount BigDecimal required,
+  method PaymentMethod required,
+  referenceId String
+}
+
+// ENTIDADES DE CONTENIDO)
+
 entity AssetCollection {
-  code String required unique minlength(2) maxlength(50), // ID para el programador
-  name String required maxlength(100),                    // Nombre legible para el Admin
-  type CollectionType required,                           // Controla la vista del editor
-  description String maxlength(500)                       // Ayuda para el admin
+  code String required unique minlength(2) maxlength(50),
+  name String required maxlength(100),
+  type CollectionType required,
+  description String maxlength(500)
 }
 
-/**
- * El contenido real. Puede ser una imagen, un teléfono o una coordenada.
- */
 entity WebContent {
-  // Metadatos Visuales (Texto)
-  title String maxlength(100),       // Label: "Teléfono", "Título Slide"
-  subtitle String maxlength(500),    // Value: "+505 22...", "Bajada del Slide"
-
-  // Metadatos Multimedia/Acción
-  imageUrl String maxlength(2048),   // URL de la imagen (S3/Cloudinary)
-  actionUrl String maxlength(2048),  // Link, tel:, mailto:, o src del Iframe Map
-
-  // Control
-  sortOrder Integer required,        // Para ordenar el carrusel o lista
-  isActive Boolean                   // Para ocultar sin borrar
+  title String maxlength(100),
+  subtitle String maxlength(500),
+  imageUrl String maxlength(2048),
+  actionUrl String maxlength(2048),
+  sortOrder Integer required,
+  isActive Boolean
 }
 
-// ==========================================
-// 5. RELACIONES
-// ==========================================
+// RELACIONES
 
 relationship OneToOne {
-  // Un usuario de sistema (Login) tiene un único perfil de cliente
   CustomerDetails{user(login) required} to User with builtInEntity
 }
 
 relationship OneToMany {
-  // Inventario
   RoomType{rooms} to Room{roomType(name) required},
 
-  // Operaciones
-  Booking{serviceRequests} to ServiceRequest{booking(id) required},
+  Booking{bookingItems} to BookingItem{booking(code) required},
 
-  // CMS: Una colección tiene muchos items de contenido
+  Booking{serviceRequests} to ServiceRequest{booking(code) required},
+
+  Invoice{items} to InvoiceItem{invoice(code) required},
+  Invoice{payments} to Payment{invoice(code) required},
+
   AssetCollection{items} to WebContent{collection(name) required}
 }
 
 relationship ManyToOne {
-  // Reserva vinculada al tipo de habitación (Precios/Capacidad)
-  Booking{roomType(name) required} to RoomType,
-
-  // Reserva asignada a una habitación física (Opcional al inicio)
-  Booking{assignedRoom(roomNumber)} to Room,
-
-  // Reserva pertenece a un cliente (Usuario logueado)
+  BookingItem{roomType(name) required} to RoomType,
+  BookingItem{assignedRoom(roomNumber)} to Room,
   Booking{customer(login) required} to User with builtInEntity,
-
-  // Solicitud vinculada al servicio del catálogo
-  ServiceRequest{service(name) required} to HotelService
+  ServiceRequest{service(name) required} to HotelService,
+  Invoice{booking(code)} to Booking
 }
 
-// ==========================================
-// 6. OPCIONES DE GENERACIÓN
-// ==========================================
+// OPCIONES
 
-// El filtro es VITAL para el CMS (buscar por 'code')
-filter AssetCollection, WebContent
-
-// Paginación para todos
-paginate Booking, ServiceRequest, Room, CustomerDetails, RoomType, HotelService, AssetCollection, WebContent with pagination
-
-// DTOs para exponer solo lo necesario
+filter AssetCollection, WebContent, Booking, Room, Invoice, HotelService
+paginate * with pagination
 dto * with mapstruct

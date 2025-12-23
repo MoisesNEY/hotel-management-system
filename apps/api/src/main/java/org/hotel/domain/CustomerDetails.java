@@ -7,8 +7,7 @@ import java.time.LocalDate;
 import org.hotel.domain.enumeration.Gender;
 
 /**
- * Datos extendidos del cliente (Perfil).
- * Se llena DESPUÉS del registro en Keycloak.
+ * A CustomerDetails.
  */
 @Entity
 @Table(name = "customer_details")
@@ -44,6 +43,13 @@ public class CustomerDetails implements Serializable {
     @NotNull
     @Column(name = "country", nullable = false)
     private String country;
+
+    @NotNull
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Column(name = "identification_type")
+    private String identificationType;
 
     @NotNull
     @Column(name = "license_id", nullable = false)
@@ -138,6 +144,32 @@ public class CustomerDetails implements Serializable {
         this.country = country;
     }
 
+    public String getEmail() {
+        return this.email;
+    }
+
+    public CustomerDetails email(String email) {
+        this.setEmail(email);
+        return this;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getIdentificationType() {
+        return this.identificationType;
+    }
+
+    public CustomerDetails identificationType(String identificationType) {
+        this.setIdentificationType(identificationType);
+        return this;
+    }
+
+    public void setIdentificationType(String identificationType) {
+        this.identificationType = identificationType;
+    }
+
     public String getLicenseId() {
         return this.licenseId;
     }
@@ -206,6 +238,8 @@ public class CustomerDetails implements Serializable {
             ", addressLine1='" + getAddressLine1() + "'" +
             ", city='" + getCity() + "'" +
             ", country='" + getCountry() + "'" +
+            ", email='" + getEmail() + "'" +
+            ", identificationType='" + getIdentificationType() + "'" +
             ", licenseId='" + getLicenseId() + "'" +
             ", birthDate='" + getBirthDate() + "'" +
             "}";

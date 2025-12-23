@@ -13,11 +13,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findOneByLogin(String login);
+    
+    Optional<User> findOneByEmailIgnoreCase(String email);
 
     @EntityGraph(attributePaths = "authorities")
     Optional<User> findOneWithAuthoritiesByLogin(String login);
 
     Page<User> findAllByIdNotNullAndActivatedIsTrue(Pageable pageable);
-
-    Optional<User> findOneByEmailIgnoreCase(String email);
 }

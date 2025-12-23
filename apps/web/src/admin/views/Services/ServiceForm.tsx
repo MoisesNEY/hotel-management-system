@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createHotelService, updateHotelService } from '../../../services/admin/hotelServiceService';
+import fileService from '../../../services/admin/fileService';
 import type { HotelServiceDTO } from '../../../types/adminTypes';
+import { Upload, X, Link, Loader2 } from 'lucide-react';
 
 
 interface ServiceFormProps {
@@ -15,9 +17,13 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
     const [cost, setCost] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isAvailable, setIsAvailable] = useState(true);
+    const [startHour, setStartHour] = useState('08:00');
+    const [endHour, setEndHour] = useState('22:00');
 
     const [loading, setLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isMinioImage, setIsMinioImage] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -25,9 +31,39 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             setDescription(initialData.description || '');
             setCost(initialData.cost.toString());
             setImageUrl(initialData.imageUrl || '');
-            setIsAvailable(initialData.isAvailable);
+            setIsAvailable(initialData.status === 'OPERATIONAL');
+            setStartHour(initialData.startHour || '08:00');
+            setEndHour(initialData.endHour || '22:00');
+
+            // Si la URL contiene el bucketName o endpoint de minio, lo marcamos como minio (opcional)
+            if (initialData.imageUrl?.includes('/api/files') || initialData.imageUrl?.includes('9000')) {
+                setIsMinioImage(true);
+            }
         }
     }, [initialData]);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setError(null);
+        try {
+            const url = await fileService.uploadFile(file, 'services');
+            setImageUrl(url);
+            setIsMinioImage(true);
+        } catch (err) {
+            console.error("Error uploading file", err);
+            setError("Error al subir la imagen");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImageUrl('');
+        setIsMinioImage(false);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,105 +75,100 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
         }
 
         const payload: HotelServiceDTO = {
-            id: initialData?.id || 0, // ID is ignored on create usually, strictly typed
             name,
-            description,
+            description: description.trim() || undefined,
             cost: Number(cost),
-            imageUrl,
-            isAvailable
+            imageUrl: imageUrl.trim() || undefined,
+            startHour: startHour || '08:00',
+            endHour: endHour || '22:00',
+            isDeleted: false,
+            status: isAvailable ? 'OPERATIONAL' : 'DOWN'
         };
 
+        console.log("Sending payload to backend:", JSON.stringify(payload, null, 2));
         setLoading(true);
         try {
             if (initialData?.id) {
+                payload.id = initialData.id;
                 await updateHotelService(initialData.id, payload);
             } else {
-                // api expects Omit<HotelServiceDTO, 'id'> mostly, but let's check strict type
-                // Usually we cast or object literal without ID for create
-                const { id, ...createPayload } = payload;
-                await createHotelService(createPayload as HotelServiceDTO);
+                await createHotelService(payload);
             }
             onSuccess();
         } catch (err: any) {
             console.error("Error saving service", err);
-            const serverMsg = err.response?.data?.detail || err.response?.data?.message || 'Error al guardar el servicio';
+
+            // Extract more detailed error message if available
+            let serverMsg = 'Error al guardar el servicio';
+            if (err.response?.data) {
+                const data = err.response.data;
+
+                // Detailed check for common Spring/JHipster error structures
+                serverMsg = data.detail || data.message || data.title || (typeof data === 'string' ? data : serverMsg);
+
+                // If there are field errors
+                if (data.fieldErrors && Array.isArray(data.fieldErrors)) {
+                    const fields = data.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join(', ');
+                    serverMsg = `Error de validación: ${fields}`;
+                } else if (data.params) {
+                    serverMsg += ` - ${JSON.stringify(data.params)}`;
+                } else if (!data.detail && !data.message && !data.title && typeof data === 'object') {
+                    // If we have an object but no standard fields, show the stringified object
+                    serverMsg = `Error del servidor: ${JSON.stringify(data)}`;
+                }
+            } else if (err.message) {
+                serverMsg = `Error de red: ${err.message}`;
+            }
+
             setError(serverMsg);
         } finally {
             setLoading(false);
         }
     };
 
-    // Estilos reutilizados de RoomForm
-    const inputStyle: React.CSSProperties = {
-        width: '100%',
-        padding: '10px 12px',
-        border: '1px solid #d1d5db',
-        borderRadius: '8px',
-        fontSize: '14px',
-        backgroundColor: '#ffffff',
-        outline: 'none',
-        transition: 'all 0.2s',
-    };
+    // Estilos reutilizados de RoomForm - ahora usando Tailwind para soporte de modo oscuro
+    const inputClass = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-teal-500 dark:focus:border-teal-400 outline-none transition-colors";
 
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        fontSize: '11px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        color: '#6b7280',
-        marginBottom: '6px',
-    };
+    const labelClass = "block text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400 mb-1.5";
 
     return (
         <form onSubmit={handleSubmit}>
-            <div style={{ padding: '24px 24px', display: 'grid', gap: '16px' }}>
+            <div className="p-6 grid gap-4">
                 {error && (
-                    <div style={{
-                        padding: '12px',
-                        backgroundColor: '#fef2f2',
-                        border: '1px solid #fecaca',
-                        borderRadius: '8px',
-                        color: '#991b1b',
-                        fontSize: '14px'
-                    }}>
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
                         {error}
                     </div>
                 )}
 
                 {/* Name */}
                 <div>
-                    <label style={labelStyle}>
-                        Nombre del Servicio <span style={{ color: '#ef4444' }}>*</span>
+                    <label className={labelClass}>
+                        Nombre del Servicio <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={inputClass}
                     />
                 </div>
 
                 {/* Description */}
                 <div>
-                    <label style={labelStyle}>Descripción</label>
+                    <label className={labelClass}>Descripción</label>
                     <textarea
                         rows={3}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={`${inputClass} min-h-20 resize-vertical`}
                     />
                 </div>
 
                 {/* Cost */}
                 <div>
-                    <label style={labelStyle}>
-                        Costo <span style={{ color: '#ef4444' }}>*</span>
+                    <label className={labelClass}>
+                        Costo <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="number"
@@ -146,96 +177,139 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                         required
                         value={cost}
                         onChange={(e) => setCost(e.target.value)}
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                        className={inputClass}
                     />
                 </div>
 
-                {/* Image URL */}
-                <div>
-                    <label style={labelStyle}>URL de Imagen</label>
-                    <input
-                        type="text"
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                        style={inputStyle}
-                        onFocus={(e) => e.target.style.borderColor = '#51cbce'}
-                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                    />
+                {/* Image URL & File Upload */}
+                <div className="space-y-3">
+                    <label className={labelClass}>Imagen del Servicio</label>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <Link size={16} />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={imageUrl}
+                                    onChange={(e) => setImageUrl(e.target.value)}
+                                    placeholder="https://example.com/image.jpg"
+                                    disabled={isMinioImage || isUploading}
+                                    className={`${inputClass} pl-10 ${(isMinioImage || isUploading)
+                                        ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
+                                        : ''
+                                        }`}
+                                />
+                            </div>
+
+                            {!isMinioImage ? (
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="service-image-upload"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                        disabled={isUploading}
+                                    />
+                                    <label
+                                        htmlFor="service-image-upload"
+                                        className="flex items-center justify-center w-[42px] h-[42px] bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors disabled:opacity-50"
+                                        title="Subir archivo"
+                                    >
+                                        {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                                    </label>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveImage}
+                                    className="flex items-center justify-center w-[42px] h-[42px] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                    title="Quitar imagen"
+                                >
+                                    <X size={18} />
+                                </button>
+                            )}
+                        </div>
+
+                        {imageUrl && (
+                            <div className="w-full h-32 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex items-center justify-center group relative">
+                                <img
+                                    src={imageUrl}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff43c619c721?auto=format&fit=crop&q=80&w=400')}
+                                />
+                                {isUploading && (
+                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                                        <Loader2 size={32} className="text-white animate-spin" />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 italic">
+                            {isMinioImage
+                                ? "✨ Imagen subida a almacenamiento interno (Minio). Quita la foto para usar una URL externa."
+                                : "💡 Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Hours */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelClass}>Hora Inicio</label>
+                        <input
+                            type="time"
+                            value={startHour}
+                            onChange={(e) => setStartHour(e.target.value)}
+                            className={inputClass}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Hora Fin</label>
+                        <input
+                            type="time"
+                            value={endHour}
+                            onChange={(e) => setEndHour(e.target.value)}
+                            className={inputClass}
+                        />
+                    </div>
                 </div>
 
                 {/* Availability */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="flex items-center gap-2 pt-2">
                     <input
                         id="isAvailable"
                         type="checkbox"
                         checked={isAvailable}
                         onChange={(e) => setIsAvailable(e.target.checked)}
-                        style={{
-                            width: '16px',
-                            height: '16px',
-                            marginRight: '8px',
-                            cursor: 'pointer'
-                        }}
+                        className="w-4 h-4 cursor-pointer text-teal-600 dark:text-teal-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
                     />
-                    <label htmlFor="isAvailable" style={{ fontSize: '14px', color: '#374151', cursor: 'pointer' }}>
+                    <label htmlFor="isAvailable" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer font-medium select-none">
                         Disponible para solicitar
                     </label>
                 </div>
             </div>
 
             {/* Footer Buttons */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '12px',
-                padding: '16px 24px',
-                borderTop: '1px solid #e5e7eb'
-            }}>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    style={{
-                        padding: '8px 16px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '20px',
-                        backgroundColor: '#ffffff',
-                        color: '#6b7280',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.5 : 1,
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#f9fafb')}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                    className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold text-[10px] uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        padding: '8px 24px',
-                        border: 'none',
-                        borderRadius: '20px',
-                        backgroundColor: '#51cbce',
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.5 : 1,
-                        boxShadow: '0 4px 6px rgba(81, 203, 206, 0.3)',
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#4bc2c5')}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#51cbce'}
+                    className="px-8 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-300 text-white font-bold text-[10px] uppercase tracking-wider rounded-full shadow-lg shadow-teal-500/20 disabled:shadow-none disabled:cursor-not-allowed transition-all active:scale-95 flex items-center gap-2"
                 >
+                    {loading && <Loader2 size={14} className="animate-spin" />}
                     {loading ? 'Guardando...' : (initialData ? 'Actualizar' : 'Crear')}
                 </button>
             </div>

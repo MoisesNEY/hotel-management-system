@@ -2,6 +2,7 @@ package org.hotel.service.dto;
 
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 import org.hotel.domain.enumeration.RequestStatus;
@@ -17,10 +18,17 @@ public class ServiceRequestDTO implements Serializable {
     @NotNull
     private Instant requestDate;
 
-    private String details;
-
     @NotNull
     private RequestStatus status;
+
+    private String details;
+
+    private String deliveryRoomNumber;
+
+    @Min(value = 1)
+    private Integer quantity;
+
+    private BigDecimal totalCost;
 
     @NotNull
     private HotelServiceDTO service;
@@ -44,6 +52,14 @@ public class ServiceRequestDTO implements Serializable {
         this.requestDate = requestDate;
     }
 
+    public RequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RequestStatus status) {
+        this.status = status;
+    }
+
     public String getDetails() {
         return details;
     }
@@ -52,12 +68,28 @@ public class ServiceRequestDTO implements Serializable {
         this.details = details;
     }
 
-    public RequestStatus getStatus() {
-        return status;
+    public String getDeliveryRoomNumber() {
+        return deliveryRoomNumber;
     }
 
-    public void setStatus(RequestStatus status) {
-        this.status = status;
+    public void setDeliveryRoomNumber(String deliveryRoomNumber) {
+        this.deliveryRoomNumber = deliveryRoomNumber;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
     }
 
     public HotelServiceDTO getService() {
@@ -103,8 +135,11 @@ public class ServiceRequestDTO implements Serializable {
         return "ServiceRequestDTO{" +
             "id=" + getId() +
             ", requestDate='" + getRequestDate() + "'" +
-            ", details='" + getDetails() + "'" +
             ", status='" + getStatus() + "'" +
+            ", details='" + getDetails() + "'" +
+            ", deliveryRoomNumber='" + getDeliveryRoomNumber() + "'" +
+            ", quantity=" + getQuantity() +
+            ", totalCost=" + getTotalCost() +
             ", service=" + getService() +
             ", booking=" + getBooking() +
             "}";

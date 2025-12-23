@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Trash2, 
-  Search, 
-  Copy, 
-  ExternalLink, 
-  FolderOpen,
-  Plus
+import {
+    Trash2,
+    Search,
+    Copy,
+    ExternalLink,
+    FolderOpen,
+    Plus
 } from 'lucide-react';
 import { fileService } from '../../../services/admin/fileService';
 import type { StoredFile } from '../../../types/fileTypes';
@@ -20,6 +20,8 @@ const FileManagerView: React.FC = () => {
     const [uploading, setUploading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentFolder, setCurrentFolder] = useState<string>('');
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [fileToDelete, setFileToDelete] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const folders = [
@@ -78,12 +80,19 @@ const FileManagerView: React.FC = () => {
         }
     };
 
-    const handleDelete = async (url: string) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar esta imagen de S3?')) return;
-        
+    const handleDelete = (url: string) => {
+        setFileToDelete(url);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!fileToDelete) return;
+
         try {
-            await fileService.deleteFile(url);
-            setFiles(files.filter(f => f.url !== url));
+            await fileService.deleteFile(fileToDelete);
+            setFiles(files.filter(f => f.url !== fileToDelete));
+            setDeleteModalOpen(false);
+            setFileToDelete(null);
         } catch (error) {
             console.error("Error eliminando archivo", error);
         }
@@ -145,25 +154,25 @@ const FileManagerView: React.FC = () => {
             accessor: 'key' as keyof StoredFile,
             cell: (item: StoredFile) => (
                 <div className="flex justify-end gap-2">
-                    <Button 
-                        size="sm" 
-                        variant="ghost" 
+                    <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => copyToClipboard(item.url)}
                         title="Copiar URL"
                     >
                         <Copy size={16} />
                     </Button>
-                    <Button 
-                        size="sm" 
-                        variant="ghost" 
+                    <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => window.open(item.url, '_blank')}
                         title="Ver original"
                     >
                         <ExternalLink size={16} />
                     </Button>
-                    <Button 
-                        size="sm" 
-                        variant="danger" 
+                    <Button
+                        size="sm"
+                        variant="danger"
                         onClick={() => handleDelete(item.url)}
                         title="Eliminar"
                     >
@@ -185,15 +194,15 @@ const FileManagerView: React.FC = () => {
                         <p className="text-gray-500 dark:text-gray-400">Gestiona y organiza archivos almacenados en S3 para el sistema</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <input 
-                            type="file" 
-                            className="hidden" 
-                            ref={fileInputRef} 
+                        <input
+                            type="file"
+                            className="hidden"
+                            ref={fileInputRef}
                             onChange={handleFileUpload}
                             accept="image/*"
                         />
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
                             icon={uploading ? <Loader /> : <Plus size={18} />}
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
@@ -212,11 +221,10 @@ const FileManagerView: React.FC = () => {
                                 <button
                                     key={folder.value}
                                     onClick={() => setCurrentFolder(folder.value)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                                        currentFolder === folder.value 
-                                        ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' 
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${currentFolder === folder.value
+                                        ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20'
                                         : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                    }`}
+                                        }`}
                                 >
                                     {folder.name}
                                 </button>
@@ -239,7 +247,7 @@ const FileManagerView: React.FC = () => {
 
                 {/* File Gallery/Table */}
                 <Card>
-                    <Table 
+                    <Table
                         data={files}
                         columns={columns}
                         keyExtractor={(item) => item.key}
@@ -248,6 +256,46 @@ const FileManagerView: React.FC = () => {
                     />
                 </Card>
             </div>
+
+            {/* Custom Delete Confirmation Modal */}
+            {
+                deleteModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+                            <div className="p-6 flex flex-col items-center text-center">
+                                <div className="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mb-6">
+                                    <Trash2 className="w-8 h-8 text-rose-500 dark:text-rose-400" />
+                                </div>
+
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                    ¿Eliminar documento?
+                                </h3>
+
+                                <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+                                    ¿Estás seguro de que deseas eliminar esta imagen de S3? Esta acción no se puede deshacer.
+                                </p>
+
+                                <div className="flex gap-3 w-full">
+                                    <Button
+                                        variant="ghost"
+                                        className="flex-1 justify-center rounded-xl py-3 h-auto text-base"
+                                        onClick={() => setDeleteModalOpen(false)}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        variant="danger" // Using danger variant as requested for consistency
+                                        className="flex-1 justify-center rounded-xl py-3 h-auto text-base shadow-lg shadow-rose-500/20"
+                                        onClick={confirmDelete}
+                                    >
+                                        Eliminar
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </div>
     );
 };

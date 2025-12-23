@@ -1,0 +1,47 @@
+{
+  "annotations": {
+    "changelogDate": "20251219220331"
+  },
+  "applications": ["hotelBackend"],
+  "clientRootFolder": "hotelBackend",
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "date",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "amount",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "method",
+      "fieldType": "PaymentMethod",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "CREDIT_CARD,CASH,PAYPAL,BANK_TRANSFER"
+    },
+    {
+      "fieldName": "referenceId",
+      "fieldType": "String"
+    }
+  ],
+  "microserviceName": "hotelBackend",
+  "name": "Payment",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityField": "code",
+      "otherEntityName": "invoice",
+      "otherEntityRelationshipName": "payments",
+      "relationshipName": "invoice",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

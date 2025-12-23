@@ -69,6 +69,36 @@ public class ClientServiceRequestService {
                 "serviceRequest",
                 ID_NOT_FOUND
             ));
+
+        // 1. Validar Estado Operativo
+        if (!org.hotel.domain.enumeration.ServiceStatus.OPERATIONAL.equals(service.getStatus())) {
+            throw new org.hotel.web.rest.errors.BusinessRuleException("El servicio '" + service.getName() + "' no está operativo en este momento.");
+        }
+
+        // 2. Validar Horario
+        // startHour y endHour son Strings formato HH:mm según la entidad
+        if(service.getStartHour() != null && service.getEndHour() != null) {
+            java.time.LocalTime now = java.time.LocalTime.now();
+            java.time.LocalTime start = java.time.LocalTime.parse(service.getStartHour());
+            java.time.LocalTime end = java.time.LocalTime.parse(service.getEndHour());
+
+            // Lógica simple de rango: start <= now <= end
+            // NOTA: Si end < start (ej: 23:00 a 02:00), asumimos cruce de medianoche
+            boolean inRange;
+            if (end.isBefore(start)) {
+                // Cruce de medianoche: es válido si (now >= start) OR (now <= end)
+                inRange = now.compareTo(start) >= 0 || now.compareTo(end) <= 0;
+            } else {
+                // Mismo día: start <= now <= end
+                inRange = now.compareTo(start) >= 0 && now.compareTo(end) <= 0;
+            }
+
+            if (!inRange) {
+                 throw new org.hotel.web.rest.errors.BusinessRuleException(
+                     "El servicio '" + service.getName() + "' está cerrado. Horario de atención: " + start + " a " + end);
+            }
+        }
+
         ServiceRequest entity = clientServiceRequestMapper.toEntity(request);
 
         // Asignar datos del Servidor

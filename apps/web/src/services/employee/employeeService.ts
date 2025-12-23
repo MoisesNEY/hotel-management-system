@@ -15,9 +15,8 @@ const SERVICE_REQUESTS_PATH = '/api/service-requests';
  */
 export const assignRoom = async (
   bookingId: number,
-  roomId: number
+  request: AssignRoomRequest
 ): Promise<BookingDTO> => {
-  const request: AssignRoomRequest = { roomId };
   const response = await apiClient.patch<BookingDTO>(
     `${BOOKINGS_PATH}/${bookingId}/assign-room`, 
     request

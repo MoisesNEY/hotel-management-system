@@ -10,7 +10,7 @@
         Added the entity AssetCollection.
     -->
     <changeSet id="20251218004955-1" author="jhipster">
-        <createTable tableName="asset_collection" remarks="Define una &quot;Sección&quot; en la web pública.\nEj: &apos;CONTACT_INFO&apos;, &apos;HOME_HERO&apos;, &apos;FOOTER_MAP&apos;">
+        <createTable tableName="asset_collection">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

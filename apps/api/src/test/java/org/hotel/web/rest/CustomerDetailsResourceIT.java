@@ -64,6 +64,12 @@ class CustomerDetailsResourceIT {
     private static final String DEFAULT_COUNTRY = "AAAAAAAAAA";
     private static final String UPDATED_COUNTRY = "BBBBBBBBBB";
 
+    private static final String DEFAULT_EMAIL = "AAAAAAAAAA";
+    private static final String UPDATED_EMAIL = "BBBBBBBBBB";
+
+    private static final String DEFAULT_IDENTIFICATION_TYPE = "AAAAAAAAAA";
+    private static final String UPDATED_IDENTIFICATION_TYPE = "BBBBBBBBBB";
+
     private static final String DEFAULT_LICENSE_ID = "AAAAAAAAAA";
     private static final String UPDATED_LICENSE_ID = "BBBBBBBBBB";
 
@@ -117,6 +123,8 @@ class CustomerDetailsResourceIT {
             .addressLine1(DEFAULT_ADDRESS_LINE_1)
             .city(DEFAULT_CITY)
             .country(DEFAULT_COUNTRY)
+            .email(DEFAULT_EMAIL)
+            .identificationType(DEFAULT_IDENTIFICATION_TYPE)
             .licenseId(DEFAULT_LICENSE_ID)
             .birthDate(DEFAULT_BIRTH_DATE);
         // Add required entity
@@ -140,6 +148,8 @@ class CustomerDetailsResourceIT {
             .addressLine1(UPDATED_ADDRESS_LINE_1)
             .city(UPDATED_CITY)
             .country(UPDATED_COUNTRY)
+            .email(UPDATED_EMAIL)
+            .identificationType(UPDATED_IDENTIFICATION_TYPE)
             .licenseId(UPDATED_LICENSE_ID)
             .birthDate(UPDATED_BIRTH_DATE);
         // Add required entity
@@ -310,6 +320,25 @@ class CustomerDetailsResourceIT {
 
     @Test
     @Transactional
+    void checkEmailIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        customerDetails.setEmail(null);
+
+        // Create the CustomerDetails, which fails.
+        CustomerDetailsDTO customerDetailsDTO = customerDetailsMapper.toDto(customerDetails);
+
+        restCustomerDetailsMockMvc
+            .perform(
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(customerDetailsDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void checkLicenseIdIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
@@ -363,6 +392,8 @@ class CustomerDetailsResourceIT {
             .andExpect(jsonPath("$.[*].addressLine1").value(hasItem(DEFAULT_ADDRESS_LINE_1)))
             .andExpect(jsonPath("$.[*].city").value(hasItem(DEFAULT_CITY)))
             .andExpect(jsonPath("$.[*].country").value(hasItem(DEFAULT_COUNTRY)))
+            .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
+            .andExpect(jsonPath("$.[*].identificationType").value(hasItem(DEFAULT_IDENTIFICATION_TYPE)))
             .andExpect(jsonPath("$.[*].licenseId").value(hasItem(DEFAULT_LICENSE_ID)))
             .andExpect(jsonPath("$.[*].birthDate").value(hasItem(DEFAULT_BIRTH_DATE.toString())));
     }
@@ -401,6 +432,8 @@ class CustomerDetailsResourceIT {
             .andExpect(jsonPath("$.addressLine1").value(DEFAULT_ADDRESS_LINE_1))
             .andExpect(jsonPath("$.city").value(DEFAULT_CITY))
             .andExpect(jsonPath("$.country").value(DEFAULT_COUNTRY))
+            .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL))
+            .andExpect(jsonPath("$.identificationType").value(DEFAULT_IDENTIFICATION_TYPE))
             .andExpect(jsonPath("$.licenseId").value(DEFAULT_LICENSE_ID))
             .andExpect(jsonPath("$.birthDate").value(DEFAULT_BIRTH_DATE.toString()));
     }
@@ -430,6 +463,8 @@ class CustomerDetailsResourceIT {
             .addressLine1(UPDATED_ADDRESS_LINE_1)
             .city(UPDATED_CITY)
             .country(UPDATED_COUNTRY)
+            .email(UPDATED_EMAIL)
+            .identificationType(UPDATED_IDENTIFICATION_TYPE)
             .licenseId(UPDATED_LICENSE_ID)
             .birthDate(UPDATED_BIRTH_DATE);
         CustomerDetailsDTO customerDetailsDTO = customerDetailsMapper.toDto(updatedCustomerDetails);
@@ -531,6 +566,7 @@ class CustomerDetailsResourceIT {
             .phone(UPDATED_PHONE)
             .addressLine1(UPDATED_ADDRESS_LINE_1)
             .country(UPDATED_COUNTRY)
+            .email(UPDATED_EMAIL)
             .licenseId(UPDATED_LICENSE_ID);
 
         restCustomerDetailsMockMvc
@@ -569,6 +605,8 @@ class CustomerDetailsResourceIT {
             .addressLine1(UPDATED_ADDRESS_LINE_1)
             .city(UPDATED_CITY)
             .country(UPDATED_COUNTRY)
+            .email(UPDATED_EMAIL)
+            .identificationType(UPDATED_IDENTIFICATION_TYPE)
             .licenseId(UPDATED_LICENSE_ID)
             .birthDate(UPDATED_BIRTH_DATE);
 

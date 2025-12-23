@@ -8,6 +8,11 @@
   "dto": "mapstruct",
   "fields": [
     {
+      "fieldName": "code",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique"]
+    },
+    {
       "fieldName": "checkInDate",
       "fieldType": "LocalDate",
       "fieldValidateRules": ["required"]
@@ -30,41 +35,32 @@
       "fieldValues": "PENDING,CONFIRMED,CHECKED_IN,CHECKED_OUT,CANCELLED"
     },
     {
-      "fieldName": "totalPrice",
-      "fieldType": "BigDecimal",
-      "fieldValidateRules": ["required", "min"],
-      "fieldValidateRulesMin": "0"
+      "fieldName": "notes",
+      "fieldType": "String"
     },
     {
-      "fieldName": "notes",
+      "fieldName": "specialRequests",
       "fieldType": "String"
     }
   ],
+  "jpaMetamodelFiltering": true,
   "microserviceName": "hotelBackend",
   "name": "Booking",
   "pagination": "pagination",
   "relationships": [
+    {
+      "otherEntityName": "bookingItem",
+      "otherEntityRelationshipName": "booking",
+      "relationshipName": "bookingItems",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
     {
       "otherEntityName": "serviceRequest",
       "otherEntityRelationshipName": "booking",
       "relationshipName": "serviceRequests",
       "relationshipSide": "left",
       "relationshipType": "one-to-many"
-    },
-    {
-      "otherEntityField": "name",
-      "otherEntityName": "roomType",
-      "relationshipName": "roomType",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one",
-      "relationshipValidateRules": "required"
-    },
-    {
-      "otherEntityField": "roomNumber",
-      "otherEntityName": "room",
-      "relationshipName": "assignedRoom",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
     },
     {
       "otherEntityField": "login",

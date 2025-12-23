@@ -53,6 +53,17 @@ spring:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
     cache: false
+  mail:
+    host: localhost 
+    port: 1025           # El puerto SMTP de Mailpit
+    username:            # Vacío para Mailpit
+    password:            # Vacío para Mailpit
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 server:
   port: 8080
@@ -99,3 +110,8 @@ application:
     access-key: minioadmin
     secret-key: minioadmin
     endpoint: http://localhost:9000
+
+paypal:
+  client-id: 'AXtI3lQlPN11na0d8it84mPLxDV4qHZkQQztH-2UEupx9gqwqkmgsBtVxPYnlCQcl7IoEropWKFl-YWX'
+  client-secret: 'ELWWhxxr8P3TsTNqf9diS4DgzsdvTjVAue4Zwt-PDzhb9cvfHpAuF_zdPonrW0zj1NG1GZ6ATIAV4T_Z'
+  mode: 'sandbox'

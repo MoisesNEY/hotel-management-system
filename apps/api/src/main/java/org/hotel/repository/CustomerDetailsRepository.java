@@ -1,5 +1,6 @@
 package org.hotel.repository;
 
+import java.net.http.HttpHeaders;
 import java.util.List;
 import java.util.Optional;
 import org.hotel.domain.CustomerDetails;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails, Long> {
-    Optional<CustomerDetails> findOneByUserLogin(String login);
     default Optional<CustomerDetails> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
@@ -38,8 +38,12 @@ public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails
 
     @Query("select customerDetails from CustomerDetails customerDetails left join fetch customerDetails.user where customerDetails.id =:id")
     Optional<CustomerDetails> findOneWithToOneRelationships(@Param("id") Long id);
-    boolean existsByLicenseId(String licenseId);
-    boolean existsByUserId(String user_id);
-    Optional<CustomerDetails> findOneByLicenseId(String userLogin);
 
+    boolean existsByLicenseId(String licenseId);
+
+    Optional<CustomerDetails> findOneByLicenseId(String licenseId);
+
+    boolean existsByUserId(String id);
+
+    Optional<CustomerDetails> findOneByUserLogin(String userLogin);
 }

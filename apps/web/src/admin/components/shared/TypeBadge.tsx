@@ -40,7 +40,8 @@ const TypeBadge: React.FC<TypeBadgeProps> = ({ type, value, category }) => {
           AVAILABLE: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: '✅', label: 'Disponible' },
           OCCUPIED: { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: '🚫', label: 'Ocupada' },
           MAINTENANCE: { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '🔧', label: 'Mantenimiento' },
-          CLEANING: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '🧹', label: 'Limpieza' }
+          CLEANING: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '🧹', label: 'Limpieza' },
+          DIRTY: { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '🛁', label: 'Sucia' }
         };
         return roomConfig[value as RoomStatus] || { color: 'bg-gray-100 text-gray-800', icon: '❓', label: value };
 

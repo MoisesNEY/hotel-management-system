@@ -1,0 +1,69 @@
+{
+  "annotations": {
+    "changelogDate": "20251219220329"
+  },
+  "applications": ["hotelBackend"],
+  "clientRootFolder": "hotelBackend",
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "code",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique"]
+    },
+    {
+      "fieldName": "issuedDate",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "InvoiceStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DRAFT,ISSUED,PAID,CANCELLED"
+    },
+    {
+      "fieldName": "taxAmount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "totalAmount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "currency",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "3"
+    }
+  ],
+  "jpaMetamodelFiltering": true,
+  "microserviceName": "hotelBackend",
+  "name": "Invoice",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "invoiceItem",
+      "otherEntityRelationshipName": "invoice",
+      "relationshipName": "items",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "payment",
+      "otherEntityRelationshipName": "invoice",
+      "relationshipName": "payments",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityField": "code",
+      "otherEntityName": "booking",
+      "relationshipName": "booking",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

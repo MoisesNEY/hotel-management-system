@@ -1,6 +1,5 @@
 package org.hotel.service.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -10,7 +9,6 @@ import org.hotel.domain.enumeration.Gender;
 /**
  * A DTO for the {@link org.hotel.domain.CustomerDetails} entity.
  */
-@Schema(description = "Datos extendidos del cliente (Perfil).\nSe llena DESPUÉS del registro en Keycloak.")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class CustomerDetailsDTO implements Serializable {
 
@@ -31,6 +29,11 @@ public class CustomerDetailsDTO implements Serializable {
 
     @NotNull
     private String country;
+
+    @NotNull
+    private String email;
+
+    private String identificationType;
 
     @NotNull
     private String licenseId;
@@ -89,6 +92,22 @@ public class CustomerDetailsDTO implements Serializable {
         this.country = country;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getIdentificationType() {
+        return identificationType;
+    }
+
+    public void setIdentificationType(String identificationType) {
+        this.identificationType = identificationType;
+    }
+
     public String getLicenseId() {
         return licenseId;
     }
@@ -144,6 +163,8 @@ public class CustomerDetailsDTO implements Serializable {
             ", addressLine1='" + getAddressLine1() + "'" +
             ", city='" + getCity() + "'" +
             ", country='" + getCountry() + "'" +
+            ", email='" + getEmail() + "'" +
+            ", identificationType='" + getIdentificationType() + "'" +
             ", licenseId='" + getLicenseId() + "'" +
             ", birthDate='" + getBirthDate() + "'" +
             ", user=" + getUser() +

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import org.hotel.domain.enumeration.RequestStatus;
 
@@ -27,13 +28,23 @@ public class ServiceRequest implements Serializable {
     @Column(name = "request_date", nullable = false)
     private Instant requestDate;
 
-    @Column(name = "details")
-    private String details;
-
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private RequestStatus status;
+
+    @Column(name = "details")
+    private String details;
+
+    @Column(name = "delivery_room_number")
+    private String deliveryRoomNumber;
+
+    @Min(value = 1)
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    @Column(name = "total_cost", precision = 21, scale = 2)
+    private BigDecimal totalCost;
 
     @ManyToOne(optional = false)
     @NotNull
@@ -41,7 +52,7 @@ public class ServiceRequest implements Serializable {
 
     @ManyToOne(optional = false)
     @NotNull
-    @JsonIgnoreProperties(value = { "serviceRequests", "roomType", "assignedRoom", "customer" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "bookingItems", "serviceRequests", "customer" }, allowSetters = true)
     private Booking booking;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -72,6 +83,19 @@ public class ServiceRequest implements Serializable {
         this.requestDate = requestDate;
     }
 
+    public RequestStatus getStatus() {
+        return this.status;
+    }
+
+    public ServiceRequest status(RequestStatus status) {
+        this.setStatus(status);
+        return this;
+    }
+
+    public void setStatus(RequestStatus status) {
+        this.status = status;
+    }
+
     public String getDetails() {
         return this.details;
     }
@@ -85,17 +109,43 @@ public class ServiceRequest implements Serializable {
         this.details = details;
     }
 
-    public RequestStatus getStatus() {
-        return this.status;
+    public String getDeliveryRoomNumber() {
+        return this.deliveryRoomNumber;
     }
 
-    public ServiceRequest status(RequestStatus status) {
-        this.setStatus(status);
+    public ServiceRequest deliveryRoomNumber(String deliveryRoomNumber) {
+        this.setDeliveryRoomNumber(deliveryRoomNumber);
         return this;
     }
 
-    public void setStatus(RequestStatus status) {
-        this.status = status;
+    public void setDeliveryRoomNumber(String deliveryRoomNumber) {
+        this.deliveryRoomNumber = deliveryRoomNumber;
+    }
+
+    public Integer getQuantity() {
+        return this.quantity;
+    }
+
+    public ServiceRequest quantity(Integer quantity) {
+        this.setQuantity(quantity);
+        return this;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getTotalCost() {
+        return this.totalCost;
+    }
+
+    public ServiceRequest totalCost(BigDecimal totalCost) {
+        this.setTotalCost(totalCost);
+        return this;
+    }
+
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
     }
 
     public HotelService getService() {
@@ -149,8 +199,11 @@ public class ServiceRequest implements Serializable {
         return "ServiceRequest{" +
             "id=" + getId() +
             ", requestDate='" + getRequestDate() + "'" +
-            ", details='" + getDetails() + "'" +
             ", status='" + getStatus() + "'" +
+            ", details='" + getDetails() + "'" +
+            ", deliveryRoomNumber='" + getDeliveryRoomNumber() + "'" +
+            ", quantity=" + getQuantity() +
+            ", totalCost=" + getTotalCost() +
             "}";
     }
 }
