@@ -47,6 +47,7 @@ public class CustomerResource {
         this.customerRepository = customerRepository;
     }
 
+
     /**
      * {@code POST  /customers} : Create a new customer.
      *
@@ -64,6 +65,24 @@ public class CustomerResource {
         return ResponseEntity.created(new URI("/api/customers/" + customerDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, customerDTO.getId().toString()))
             .body(customerDTO);
+    }
+
+    /**
+     * {@code POST  /customers/walk-in} : Create a new walk-in customer.
+     *
+     * @param customerDTO the customerDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new customerDTO.
+     */
+    @PostMapping("/walk-in")
+    public ResponseEntity<CustomerDTO> createWalkInCustomer(@Valid @RequestBody CustomerDTO customerDTO) throws URISyntaxException {
+        LOG.debug("REST request to save Walk-In Customer : {}", customerDTO);
+        if (customerDTO.getId() != null) {
+            throw new BadRequestAlertException("A new customer cannot already have an ID", ENTITY_NAME, "idexists");
+        }
+        CustomerDTO result = customerService.createWalkInCustomer(customerDTO);
+        return ResponseEntity.created(new URI("/api/customers/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
+            .body(result);
     }
 
     /**
