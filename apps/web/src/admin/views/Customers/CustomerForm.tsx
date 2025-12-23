@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
-import { createCustomerDetails, updateCustomerDetails } from '../../../services/admin/customerDetailsService';
-import type { CustomerDetailsDTO, Gender } from '../../../types/adminTypes';
+import { createCustomer, updateCustomer } from '../../../services/admin/customerService';
+import type { CustomerDTO, Gender } from '../../../types/adminTypes';
 
 interface CustomerFormProps {
-    initialData?: CustomerDetailsDTO | null;
+    initialData?: CustomerDTO | null;
     onSuccess: () => void;
     onCancel: () => void;
 }
 
 const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) => {
-    // User fields
+    // Flattened fields
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
-
+    
     // Customer Detail fields
     const [gender, setGender] = useState<Gender>('OTHER');
     const [phone, setPhone] = useState('');
@@ -29,11 +29,10 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
 
     useEffect(() => {
         if (initialData) {
-            if (initialData.user) {
-                setFirstName(initialData.user.firstName || '');
-                setLastName(initialData.user.lastName || '');
-                setEmail(initialData.user.email || '');
-            }
+            setFirstName(initialData.firstName || '');
+            setLastName(initialData.lastName || '');
+            setEmail(initialData.email || '');
+            
             setGender(initialData.gender);
             setPhone(initialData.phone);
             setBirthDate(initialData.birthDate);
@@ -51,8 +50,11 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
         setError(null);
 
         try {
-            const payload: CustomerDetailsDTO = {
+            const payload: CustomerDTO = {
                 id: initialData?.id || 0,
+                firstName,
+                lastName,
+                email,
                 gender,
                 phone,
                 addressLine1,
@@ -61,19 +63,13 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
                 country,
                 licenseId,
                 birthDate,
-                user: {
-                    id: initialData?.user?.id || '',
-                    firstName,
-                    lastName,
-                    email,
-                    login: email // Assuming login is email for simplicity/default
-                }
+                user: initialData?.user // Preserve link if editing an existing online customer
             };
 
             if (initialData?.id) {
-                await updateCustomerDetails(initialData.id, payload);
+                await updateCustomer(initialData.id, payload);
             } else {
-                await createCustomerDetails(payload);
+                await createCustomer(payload);
             }
             onSuccess();
         } catch (err) {

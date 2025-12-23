@@ -61,8 +61,11 @@ export interface AdminUserDTO extends UserDTO {
   lastModifiedDate?: string; // ISO Date
 }
 
-export interface CustomerDetailsDTO {
+export interface CustomerDTO {
   id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
   gender: Gender;
   phone: string;
   addressLine1: string;
@@ -112,7 +115,7 @@ export interface BookingDTO {
   totalPrice?: number;
   notes?: string;
   items: BookingItemDTO[];
-  customer: AdminUserDTO;
+  customer: CustomerDTO;
   invoiceId?: number;
 }
 

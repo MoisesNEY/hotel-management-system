@@ -23,6 +23,9 @@ public class BookingItemDTO implements Serializable {
     private RoomTypeDTO roomType;
 
     private RoomDTO assignedRoom;
+    
+    // Flattened field for convenience/frontend compatibility
+    private String roomTypeName;
 
     @NotNull
     private BookingDTO booking;
@@ -73,6 +76,14 @@ public class BookingItemDTO implements Serializable {
 
     public void setBooking(BookingDTO booking) {
         this.booking = booking;
+    }
+
+    public String getRoomTypeName() {
+        return roomTypeName;
+    }
+
+    public void setRoomTypeName(String roomTypeName) {
+        this.roomTypeName = roomTypeName;
     }
 
     @Override

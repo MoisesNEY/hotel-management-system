@@ -101,6 +101,7 @@ public class MailService {
 
         Context context = new Context(locale);
         context.setVariable(USER, customer); // Templates likely use 'user.firstName', which Customer has.
+        context.setVariable("account", user); // Pass the User entity (with authorities) for permission checks
         // Also provide 'customer' key just in case
         context.setVariable("customer", customer);
 

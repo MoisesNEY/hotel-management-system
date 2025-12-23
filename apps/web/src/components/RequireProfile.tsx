@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthProvider';
-import { getMyProfile } from '../services/client/customerDetailsService';
+import { getMyProfile } from '../services/client/customerService';
 import { getAccount } from '../services/accountService';
 import LoadingScreen from './shared/LoadingScreen';
 

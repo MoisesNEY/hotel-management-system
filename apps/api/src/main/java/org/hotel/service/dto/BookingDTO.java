@@ -38,6 +38,16 @@ public class BookingDTO implements Serializable {
     private CustomerDTO customer;
 
     private java.util.List<BookingItemDTO> items;
+    
+    private java.math.BigDecimal totalPrice;
+
+    public java.math.BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(java.math.BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
     public java.util.List<BookingItemDTO> getItems() {
         return items;

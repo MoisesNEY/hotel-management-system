@@ -53,7 +53,7 @@ public class Booking implements Serializable {
     @Column(name = "special_requests")
     private String specialRequests;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties(value = { "roomType", "assignedRoom", "booking" }, allowSetters = true)
     private Set<BookingItem> bookingItems = new HashSet<>();
 
@@ -280,6 +280,19 @@ public class Booking implements Serializable {
     public Booking customer(Customer customer) {
         this.setCustomer(customer);
         return this;
+    }
+
+    /**
+     * Helper method for Thymeleaf/Frontend to get total price on the entity directly.
+     */
+    public java.math.BigDecimal getTotalPrice() {
+        if (this.bookingItems == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+        return this.bookingItems.stream()
+            .map(BookingItem::getPrice)
+            .filter(java.util.Objects::nonNull)
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
