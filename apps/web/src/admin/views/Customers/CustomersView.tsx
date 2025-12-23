@@ -174,13 +174,11 @@ const CustomersView = () => {
                 title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                 size="lg"
             >
-                <div className="max-h-[80vh] overflow-y-auto">
                      <CustomerForm
                         initialData={editingCustomer}
                         onSuccess={handleFormSuccess}
                         onCancel={() => setShowForm(false)}
                     />
-                </div>
             </Modal>
 
             {/* Modal de Confirmación de Eliminación */}

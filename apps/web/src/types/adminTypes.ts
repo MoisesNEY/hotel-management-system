@@ -105,6 +105,12 @@ export interface BookingItemDTO {
   assignedRoom?: RoomDTO;
 }
 
+export interface RoomTypeAvailabilityDTO {
+  roomType: RoomTypeDTO;
+  availableCount: number;
+  totalPrice: number;
+}
+
 export interface BookingDTO {
   id: number;
   code: string;

@@ -44,7 +44,7 @@ export const getStats = async (): Promise<DashboardStats> => {
         const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
 
         // Fetch customers for count
-        const customersRes = await apiClient.get('/api/customer-details?size=1');
+        const customersRes = await apiClient.get('/api/customers?size=1');
         const customersPagination = extractPaginationInfo(customersRes);
         const usersCount = customersPagination?.totalElements || 0;
 
