@@ -50,6 +50,8 @@ public class AssetCollectionCriteria implements Serializable, Criteria {
 
     private StringFilter description;
 
+    private BooleanFilter isActive;
+
     private LongFilter itemsId;
 
     private Boolean distinct;
@@ -62,6 +64,7 @@ public class AssetCollectionCriteria implements Serializable, Criteria {
         this.name = other.optionalName().map(StringFilter::copy).orElse(null);
         this.type = other.optionalType().map(CollectionTypeFilter::copy).orElse(null);
         this.description = other.optionalDescription().map(StringFilter::copy).orElse(null);
+        this.isActive = other.optionalIsActive().map(BooleanFilter::copy).orElse(null);
         this.itemsId = other.optionalItemsId().map(LongFilter::copy).orElse(null);
         this.distinct = other.distinct;
     }
@@ -166,6 +169,25 @@ public class AssetCollectionCriteria implements Serializable, Criteria {
         this.description = description;
     }
 
+    public BooleanFilter getIsActive() {
+        return isActive;
+    }
+
+    public Optional<BooleanFilter> optionalIsActive() {
+        return Optional.ofNullable(isActive);
+    }
+
+    public BooleanFilter isActive() {
+        if (isActive == null) {
+            setIsActive(new BooleanFilter());
+        }
+        return isActive;
+    }
+
+    public void setIsActive(BooleanFilter isActive) {
+        this.isActive = isActive;
+    }
+
     public LongFilter getItemsId() {
         return itemsId;
     }
@@ -219,6 +241,7 @@ public class AssetCollectionCriteria implements Serializable, Criteria {
             Objects.equals(name, that.name) &&
             Objects.equals(type, that.type) &&
             Objects.equals(description, that.description) &&
+            Objects.equals(isActive, that.isActive) &&
             Objects.equals(itemsId, that.itemsId) &&
             Objects.equals(distinct, that.distinct)
         );
@@ -226,7 +249,7 @@ public class AssetCollectionCriteria implements Serializable, Criteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, name, type, description, itemsId, distinct);
+        return Objects.hash(id, code, name, type, description, isActive, itemsId, distinct);
     }
 
     // prettier-ignore
@@ -238,6 +261,7 @@ public class AssetCollectionCriteria implements Serializable, Criteria {
             optionalName().map(f -> "name=" + f + ", ").orElse("") +
             optionalType().map(f -> "type=" + f + ", ").orElse("") +
             optionalDescription().map(f -> "description=" + f + ", ").orElse("") +
+            optionalIsActive().map(f -> "isActive=" + f + ", ").orElse("") +
             optionalItemsId().map(f -> "itemsId=" + f + ", ").orElse("") +
             optionalDistinct().map(f -> "distinct=" + f + ", ").orElse("") +
         "}";

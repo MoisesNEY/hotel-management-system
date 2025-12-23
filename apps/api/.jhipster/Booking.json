@@ -32,7 +32,7 @@
       "fieldName": "status",
       "fieldType": "BookingStatus",
       "fieldValidateRules": ["required"],
-      "fieldValues": "PENDING,CONFIRMED,CHECKED_IN,CHECKED_OUT,CANCELLED"
+      "fieldValues": "PENDING_APPROVAL,PENDING_PAYMENT,CONFIRMED,CHECKED_IN,CHECKED_OUT,CANCELLED"
     },
     {
       "fieldName": "notes",

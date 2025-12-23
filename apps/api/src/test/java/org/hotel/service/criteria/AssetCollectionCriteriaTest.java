@@ -80,6 +80,7 @@ class AssetCollectionCriteriaTest {
         assetCollectionCriteria.name();
         assetCollectionCriteria.type();
         assetCollectionCriteria.description();
+        assetCollectionCriteria.isActive();
         assetCollectionCriteria.itemsId();
         assetCollectionCriteria.distinct();
     }
@@ -92,6 +93,7 @@ class AssetCollectionCriteriaTest {
                 condition.apply(criteria.getName()) &&
                 condition.apply(criteria.getType()) &&
                 condition.apply(criteria.getDescription()) &&
+                condition.apply(criteria.getIsActive()) &&
                 condition.apply(criteria.getItemsId()) &&
                 condition.apply(criteria.getDistinct()),
             "every filter matches"
@@ -109,6 +111,7 @@ class AssetCollectionCriteriaTest {
                 condition.apply(criteria.getName(), copy.getName()) &&
                 condition.apply(criteria.getType(), copy.getType()) &&
                 condition.apply(criteria.getDescription(), copy.getDescription()) &&
+                condition.apply(criteria.getIsActive(), copy.getIsActive()) &&
                 condition.apply(criteria.getItemsId(), copy.getItemsId()) &&
                 condition.apply(criteria.getDistinct(), copy.getDistinct()),
             "every filter matches"

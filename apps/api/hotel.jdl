@@ -173,7 +173,8 @@ entity AssetCollection {
   code String required unique minlength(2) maxlength(50),
   name String required maxlength(100),
   type CollectionType required,
-  description String maxlength(500)
+  description String maxlength(500),
+  isActive Boolean
 }
 
 entity WebContent {

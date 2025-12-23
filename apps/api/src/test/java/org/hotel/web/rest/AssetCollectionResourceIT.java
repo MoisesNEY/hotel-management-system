@@ -48,6 +48,9 @@ class AssetCollectionResourceIT {
     private static final String DEFAULT_DESCRIPTION = "AAAAAAAAAA";
     private static final String UPDATED_DESCRIPTION = "BBBBBBBBBB";
 
+    private static final Boolean DEFAULT_IS_ACTIVE = false;
+    private static final Boolean UPDATED_IS_ACTIVE = true;
+
     private static final String ENTITY_API_URL = "/api/asset-collections";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -80,7 +83,12 @@ class AssetCollectionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static AssetCollection createEntity() {
-        return new AssetCollection().code(DEFAULT_CODE).name(DEFAULT_NAME).type(DEFAULT_TYPE).description(DEFAULT_DESCRIPTION);
+        return new AssetCollection()
+            .code(DEFAULT_CODE)
+            .name(DEFAULT_NAME)
+            .type(DEFAULT_TYPE)
+            .description(DEFAULT_DESCRIPTION)
+            .isActive(DEFAULT_IS_ACTIVE);
     }
 
     /**
@@ -90,7 +98,12 @@ class AssetCollectionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static AssetCollection createUpdatedEntity() {
-        return new AssetCollection().code(UPDATED_CODE).name(UPDATED_NAME).type(UPDATED_TYPE).description(UPDATED_DESCRIPTION);
+        return new AssetCollection()
+            .code(UPDATED_CODE)
+            .name(UPDATED_NAME)
+            .type(UPDATED_TYPE)
+            .description(UPDATED_DESCRIPTION)
+            .isActive(UPDATED_IS_ACTIVE);
     }
 
     @BeforeEach
@@ -227,7 +240,8 @@ class AssetCollectionResourceIT {
             .andExpect(jsonPath("$.[*].code").value(hasItem(DEFAULT_CODE)))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)));
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+            .andExpect(jsonPath("$.[*].isActive").value(hasItem(DEFAULT_IS_ACTIVE)));
     }
 
     @Test
@@ -245,7 +259,8 @@ class AssetCollectionResourceIT {
             .andExpect(jsonPath("$.code").value(DEFAULT_CODE))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
             .andExpect(jsonPath("$.type").value(DEFAULT_TYPE.toString()))
-            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION));
+            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION))
+            .andExpect(jsonPath("$.isActive").value(DEFAULT_IS_ACTIVE));
     }
 
     @Test
@@ -449,6 +464,36 @@ class AssetCollectionResourceIT {
         );
     }
 
+    @Test
+    @Transactional
+    void getAllAssetCollectionsByIsActiveIsEqualToSomething() throws Exception {
+        // Initialize the database
+        insertedAssetCollection = assetCollectionRepository.saveAndFlush(assetCollection);
+
+        // Get all the assetCollectionList where isActive equals to
+        defaultAssetCollectionFiltering("isActive.equals=" + DEFAULT_IS_ACTIVE, "isActive.equals=" + UPDATED_IS_ACTIVE);
+    }
+
+    @Test
+    @Transactional
+    void getAllAssetCollectionsByIsActiveIsInShouldWork() throws Exception {
+        // Initialize the database
+        insertedAssetCollection = assetCollectionRepository.saveAndFlush(assetCollection);
+
+        // Get all the assetCollectionList where isActive in
+        defaultAssetCollectionFiltering("isActive.in=" + DEFAULT_IS_ACTIVE + "," + UPDATED_IS_ACTIVE, "isActive.in=" + UPDATED_IS_ACTIVE);
+    }
+
+    @Test
+    @Transactional
+    void getAllAssetCollectionsByIsActiveIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        insertedAssetCollection = assetCollectionRepository.saveAndFlush(assetCollection);
+
+        // Get all the assetCollectionList where isActive is not null
+        defaultAssetCollectionFiltering("isActive.specified=true", "isActive.specified=false");
+    }
+
     private void defaultAssetCollectionFiltering(String shouldBeFound, String shouldNotBeFound) throws Exception {
         defaultAssetCollectionShouldBeFound(shouldBeFound);
         defaultAssetCollectionShouldNotBeFound(shouldNotBeFound);
@@ -466,7 +511,8 @@ class AssetCollectionResourceIT {
             .andExpect(jsonPath("$.[*].code").value(hasItem(DEFAULT_CODE)))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)));
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+            .andExpect(jsonPath("$.[*].isActive").value(hasItem(DEFAULT_IS_ACTIVE)));
 
         // Check, that the count call also returns 1
         restAssetCollectionMockMvc
@@ -514,7 +560,12 @@ class AssetCollectionResourceIT {
         AssetCollection updatedAssetCollection = assetCollectionRepository.findById(assetCollection.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedAssetCollection are not directly saved in db
         em.detach(updatedAssetCollection);
-        updatedAssetCollection.code(UPDATED_CODE).name(UPDATED_NAME).type(UPDATED_TYPE).description(UPDATED_DESCRIPTION);
+        updatedAssetCollection
+            .code(UPDATED_CODE)
+            .name(UPDATED_NAME)
+            .type(UPDATED_TYPE)
+            .description(UPDATED_DESCRIPTION)
+            .isActive(UPDATED_IS_ACTIVE);
         AssetCollectionDTO assetCollectionDTO = assetCollectionMapper.toDto(updatedAssetCollection);
 
         restAssetCollectionMockMvc
@@ -609,7 +660,7 @@ class AssetCollectionResourceIT {
         AssetCollection partialUpdatedAssetCollection = new AssetCollection();
         partialUpdatedAssetCollection.setId(assetCollection.getId());
 
-        partialUpdatedAssetCollection.code(UPDATED_CODE).description(UPDATED_DESCRIPTION);
+        partialUpdatedAssetCollection.code(UPDATED_CODE).name(UPDATED_NAME).isActive(UPDATED_IS_ACTIVE);
 
         restAssetCollectionMockMvc
             .perform(
@@ -641,7 +692,12 @@ class AssetCollectionResourceIT {
         AssetCollection partialUpdatedAssetCollection = new AssetCollection();
         partialUpdatedAssetCollection.setId(assetCollection.getId());
 
-        partialUpdatedAssetCollection.code(UPDATED_CODE).name(UPDATED_NAME).type(UPDATED_TYPE).description(UPDATED_DESCRIPTION);
+        partialUpdatedAssetCollection
+            .code(UPDATED_CODE)
+            .name(UPDATED_NAME)
+            .type(UPDATED_TYPE)
+            .description(UPDATED_DESCRIPTION)
+            .isActive(UPDATED_IS_ACTIVE);
 
         restAssetCollectionMockMvc
             .perform(

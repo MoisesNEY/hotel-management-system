@@ -44,6 +44,9 @@ public class AssetCollection implements Serializable {
     @Column(name = "description", length = 500)
     private String description;
 
+    @Column(name = "is_active")
+    private Boolean isActive;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "collection")
     @JsonIgnoreProperties(value = { "collection" }, allowSetters = true)
     private Set<WebContent> items = new HashSet<>();
@@ -115,6 +118,19 @@ public class AssetCollection implements Serializable {
         this.description = description;
     }
 
+    public Boolean getIsActive() {
+        return this.isActive;
+    }
+
+    public AssetCollection isActive(Boolean isActive) {
+        this.setIsActive(isActive);
+        return this;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
     public Set<WebContent> getItems() {
         return this.items;
     }
@@ -146,7 +162,8 @@ public class AssetCollection implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -161,7 +178,8 @@ public class AssetCollection implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -169,11 +187,12 @@ public class AssetCollection implements Serializable {
     @Override
     public String toString() {
         return "AssetCollection{" +
-            "id=" + getId() +
-            ", code='" + getCode() + "'" +
-            ", name='" + getName() + "'" +
-            ", type='" + getType() + "'" +
-            ", description='" + getDescription() + "'" +
-            "}";
+                "id=" + getId() +
+                ", code='" + getCode() + "'" +
+                ", name='" + getName() + "'" +
+                ", type='" + getType() + "'" +
+                ", description='" + getDescription() + "'" +
+                ", isActive='" + getIsActive() + "'" +
+                "}";
     }
 }
