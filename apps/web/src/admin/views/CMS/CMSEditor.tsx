@@ -11,6 +11,39 @@ import Table from '../../components/shared/Table';
 import Card from '../../components/shared/Card';
 
 const CMSEditor: React.FC = () => {
+    // Tipado para evitar errores de acceso a propiedades
+    interface FieldConfig {
+        label?: string;
+        placeholder?: string;
+        show?: boolean;
+    }
+
+    const SCHEMA_CONFIG: Record<string, Record<string, FieldConfig>> = {
+        [CollectionType.SINGLE_IMAGE]: {
+            title: { label: "Título de Sección", placeholder: "Ej: Bienvenido al Paraíso" },
+            subtitle: { label: "Descripción / Slogan", show: true, placeholder: "Ej: Tu mejor descanso..." },
+            imageUrl: { label: "Imagen Destacada", show: true },
+            actionUrl: { label: "Texto Pie de Foto / Quote", show: true, placeholder: "Frase inspiradora..." }
+        },
+        [CollectionType.GALLERY]: {
+            title: { label: "Título de la Imagen", placeholder: "Ej: Habitación Junior Suite" },
+            subtitle: { label: "Descripción / Pie", show: true, placeholder: "Ej: Vista al mar..." },
+            imageUrl: { label: "Fotografía", show: true },
+            actionUrl: { show: false }
+        },
+        [CollectionType.TEXT_LIST]: {
+            title: { label: "Título / Nombre", placeholder: "Ej: Wi-Fi Gratis o Teléfono" },
+            subtitle: { label: "Valor / Descripción", show: true, placeholder: "Ej: +1 234 567 o Servicio 24/7" },
+            imageUrl: { show: false },
+            actionUrl: { label: "Enlace o Identificador", show: true, placeholder: "Ej: tel:, mailto: o una URL" }
+        },
+        [CollectionType.MAP_EMBED]: {
+            title: { label: "Título de Ubicación", placeholder: "Ej: Cómo llegar" },
+            subtitle: { show: false },
+            imageUrl: { show: false },
+            actionUrl: { label: "Código Iframe / Link de Mapa", show: true, placeholder: "Pega el link de Google Maps o Iframe" }
+        }
+    };
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -212,26 +245,35 @@ const CMSEditor: React.FC = () => {
                         </button>
                     </div>
                     <div className="p-6 overflow-y-auto flex-auto space-y-4">
+                        {/* 1. Título dinámico */}
                         <Input
-                            label="Título Principal"
+                            label={SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].title.label}
                             value={editingItem.title || ''}
                             onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
-                            placeholder="Ej: Portada de Invierno"
+                            placeholder={SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].title.placeholder}
                         />
 
-                        <div>
-                            <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Subtítulo / Descripción</label>
-                            <textarea
-                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
-                                value={editingItem.subtitle || ''}
-                                onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
-                                placeholder="Escribe una descripción breve o subtítulo..."
-                            />
-                        </div>
+                        {/* 2. Subtítulo dinámico */}
+                        {SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].subtitle.show && (
+                            <div>
+                                <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
+                                    {SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].subtitle.label}
+                                </label>
+                                <textarea
+                                    className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
+                                    value={editingItem.subtitle || ''}
+                                    onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
+                                    placeholder={SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].subtitle.placeholder}
+                                />
+                            </div>
+                        )}
 
-                        {(collection?.type === CollectionType.GALLERY || collection?.type === CollectionType.SINGLE_IMAGE) && (
+                        {/* 3. Imagen dinámica */}
+                        {SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].imageUrl.show && (
                             <div className="space-y-4">
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Imagen / Multimedia</label>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
+                                    {SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].imageUrl.label}
+                                </label>
 
                                 <div className="flex gap-3">
                                     <div className="relative flex-1">
@@ -287,12 +329,13 @@ const CMSEditor: React.FC = () => {
                             </div>
                         )}
 
-                        {(collection?.type === CollectionType.TEXT_LIST || collection?.type === CollectionType.MAP_EMBED) && (
+                        {/* 4. Action URL dinámica */}
+                        {SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].actionUrl.show && (
                             <Input
-                                label="Action URL / Google Maps Iframe"
+                                label={SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].actionUrl.label}
                                 value={editingItem.actionUrl || ''}
                                 onChange={e => setEditingItem({ ...editingItem, actionUrl: e.target.value })}
-                                placeholder="URL de destino o código de mapa"
+                                placeholder={SCHEMA_CONFIG[collection?.type || CollectionType.SINGLE_IMAGE].actionUrl.placeholder}
                             />
                         )}
 
