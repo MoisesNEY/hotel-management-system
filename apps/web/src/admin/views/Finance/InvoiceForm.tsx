@@ -26,7 +26,18 @@ const InvoiceForm: React.FC = () => {
         if (isEditMode) {
             setLoading(true);
             getInvoiceById(Number(id))
-                .then(data => setFormData(data))
+                .then(data => {
+                    // Fix Mapping: Backend 'amount' -> Frontend 'unitPrice' & Ensure 'quantity'
+                    if (data.items) {
+                        data.items = data.items.map(item => ({
+                            ...item,
+                            unitPrice: item.unitPrice !== undefined ? item.unitPrice : item.amount, // Fallback to amount if unitPrice missing
+                            quantity: item.quantity || 1,
+                            totalPrice: (item.quantity || 1) * (item.unitPrice !== undefined ? item.unitPrice : item.amount) // Ensure recalc
+                        }));
+                    }
+                    setFormData(data);
+                })
                 .catch(err => console.error(err))
                 .finally(() => setLoading(false));
         }
@@ -115,7 +126,7 @@ const InvoiceForm: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código</label>
                             <input 
                                 type="text"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100 dark:disabled:bg-white/5 dark:disabled:text-gray-400"
                                 value={formData.code || ''}
                                 onChange={e => setFormData({...formData, code: e.target.value})}
                                 required
@@ -125,7 +136,7 @@ const InvoiceForm: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
                             <select 
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100 dark:disabled:bg-white/5 dark:disabled:text-gray-400"
                                 value={formData.status}
                                 onChange={e => setFormData({...formData, status: e.target.value as any})}
                                 disabled={true} // Status managed by actions (Pay/Cancel), usually not direct edit here unless DRAFT->ISSUED? keeping disabled for safety as per strict rules.
@@ -137,24 +148,14 @@ const InvoiceForm: React.FC = () => {
                                 <option value="CANCELLED">Cancelada</option>
                             </select>
                         </div>
-                         <div>
+                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Emisión</label>
                             <input 
                                 type="datetime-local"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100 dark:disabled:bg-white/5 dark:disabled:text-gray-400"
                                 value={formData.issuedDate ? formData.issuedDate.substring(0, 16) : ''}
                                 onChange={e => setFormData({...formData, issuedDate: new Date(e.target.value).toISOString()})}
                                 required
-                                disabled={isReadOnly}
-                            />
-                        </div>
-                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Vencimiento</label>
-                            <input 
-                                type="datetime-local"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100"
-                                value={formData.dueDate ? formData.dueDate.substring(0, 16) : ''}
-                                onChange={e => setFormData({...formData, dueDate: new Date(e.target.value).toISOString()})}
                                 disabled={isReadOnly}
                             />
                         </div>
@@ -178,17 +179,22 @@ const InvoiceForm: React.FC = () => {
 
                     <div className="space-y-4">
                         {formData.items && formData.items.length > 0 ? (
-                            formData.items.map((item, idx) => (
+                            formData.items.map((item, idx) => {
+                                // Check if item exists in DB (has ID > 0)
+                                const isExistingItem = (item.id || 0) > 0;
+                                const isItemReadOnly = isReadOnly || isExistingItem;
+                                
+                                return (
                                 <div key={idx} className="flex gap-4 items-end bg-gray-50 dark:bg-white/5 p-4 rounded-lg animate-in fade-in slide-in-from-top-2">
                                     <div className="flex-grow">
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Descripción</label>
                                         <input 
                                             type="text"
-                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-gray-100"
+                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-transparent disabled:border-transparent disabled:text-gray-500"
                                             value={item.description}
                                             onChange={e => handleItemChange(idx, 'description', e.target.value)}
                                             placeholder="Descripción del servicio"
-                                            disabled={isReadOnly}
+                                            disabled={isItemReadOnly}
                                         />
                                     </div>
                                     <div className="w-24">
@@ -196,10 +202,10 @@ const InvoiceForm: React.FC = () => {
                                         <input 
                                             type="number"
                                             min="1"
-                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-gray-100"
+                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-transparent disabled:border-transparent disabled:text-gray-500"
                                             value={item.quantity}
                                             onChange={e => handleItemChange(idx, 'quantity', e.target.value)}
-                                            disabled={isReadOnly}
+                                            disabled={isItemReadOnly}
                                         />
                                     </div>
                                     <div className="w-32">
@@ -208,10 +214,10 @@ const InvoiceForm: React.FC = () => {
                                             type="number"
                                             min="0"
                                             step="0.01"
-                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-gray-100"
+                                            className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 outline-none focus:border-[#d4af37] disabled:opacity-60 disabled:bg-transparent disabled:border-transparent disabled:text-gray-500"
                                             value={item.unitPrice}
                                             onChange={e => handleItemChange(idx, 'unitPrice', e.target.value)}
-                                            disabled={isReadOnly}
+                                            disabled={isItemReadOnly}
                                         />
                                     </div>
                                     <div className="w-32">
@@ -230,7 +236,7 @@ const InvoiceForm: React.FC = () => {
                                         </button>
                                     )}
                                 </div>
-                            ))
+                            )})
                         ) : (
                             <p className="text-center text-gray-500 py-4 italic">No hay items agregados.</p>
                         )}
