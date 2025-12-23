@@ -11,10 +11,11 @@ import type { BookingResponse } from '../types/clientTypes';
 
 // Enum para RequestStatus
 export const RequestStatus = {
-  PENDING: 'PENDING',
+  OPEN: 'OPEN',
   IN_PROGRESS: 'IN_PROGRESS',
   COMPLETED: 'COMPLETED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  REJECTED: 'REJECTED'
 } as const;
 
 export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
@@ -35,7 +36,7 @@ const Services: React.FC = () => {
   const [formData, setFormData] = useState({
     requestDate: '',
     details: '',
-    status: RequestStatus.PENDING
+    status: RequestStatus.OPEN
   });
 
   const { data: header } = useSingleContent('HEADER_SERVICES');
