@@ -19,10 +19,15 @@ public class PublicContentResource {
     private final Logger log = LoggerFactory.getLogger(PublicContentResource.class);
     private final WebContentRepository webContentRepository;
     private final WebContentMapper webContentMapper;
+    private final org.hotel.repository.AssetCollectionRepository assetCollectionRepository;
 
-    public PublicContentResource(WebContentRepository webContentRepository, WebContentMapper webContentMapper) {
+    public PublicContentResource(
+            WebContentRepository webContentRepository,
+            WebContentMapper webContentMapper,
+            org.hotel.repository.AssetCollectionRepository assetCollectionRepository) {
         this.webContentRepository = webContentRepository;
         this.webContentMapper = webContentMapper;
+        this.assetCollectionRepository = assetCollectionRepository;
     }
 
     /**
@@ -51,5 +56,18 @@ public class PublicContentResource {
         return content.map(webContentMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * GET /status/{code} : Verifica si una sección está ACTIVA en el CMS.
+     */
+    @GetMapping("/status/{code}")
+    public ResponseEntity<Boolean> getCollectionStatus(@PathVariable String code) {
+        log.debug("REST request para verificar estado de coleccion: {}", code);
+        return assetCollectionRepository
+                .findByCode(code)
+                .map(c -> c.getIsActive() != Boolean.FALSE)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok(true)); // Si no existe, asumimos visible por defecto
     }
 }

@@ -91,8 +91,8 @@ const CMSList: React.FC = () => {
                     onClick={() => handleToggleActive(item)}
                     disabled={togglingId === item.id}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-300 font-bold text-[10px] uppercase tracking-wider ${item.isActive !== false
-                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'
-                            : 'bg-gray-50 dark:bg-white/[0.02] text-gray-400 border border-gray-100 dark:border-white/10'
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'
+                        : 'bg-gray-50 dark:bg-white/[0.02] text-gray-400 border border-gray-100 dark:border-white/10'
                         }`}
                 >
                     {togglingId === item.id ? (

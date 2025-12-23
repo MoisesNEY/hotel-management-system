@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Plus, Edit, Upload, X, Link, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Edit, Upload, X, Link, Loader2, ChevronDown } from 'lucide-react';
 import { CollectionType, defaultWebContent, type AssetCollection, type WebContent } from '../../../types/adminTypes';
 import { AssetCollectionService } from '../../../services/admin/assetCollectionService';
 import { WebContentService } from '../../../services/admin/webContentService';
@@ -16,6 +16,8 @@ const CMSEditor: React.FC = () => {
         label?: string;
         placeholder?: string;
         show?: boolean;
+        type?: 'text' | 'textarea' | 'select';
+        options?: string[];
     }
 
     const SCHEMA_CONFIG: Record<string, Record<string, FieldConfig>> = {
@@ -64,10 +66,16 @@ const CMSEditor: React.FC = () => {
             isActive: { show: false }
         },
         'CONTACT_INFO': {
-            title: { label: "Tipo de Contacto", show: true, placeholder: "Ej: Recepción" },
-            subtitle: { label: "Valor", show: true, placeholder: "Ej: +54 9 11 ..." },
-            actionUrl: { label: "Acción (tel:, mailto:)", show: true, placeholder: "Ej: tel:+54911..." },
-            imageUrl: { show: false }
+            title: {
+                label: "Tipo de Dato",
+                show: true,
+                type: 'select',
+                options: ['Dirección', 'Teléfono', 'Email']
+            },
+            subtitle: { label: "Valor a mostrar", show: true, placeholder: "Ej: +505 8888 8888" },
+            actionUrl: { label: "Acción al hacer clic", show: true, placeholder: "Ej: tel:+50588888888" },
+            imageUrl: { show: false },
+            sortOrder: { show: false }
         },
         'HOME_FEATURES': {
             title: { label: "Característica", show: true, placeholder: "Ej: Piscina Climatizada" },
@@ -81,8 +89,13 @@ const CMSEditor: React.FC = () => {
         const type = collection?.type || CollectionType.SINGLE_IMAGE;
         const code = collection?.code || '';
 
+        // Normalizar código para búsqueda (case-insensitive y trim)
+        const normalizedCode = Object.keys(CODE_OVERRIDES).find(
+            key => key.toUpperCase() === code.toUpperCase().trim()
+        );
+
         const base = SCHEMA_CONFIG[type][field] || { show: false };
-        const override = CODE_OVERRIDES[code]?.[field];
+        const override = normalizedCode ? CODE_OVERRIDES[normalizedCode][field] : {};
 
         return { ...base, ...override };
     };
@@ -131,6 +144,14 @@ const CMSEditor: React.FC = () => {
             } else {
                 await WebContentService.create(payload);
             }
+
+            // Sincronización de visibilidad: 
+            // Si el item guardado está activo, asegurarnos de que la colección también lo esté
+            // para que no sea "engañoso" en la lista principal.
+            if (editingItem.isActive && collection.isActive === false) {
+                await AssetCollectionService.update({ ...collection, isActive: true });
+            }
+
             setEditingItem(null); // Cerrar editor
             loadData(collection.id!); // Recargar lista
         } catch (error) {
@@ -289,12 +310,37 @@ const CMSEditor: React.FC = () => {
                     <div className="p-6 overflow-y-auto flex-auto space-y-4">
                         {/* 1. Título dinámico */}
                         {getConfig('title').show && (
-                            <Input
-                                label={getConfig('title').label}
-                                value={editingItem.title || ''}
-                                onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
-                                placeholder={getConfig('title').placeholder}
-                            />
+                            <>
+                                {getConfig('title').type === 'select' ? (
+                                    <div className="mb-4">
+                                        <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
+                                            {getConfig('title').label}
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all appearance-none cursor-pointer"
+                                                value={editingItem.title || ''}
+                                                onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
+                                            >
+                                                <option value="">Seleccionar tipo...</option>
+                                                {getConfig('title').options?.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                                <ChevronDown size={16} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Input
+                                        label={getConfig('title').label}
+                                        value={editingItem.title || ''}
+                                        onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
+                                        placeholder={getConfig('title').placeholder}
+                                    />
+                                )}
+                            </>
                         )}
 
                         {/* 2. Subtítulo dinámico */}
@@ -303,12 +349,20 @@ const CMSEditor: React.FC = () => {
                                 <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
                                     {getConfig('subtitle').label}
                                 </label>
-                                <textarea
-                                    className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
-                                    value={editingItem.subtitle || ''}
-                                    onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
-                                    placeholder={getConfig('subtitle').placeholder}
-                                />
+                                {getConfig('subtitle').type === 'textarea' || !getConfig('subtitle').type ? (
+                                    <textarea
+                                        className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
+                                        value={editingItem.subtitle || ''}
+                                        onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
+                                        placeholder={getConfig('subtitle').placeholder}
+                                    />
+                                ) : (
+                                    <Input
+                                        value={editingItem.subtitle || ''}
+                                        onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
+                                        placeholder={getConfig('subtitle').placeholder}
+                                    />
+                                )}
                             </div>
                         )}
 
@@ -470,16 +524,7 @@ const CMSEditor: React.FC = () => {
                 </div>
 
                 {collection.type === CollectionType.GALLERY && renderGalleryEditor()}
-                {collection.type === CollectionType.TEXT_LIST && renderTextListEditor()}
-                {collection.type === CollectionType.MAP_EMBED && renderTextListEditor()}
-
-                {collection.type === CollectionType.SINGLE_IMAGE && (
-                    <div className="bg-blue-50/50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-blue-700 dark:text-blue-300 px-5 py-4 rounded-2xl flex items-start gap-4 mb-8 shadow-sm">
-                        <div className="mt-0.5 bg-blue-100 dark:bg-blue-500/20 p-2 rounded-lg"><Edit size={18} /></div>
-                        <span className="text-sm font-medium leading-relaxed">Para el Hero (Single Image), usa el botón de editar en la lista de abajo. Solo debería haber 1 elemento activo para un diseño óptimo.</span>
-                    </div>
-                )}
-                {collection.type === CollectionType.SINGLE_IMAGE && renderTextListEditor()}
+                {(collection.type === CollectionType.TEXT_LIST || collection.type === CollectionType.MAP_EMBED || collection.type === CollectionType.SINGLE_IMAGE) && renderTextListEditor()}
             </Card>
         </div>
     );

@@ -28,6 +28,32 @@ export function useSingleContent(code: string) {
   return { data, loading };
 }
 
+/**
+ * Hook para saber si una sección (Collection) está activa en el CMS.
+ */
+export function useSectionVisibility(code: string) {
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetch = async () => {
+      try {
+        const result = await PublicContentService.checkVisibility(code);
+        if (isMounted) setIsVisible(result);
+      } catch (err) {
+        if (isMounted) setIsVisible(true);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => { isMounted = false; };
+  }, [code]);
+
+  return { isVisible, loading };
+}
+
 // Sobrecarga para Listas
 export function useListContent(code: string) {
   const [data, setData] = useState<WebContent[]>([]);

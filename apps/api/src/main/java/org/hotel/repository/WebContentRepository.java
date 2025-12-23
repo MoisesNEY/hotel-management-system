@@ -38,8 +38,8 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
     // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, siempre que
     // la sección esté activa (o null).
     @Query("select w from WebContent w join w.collection c where c.code = :code " +
-            "and (w.isActive = true or w.isActive is null) " +
-            "and (c.isActive = true or c.isActive is null) " +
+            "and (w.isActive = true) " +
+            "and (c.isActive = true) " +
             "order by w.sortOrder asc")
     List<WebContent> findAllByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
             @Param("code") String code);
