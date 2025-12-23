@@ -33,7 +33,8 @@ public class PublicContentResource {
     @GetMapping("/{code}")
     public ResponseEntity<List<WebContentDTO>> getContentList(@PathVariable String code) {
         log.debug("REST request publico para lista de contenido: {}", code);
-        List<WebContent> content = webContentRepository.findAllByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(code);
+        List<WebContent> content = webContentRepository
+                .findAllByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(code);
         return ResponseEntity.ok(webContentMapper.toDto(content));
     }
 
@@ -45,9 +46,10 @@ public class PublicContentResource {
     @GetMapping("/{code}/single")
     public ResponseEntity<WebContentDTO> getSingleContent(@PathVariable String code) {
         log.debug("REST request publico para contenido unico: {}", code);
-        Optional<WebContent> content = webContentRepository.findFirstByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(code);
+        Optional<WebContent> content = webContentRepository
+                .findFirstByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(code);
         return content.map(webContentMapper::toDto)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

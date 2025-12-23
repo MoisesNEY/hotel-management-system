@@ -26,10 +26,7 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
         return this.findAllWithToOneRelationships(pageable);
     }
 
-    @Query(
-        value = "select webContent from WebContent webContent left join fetch webContent.collection",
-        countQuery = "select count(webContent) from WebContent webContent"
-    )
+    @Query(value = "select webContent from WebContent webContent left join fetch webContent.collection", countQuery = "select count(webContent) from WebContent webContent")
     Page<WebContent> findAllWithToOneRelationships(Pageable pageable);
 
     @Query("select webContent from WebContent webContent left join fetch webContent.collection")
@@ -37,9 +34,13 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
 
     @Query("select webContent from WebContent webContent left join fetch webContent.collection where webContent.id =:id")
     Optional<WebContent> findOneWithToOneRelationships(@Param("id") Long id);
-    // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, ordenado.
-    List<WebContent> findAllByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(String code);
 
-    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo (evita arrays vacíos).
-    Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(String code);
+    // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, siempre que
+    // la sección esté activa.
+    List<WebContent> findAllByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(String code);
+
+    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo de una sección
+    // activa.
+    Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
+            String code);
 }
