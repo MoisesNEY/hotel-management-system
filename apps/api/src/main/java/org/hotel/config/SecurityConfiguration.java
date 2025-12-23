@@ -53,7 +53,6 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authz ->
                 // prettier-ignore
                 authz
-                        // Endpoints públicos
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/room-types")).permitAll()
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/room-types/*")).permitAll()
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/hotel-services")).permitAll()
@@ -61,32 +60,12 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                         .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
                         .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
-
-                        // Endpoint de cuentas (Perfil de usuario)
                         .requestMatchers(mvc.pattern("/api/account/**")).authenticated()
-
-                        // Endpoints de clientes - solo ROLE_CLIENT
                         .requestMatchers(mvc.pattern("/api/client/**")).hasAuthority(AuthoritiesConstants.CLIENT)
 
                         // --- Endpoints de empleado y administrador ---
                         
-                        // Acciones específicas de gestión de reservas y servicios
-                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/assign-room"))
-                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-in"))
-                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-out"))
-                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/service-requests/*/status"))
-                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        
-                        // Consultas generales (Listados) permitidas para empleados
-                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/bookings")).hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/bookings/*")).hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/service-requests")).hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/service-requests/*")).hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
-                        
-                        // NUEVO: Permisos de lectura para Clientes, Pagos y Facturas para empleados
+                        // 1. Acceso de LECTURA (GET) para Empleados
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/customer-details/**"))
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/payments/**"))
@@ -95,17 +74,33 @@ public class SecurityConfiguration {
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/rooms/**"))
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/bookings/**"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/service-requests/**"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
 
-                        // Endpoints exclusivos de administrador
+                        // 2. !!! DESBLOQUEAR NOMBRES Y EMAILS PARA EMPLEADOS !!!
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/admin/users"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+
+                        // 3. Acciones de Gestión (PATCH/POST/DELETE) para Empleados y Admin
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/assign-room"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-in"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-out"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+                        .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/service-requests/*/status"))
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
+
+                        // 4. Seccion exclusiva de administrador (Configuraciones sensibles)
                         .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern("/v3/api-docs/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-                        .requestMatchers(mvc.pattern("/management/health")).permitAll()
-                        .requestMatchers(mvc.pattern("/management/health/**")).permitAll()
-                        .requestMatchers(mvc.pattern("/management/info")).permitAll()
-                        .requestMatchers(mvc.pattern("/management/prometheus")).permitAll()
                         .requestMatchers(mvc.pattern("/management/**")).hasAuthority(AuthoritiesConstants.ADMIN)
+                        .requestMatchers(mvc.pattern("/management/health")).permitAll()
+                        .requestMatchers(mvc.pattern("/management/info")).permitAll()
 
-                        // Regla final: cualquier otro endpoint /api/** requiere rol ADMIN
+                        // Bloqueo final de seguridad
                         .requestMatchers(mvc.pattern("/api/**")).hasAuthority(AuthoritiesConstants.ADMIN))
                 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

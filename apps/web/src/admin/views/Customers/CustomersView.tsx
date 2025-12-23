@@ -37,10 +37,14 @@ const CustomersView = () => {
             try {
                 const usersParams = await getAllUsers(0, 200);
                 const map: Record<string, AdminUserDTO> = {};
-                usersParams.data.forEach(u => map[u.id] = u);
+                usersParams.data.forEach(u => {
+                    if (u.id) map[u.id] = u;
+                    if (u.login) map[u.login] = u;
+                });
+                console.log("[CustomersView] Users mapped:", Object.keys(map).length);
                 setUsersMap(map);
             } catch (userError) {
-                console.warn("Could not load full users list for mapping (common for non-admins). Falling back to embedded user data.");
+                console.warn("Could not load users list.");
             }
         } catch (error: any) {
             console.error("Error loading customers", error);
@@ -95,12 +99,22 @@ const CustomersView = () => {
             header: 'Nombre',
             accessor: (row) => {
                 const userId = row.user?.id;
-                const user = userId ? usersMap[userId] : undefined;
+                const userLogin = row.user?.login;
+                const user = (userId ? usersMap[userId] : null) || (userLogin ? usersMap[userLogin] : null);
 
                 const firstName = user?.firstName || row.user?.firstName;
                 const lastName = user?.lastName || row.user?.lastName;
+                const login = user?.login || row.user?.login;
 
-                if (!firstName && !lastName) return <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>;
+                if (!firstName && !lastName) {
+                    return login ? (
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                            {login}
+                        </span>
+                    ) : (
+                        <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>
+                    );
+                }
                 return <span className="font-semibold text-gray-900 dark:text-white tracking-tight">{`${firstName || ''} ${lastName || ''}`}</span>;
             }
         },
@@ -108,8 +122,18 @@ const CustomersView = () => {
             header: 'Email',
             accessor: (row) => {
                 const userId = row.user?.id;
-                const user = userId ? usersMap[userId] : undefined;
-                return user?.email || row.user?.email || <span className="text-gray-400 italic">Sin Email</span>;
+                const userLogin = row.user?.login;
+                const user = (userId ? usersMap[userId] : null) || (userLogin ? usersMap[userLogin] : null);
+
+                const email = user?.email || row.user?.email;
+
+                return email ? (
+                    <span className="text-gray-900 dark:text-white font-medium">{email}</span>
+                ) : (
+                    <span className="text-gray-400 dark:text-gray-500 italic text-xs bg-gray-50 dark:bg-white/5 px-2 py-0.5 rounded border border-gray-200 dark:border-white/5">
+                        Email no disponible
+                    </span>
+                );
             }
         },
         {
