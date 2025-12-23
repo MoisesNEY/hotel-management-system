@@ -10,8 +10,7 @@ import org.hotel.service.dto.client.request.customer.CustomerUpdateRequest;
 import org.hotel.service.dto.client.response.customer.CustomerResponse;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.hotel.web.rest.errors.BusinessRuleException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +22,7 @@ import java.util.Optional;
 @Transactional
 public class ClientCustomerService {
 
-    private final Logger log = LoggerFactory.getLogger(ClientCustomerService.class);
+
 
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
@@ -67,8 +66,8 @@ public class ClientCustomerService {
             .orElseThrow(() -> new RuntimeException("Usuario JHipster no encontrado"));
 
         Customer entity = new Customer();
-        entity.setFirstName(request.getFirstName());
-        entity.setLastName(request.getLastName());
+        entity.setFirstName(request.getFirstName() != null ? request.getFirstName() : currentUser.getFirstName());
+        entity.setLastName(request.getLastName() != null ? request.getLastName() : currentUser.getLastName());
         entity.setGender(request.getGender());
         entity.setPhone(request.getPhone());
         entity.setAddressLine1(request.getAddressLine1());
@@ -88,6 +87,10 @@ public class ClientCustomerService {
         }
         if (age > 120) {
             throw new BusinessRuleException("La fecha de nacimiento no es válida.");
+        }
+
+        if (entity.getFirstName() == null || entity.getLastName() == null) {
+             throw new BadRequestAlertException("Nombre y apellido son obligatorios si no están en tu perfil de usuario.", "customer", "missingName");
         }
 
         entity.setUser(currentUser); 

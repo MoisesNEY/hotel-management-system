@@ -2,7 +2,7 @@ package org.hotel.service.dto.client.request.customer;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+
 import jakarta.validation.constraints.Size;
 import org.hotel.domain.enumeration.Gender;
 
@@ -32,8 +32,8 @@ public class CustomerCreateRequest {
     @NotNull
     private LocalDate birthDate;
 
-    // Added to support direct profile creation with name update if needed
     private String firstName;
+    
     private String lastName;
 
     public Gender getGender() {

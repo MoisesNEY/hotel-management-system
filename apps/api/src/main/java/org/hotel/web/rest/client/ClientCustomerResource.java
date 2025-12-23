@@ -5,7 +5,7 @@ import org.hotel.service.client.ClientCustomerService;
 import org.hotel.service.dto.client.request.customer.CustomerCreateRequest;
 import org.hotel.service.dto.client.request.customer.CustomerUpdateRequest;
 import org.hotel.service.dto.client.response.customer.CustomerResponse;
-import org.hotel.web.rest.errors.BadRequestAlertException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
