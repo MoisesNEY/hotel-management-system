@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
+import { Edit, ChevronDown, ChevronUp, CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { CollectionType, type AssetCollection } from '../../../types/adminTypes';
 import { AssetCollectionService } from '../../../services/admin/assetCollectionService';
 import Table from '../../components/shared/Table';
@@ -19,6 +19,8 @@ const CMSList: React.FC = () => {
         loadData();
     }, []);
 
+    const [togglingId, setTogglingId] = useState<number | null>(null);
+
     const loadData = async () => {
         try {
             const res = await AssetCollectionService.query();
@@ -27,6 +29,21 @@ const CMSList: React.FC = () => {
             console.error("Error cargando CMS", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleToggleActive = async (collection: AssetCollection) => {
+        if (!collection.id) return;
+        setTogglingId(collection.id);
+        try {
+            const updated = { ...collection, isActive: !collection.isActive };
+            await AssetCollectionService.update(updated);
+            setCollections(collections.map(c => c.id === collection.id ? updated : c));
+        } catch (error) {
+            console.error("Error toggling status", error);
+            alert("No se pudo cambiar el estado de la sección.");
+        } finally {
+            setTogglingId(null);
         }
     };
 
@@ -64,6 +81,29 @@ const CMSList: React.FC = () => {
                 <span className={`inline-flex px-2 py-0.5 text-[11px] font-bold text-white rounded-full ${getBadgeColor(item.type)}`}>
                     {item.type}
                 </span>
+            )
+        },
+        {
+            header: "Estado",
+            accessor: 'isActive' as keyof AssetCollection,
+            cell: (item: AssetCollection) => (
+                <button
+                    onClick={() => handleToggleActive(item)}
+                    disabled={togglingId === item.id}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-300 font-bold text-[10px] uppercase tracking-wider ${item.isActive !== false
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'
+                            : 'bg-gray-50 dark:bg-white/[0.02] text-gray-400 border border-gray-100 dark:border-white/10'
+                        }`}
+                >
+                    {togglingId === item.id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                    ) : item.isActive !== false ? (
+                        <Eye size={14} />
+                    ) : (
+                        <EyeOff size={14} />
+                    )}
+                    {item.isActive !== false ? 'Visible' : 'Oculto'}
+                </button>
             )
         },
         {

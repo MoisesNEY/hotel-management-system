@@ -11,6 +11,7 @@ export interface AssetCollection {
   name?: string;        // Nombre legible (ej: Portada Principal)
   type?: typeof CollectionType[keyof typeof CollectionType];
   description?: string;
+  isActive?: boolean;
   items?: WebContent[]; // Relación OneToMany
 }
 
