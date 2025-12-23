@@ -3,8 +3,10 @@ package org.hotel.service.client;
 import com.paypal.sdk.PaypalServerSdkClient;
 import com.paypal.sdk.exceptions.ApiException;
 import com.paypal.sdk.models.*;
+import org.hotel.domain.Booking;
 import org.hotel.domain.Invoice;
 import org.hotel.domain.Payment;
+import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.domain.enumeration.InvoiceStatus;
 import org.hotel.domain.enumeration.PaymentMethod;
 import org.hotel.repository.InvoiceRepository;
@@ -131,6 +133,15 @@ public class ClientPaymentService {
                 payment = paymentRepository.save(payment);
 
                 invoice.setStatus(InvoiceStatus.PAID);
+                
+                // Confirm the booking upon payment
+                if (invoice.getBooking() != null) {
+                    Booking booking = invoice.getBooking();
+                    if (!BookingStatus.CANCELLED.equals(booking.getStatus())) {
+                        booking.setStatus(BookingStatus.CONFIRMED);
+                    }
+                }
+                
                 invoiceRepository.save(invoice);
 
                 // Enviar Correo de Pago Exitoso (Async) 
