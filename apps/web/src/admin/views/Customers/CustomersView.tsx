@@ -9,8 +9,13 @@ import type { CustomerDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 import { Trash2, Plus } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 const CustomersView = () => {
+    const { getHighestRole } = useAuth();
+    const userRole = getHighestRole();
+    const canDelete = userRole === 'ROLE_ADMIN';
+
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -144,14 +149,16 @@ const CustomersView = () => {
                     >
                         Editar
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleDelete(row.id)}
-                        iconOnly
-                    >
-                        <Trash2 size={14} />
-                    </Button>
+                    {canDelete && (
+                        <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => handleDelete(row.id)}
+                            iconOnly
+                        >
+                            <Trash2 size={14} />
+                        </Button>
+                    )}
                 </div>
             )
         }
