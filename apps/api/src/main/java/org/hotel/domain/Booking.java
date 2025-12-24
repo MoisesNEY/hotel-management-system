@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-import java.math.BigDecimal;
 import org.hotel.domain.enumeration.BookingStatus;
 
 /**
@@ -62,13 +61,10 @@ public class Booking implements Serializable {
     @JsonIgnoreProperties(value = { "service", "booking" }, allowSetters = true)
     private Set<ServiceRequest> serviceRequests = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
-    @JsonIgnoreProperties(value = { "booking", "items", "payments" }, allowSetters = true)
-    private Set<Invoice> invoices = new HashSet<>();
-
     @ManyToOne(optional = false)
     @NotNull
-    private User customer;
+    @JsonIgnoreProperties(value = { "user" }, allowSetters = true)
+    private Customer customer;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -238,6 +234,10 @@ public class Booking implements Serializable {
         return this;
     }
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "booking")
+    @JsonIgnoreProperties(value = { "booking", "payment" }, allowSetters = true)
+    private Set<Invoice> invoices = new HashSet<>();
+
     public Set<Invoice> getInvoices() {
         return this.invoices;
     }
@@ -269,30 +269,30 @@ public class Booking implements Serializable {
         return this;
     }
 
-    public User getCustomer() {
+    public Customer getCustomer() {
         return this.customer;
     }
 
-    public void setCustomer(User user) {
-        this.customer = user;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public Booking customer(User user) {
-        this.setCustomer(user);
+    public Booking customer(Customer customer) {
+        this.setCustomer(customer);
         return this;
     }
 
     /**
-     * Helper method to calculate total price from items.
+     * Helper method for Thymeleaf/Frontend to get total price on the entity directly.
      */
-    public BigDecimal getTotalPrice() {
-        if (bookingItems == null || bookingItems.isEmpty()) {
-            return BigDecimal.ZERO;
+    public java.math.BigDecimal getTotalPrice() {
+        if (this.bookingItems == null) {
+            return java.math.BigDecimal.ZERO;
         }
-        return bookingItems.stream()
+        return this.bookingItems.stream()
             .map(BookingItem::getPrice)
             .filter(java.util.Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

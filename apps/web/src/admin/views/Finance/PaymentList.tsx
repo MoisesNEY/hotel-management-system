@@ -5,10 +5,13 @@ import { getAllPayments, deletePayment } from '../../../services/admin/paymentSe
 import type { PaymentDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
 import ActionButton from '../../../admin/components/shared/ActionButton';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 const PaymentList: React.FC = () => {
     const navigate = useNavigate();
+    const { hasRole } = useAuth();
     const [payments, setPayments] = useState<PaymentDTO[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -113,19 +116,18 @@ const PaymentList: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <ActionButton 
-                                                onClick={() => navigate(`/admin/payments/edit/${payment.id}`)}
-                                                icon={PencilSquareIcon}
-                                                label="Editar"
-                                                variant="ghost"
-                                            />
-                                            <ActionButton 
-                                                onClick={() => handleDelete(payment)}
-                                                icon={TrashIcon}
-                                                label="Eliminar"
-                                                variant="ghost"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                                            />
+                                            {/* Edit Button Removed: Payments are immutable ledger records */}
+                                            
+                                            {/* Delete allowed for ADMIN only */}
+                                            {hasRole('ROLE_ADMIN') && (
+                                                <ActionButton 
+                                                    onClick={() => handleDelete(payment)}
+                                                    icon={TrashIcon}
+                                                    label="Eliminar"
+                                                    variant="ghost"
+                                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                />
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

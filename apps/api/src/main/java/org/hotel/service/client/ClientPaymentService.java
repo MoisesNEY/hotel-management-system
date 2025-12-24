@@ -126,6 +126,19 @@ public class ClientPaymentService {
                 .getResult();
 
             if ("COMPLETED".equals(String.valueOf(order.getStatus()))) {
+                // Security Validation: Verify captured amount matches Invoice Total
+                // Fallback check: Compare Order PurchaseUnit Amount if available
+                if (order.getPurchaseUnits() != null && !order.getPurchaseUnits().isEmpty()) {
+                     String orderAmountStr = order.getPurchaseUnits().get(0).getAmount().getValue();
+                     java.math.BigDecimal orderAmount = new java.math.BigDecimal(orderAmountStr);
+                     
+                     if (orderAmount.compareTo(invoice.getTotalAmount()) != 0) {
+                         log.error("Payment Amount Mismatch Audit: Order {} Amount {} != Invoice {} Amount {}", 
+                             order.getId(), orderAmount, invoice.getId(), invoice.getTotalAmount());
+                         throw new BusinessRuleException("Error de Seguridad: El monto cobrado por PayPal no coincide con el total de la factura.");
+                     }
+                }
+
                 Payment payment = new Payment();
                 payment.setDate(Instant.now());
                 payment.setAmount(invoice.getTotalAmount());
@@ -179,7 +192,11 @@ public class ClientPaymentService {
     }
 
     private void validateInvoiceOwnership(Invoice invoice, String userLogin) {
-        if (invoice.getBooking() == null || !invoice.getBooking().getCustomer().getLogin().equals(userLogin)) {
+        if (invoice.getBooking() == null || 
+            invoice.getBooking().getCustomer() == null || 
+            invoice.getBooking().getCustomer().getUser() == null || 
+            !invoice.getBooking().getCustomer().getUser().getLogin().equals(userLogin)) {
+            
             throw new BusinessRuleException("No tiene permisos para acceder a esta factura.");
         }
     }

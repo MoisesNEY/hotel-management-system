@@ -41,13 +41,13 @@
             <p style="text-align: center; color: #666;">Gracias por confiar en Gran Hotel para tu estadía.</p>
             
             <div class="button-container">
-                 <!-- Check if user has 'ROLE_ADMIN' authority -->
-                 <a th:if="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                 <!-- Check if user has 'ROLE_ADMIN' authority using 'account' variable -->
+                 <a th:if="${account != null && account.authorities.![name].contains('ROLE_ADMIN')}" 
                     th:href="|${baseUrl}/admin/invoices|" 
                     class="button">Ver Factura</a>
                     
                  <!-- Else (User) -->
-                 <a th:unless="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                 <a th:unless="${account != null && account.authorities.![name].contains('ROLE_ADMIN')}" 
                     th:href="|${baseUrl}/client/dashboard|" 
                     class="button">Ver Detalles del Viaje</a>
             </div>

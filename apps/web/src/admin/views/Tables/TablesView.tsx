@@ -4,12 +4,11 @@ import Card from '../../components/shared/Card';
 import Badge from '../../components/shared/Badge';
 import Button from '../../components/shared/Button';
 import { FileDown, FileSpreadsheet, Users, Calendar, DoorOpen, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
+import { getAllCustomers } from '../../../services/admin/customerService';
 import { getAllBookings } from '../../../services/admin/bookingService';
 import { getAllRooms } from '../../../services/admin/roomService';
-import { getAllUsers } from '../../../services/admin/userService';
-import type { AdminUserDTO } from '../../../types/adminTypes';
-import { formatCurrency, formatDate, getStatusColor, getUserDisplayInfo } from '../../utils/helpers';
+import type { CustomerDTO, AdminUserDTO } from '../../../types/adminTypes';
+import { formatCurrency, formatDate, getStatusColor } from '../../utils/helpers';
 import { exportToPDF, exportToExcel, type ExportColumn } from '../../utils/exportUtils';
 
 type Category = 'clientes' | 'reservas' | 'habitaciones';
@@ -17,7 +16,6 @@ type Category = 'clientes' | 'reservas' | 'habitaciones';
 const TablesView: React.FC = () => {
     const [activeCategory, setActiveCategory] = useState<Category>('clientes');
     const [data, setData] = useState<any[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<string | number, AdminUserDTO>>({});
     const [loading, setLoading] = useState(true);
 
     // Pagination State
@@ -35,19 +33,19 @@ const TablesView: React.FC = () => {
             title: 'Clientes Registrados',
             subtitle: 'Listado integral de clientes y datos de contacto',
             icon: <Users size={16} />,
-            fetcher: getAllCustomerDetails,
+            fetcher: getAllCustomers,
             exportTitle: 'Reporte de Clientes',
             columns: [
                 { header: 'ID', accessor: 'id' },
                 {
                     header: 'Nombre',
                     accessor: (row: any) => (
-                        <span className="font-semibold">{getUserDisplayInfo(row.user, usersMap).fullName}</span>
+                        <span className="font-semibold">{row.firstName} {row.lastName}</span>
                     )
                 },
                 {
                     header: 'Email',
-                    accessor: (row: any) => getUserDisplayInfo(row.user, usersMap).email
+                    accessor: 'email'
                 },
                 { header: 'País', accessor: 'country' },
                 { header: 'DNI', accessor: 'licenseId' }
@@ -61,7 +59,8 @@ const TablesView: React.FC = () => {
             ],
             mapForExport: (rows: any[]) => rows.map(r => ({
                 id: r.id,
-                ...getUserDisplayInfo(r.user, usersMap),
+                fullName: `${r.firstName} ${r.lastName}`,
+                email: r.email,
                 country: r.country,
                 licenseId: r.licenseId
             }))
@@ -76,9 +75,10 @@ const TablesView: React.FC = () => {
                 { header: 'ID', accessor: 'id' },
                 {
                     header: 'Cliente',
-                    accessor: (row: any) => (
-                        <span className="font-semibold">{getUserDisplayInfo(row.customer, usersMap).fullName}</span>
-                    )
+                    accessor: (row: any) => {
+                         const customer = row.customer as CustomerDTO;
+                         return <span className="font-semibold">{customer?.firstName} {customer?.lastName}</span>
+                    }
                 },
                 { header: 'Check-In', accessor: (row: any) => formatDate(row.checkInDate) },
                 { header: 'Estado', accessor: (row: any) => <Badge variant={getStatusColor(row.status)}>{row.status}</Badge> },
@@ -93,7 +93,7 @@ const TablesView: React.FC = () => {
             ],
             mapForExport: (rows: any[]) => rows.map(r => ({
                 id: r.id,
-                customerName: getUserDisplayInfo(r.customer, usersMap).fullName,
+                customerName: r.customer ? `${r.customer.firstName} ${r.customer.lastName}` : 'N/A',
                 checkInDate: formatDate(r.checkInDate),
                 status: r.status,
                 totalPrice: formatCurrency(r.totalPrice || 0)
@@ -132,20 +132,11 @@ const TablesView: React.FC = () => {
                 price: `$${r.roomType?.basePrice || 0}`
             }))
         }
-    }), [usersMap]);
+    }), []);
 
     const loadCategoryData = useCallback(async (category: Category, page: number, size: number) => {
         try {
             setLoading(true);
-
-            // Stitching users Map
-            if (category !== 'habitaciones' && Object.keys(usersMap).length === 0) {
-                const usersRes = await getAllUsers(0, 500);
-                const map: Record<string | number, AdminUserDTO> = {};
-                usersRes.data.forEach(u => { if (u.id) map[u.id] = u; });
-                setUsersMap(map);
-            }
-
             const result = await CATEGORY_CONFIG[category].fetcher(page, size);
             setData(result.data);
             setTotalItems(result.total);
@@ -154,7 +145,7 @@ const TablesView: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [CATEGORY_CONFIG, usersMap]);
+    }, [CATEGORY_CONFIG]);
 
     useEffect(() => {
         loadCategoryData(activeCategory, currentPage, pageSize);

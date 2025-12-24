@@ -61,10 +61,13 @@ export interface AdminUserDTO extends UserDTO {
   lastModifiedDate?: string; // ISO Date
 }
 
-export interface CustomerDetailsDTO {
+export interface CustomerDTO {
   id: number;
+  firstName: string;
+  lastName: string;
+  email?: string;
   gender: Gender;
-  phone: string;
+  phone?: string;
   addressLine1: string;
   addressLine2?: string;
   city: string;
@@ -102,6 +105,14 @@ export interface BookingItemDTO {
   assignedRoom?: RoomDTO;
 }
 
+export interface RoomTypeAvailabilityDTO {
+  id: number;
+  name: string;
+  availableQuantity: number;
+  basePrice: number;
+  maxCapacity: number;
+}
+
 export interface BookingDTO {
   id: number;
   code: string;
@@ -112,7 +123,7 @@ export interface BookingDTO {
   totalPrice?: number;
   notes?: string;
   items: BookingItemDTO[];
-  customer: AdminUserDTO;
+  customer: CustomerDTO;
   invoiceId?: number;
 }
 
@@ -137,7 +148,7 @@ export interface ServiceRequestDTO {
   booking: BookingDTO;
 }
 
-export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED';
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'DRAFT' | 'ISSUED';
 
 export interface InvoiceItemDTO {
   id: number;

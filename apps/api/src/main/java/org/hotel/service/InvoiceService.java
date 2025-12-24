@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.hotel.domain.Booking;
 import org.hotel.domain.Invoice;
 import org.hotel.domain.InvoiceItem;
+import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.domain.enumeration.InvoiceStatus;
 import org.hotel.repository.BookingRepository;
 import org.hotel.repository.InvoiceItemRepository;
@@ -15,6 +16,7 @@ import org.hotel.repository.InvoiceRepository;
 import org.hotel.service.dto.InvoiceDTO;
 import org.hotel.service.mapper.InvoiceMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -33,6 +35,7 @@ public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final InvoiceItemRepository invoiceItemRepository;
+    private final MailService mailService;
     private final InvoiceMapper invoiceMapper;
     private final BookingRepository bookingRepository;
     private final org.hotel.service.mapper.InvoiceItemMapper invoiceItemMapper;
@@ -42,13 +45,55 @@ public class InvoiceService {
         InvoiceMapper invoiceMapper,
         BookingRepository bookingRepository,
         InvoiceItemRepository invoiceItemRepository,
-        org.hotel.service.mapper.InvoiceItemMapper invoiceItemMapper
+        org.hotel.service.mapper.InvoiceItemMapper invoiceItemMapper,
+        MailService mailService
     ) {
         this.invoiceRepository = invoiceRepository;
         this.invoiceMapper = invoiceMapper;
         this.invoiceItemRepository = invoiceItemRepository;
         this.invoiceItemMapper = invoiceItemMapper;
         this.bookingRepository = bookingRepository;
+        this.mailService = mailService;
+    }
+
+    // ... (rest of constructor/fields)
+
+    /**
+     * Pay an invoice manually.
+     * @param id The invoice ID
+     * @return Updated InvoiceDTO
+     */
+    public InvoiceDTO payInvoice(Long id) {
+        Invoice invoice = invoiceRepository.findById(id)
+            .orElseThrow(() -> new org.hotel.web.rest.errors.ResourceNotFoundException("Invoice", id));
+
+        if (InvoiceStatus.PAID.equals(invoice.getStatus())) {
+            throw new org.hotel.web.rest.errors.BadRequestAlertException("Invoice already paid", "invoice", "alreadypaid");
+        }
+        if (InvoiceStatus.CANCELLED.equals(invoice.getStatus())) {
+            throw new org.hotel.web.rest.errors.BadRequestAlertException("Cannot pay cancelled invoice", "invoice", "cancelled");
+        }
+
+        // 1. Mark as Paid
+        invoice.setStatus(InvoiceStatus.PAID);
+        // invoice.setPaymentDate(Instant.now()); // Field does not exist
+        Invoice saved = invoiceRepository.save(invoice);
+
+        // 2. Update Booking if linked
+        if (invoice.getBooking() != null) {
+            Booking booking = invoice.getBooking();
+            if (BookingStatus.PENDING_PAYMENT.equals(booking.getStatus())) {
+                booking.setStatus(BookingStatus.CONFIRMED);
+                bookingRepository.save(booking);
+
+                // 3. Send Email (Reusing MailService logic)
+                if (booking.getCustomer() != null && booking.getCustomer().getEmail() != null) {
+                    mailService.sendBookingApprovedEmail(booking.getCustomer(), booking);
+                }
+            }
+        }
+
+        return invoiceMapper.toDto(saved);
     }
 
     /**
@@ -98,6 +143,27 @@ public class InvoiceService {
     }
 
     /**
+     * Cancel an invoice manually.
+     * @param id The invoice ID
+     */
+    public void cancel(Long id) {
+        Invoice invoice = invoiceRepository.findById(id)
+            .orElseThrow(() -> new org.hotel.web.rest.errors.ResourceNotFoundException("Invoice", id));
+
+        if (!InvoiceStatus.ISSUED.equals(invoice.getStatus())) {
+             throw new org.hotel.web.rest.errors.BusinessRuleException("Solo se pueden cancelar facturas emitidas (ISSUED).");
+        }
+
+        // Check for payments
+        if (invoice.getPayments() != null && !invoice.getPayments().isEmpty()) {
+             throw new org.hotel.web.rest.errors.BusinessRuleException("No se puede cancelar una factura con pagos parciales. Requiere reembolso previo.");
+        }
+
+        invoice.setStatus(InvoiceStatus.CANCELLED);
+        invoiceRepository.save(invoice);
+    }
+
+    /**
      * Get all the invoices with eager load of many-to-many relationships.
      *
      * @return the list of entities.
@@ -123,9 +189,43 @@ public class InvoiceService {
      *
      * @param id the id of the entity.
      */
+    /**
+     * Delete the invoice by id.
+     *
+     * @param id the id of the entity.
+     */
     public void delete(Long id) {
         LOG.debug("Request to delete Invoice : {}", id);
-        invoiceRepository.deleteById(id);
+        
+        Optional<Invoice> invoiceOptional = invoiceRepository.findById(id);
+        if (invoiceOptional.isPresent()) {
+            Invoice invoice = invoiceOptional.get();
+
+            // 1. Check strict constrains
+            if (InvoiceStatus.PAID.equals(invoice.getStatus())) {
+                 throw new BusinessRuleException("No se puede eliminar una factura con estado pagada.");
+            }
+            if (!invoice.getPayments().isEmpty()) {
+                 throw new BusinessRuleException("No se puede eliminar una factura con pagos.");
+            }
+
+            // 2. Logic based on Status
+            if (InvoiceStatus.DRAFT.equals(invoice.getStatus())) {
+                 // DRAFT -> Allow Physical Delete
+                 // User Correction: Only delete the invoice and its items. Do NOT delete the parent Booking.
+                 invoiceRepository.deleteById(id);
+
+            } else if (InvoiceStatus.ISSUED.equals(invoice.getStatus())) {
+                 // ISSUED -> Soft Delete (Cancel)
+                 // "si esta en ISSUED, debe permanecer y pasar a estado cancelled"
+                 invoice.setStatus(InvoiceStatus.CANCELLED);
+                 invoiceRepository.save(invoice);
+            } else if (InvoiceStatus.CANCELLED.equals(invoice.getStatus())) {
+                 throw new BusinessRuleException("No se puede eliminar una factura con estado cancelada, forma parte de datos de auditoria.");
+            } else {
+                 invoiceRepository.deleteById(id);
+            }
+        }
     }
 
     /**

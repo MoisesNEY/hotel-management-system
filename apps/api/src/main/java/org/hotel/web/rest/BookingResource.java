@@ -80,6 +80,25 @@ public class BookingResource {
     }
 
     /**
+     * {@code POST /bookings/walk-in} : Create a booking from Walk-In Wizard.
+     */
+    @PostMapping("/walk-in")
+    public ResponseEntity<BookingDTO> createWalkInBooking(@Valid @RequestBody BookingDTO bookingDTO) throws URISyntaxException {
+        LOG.debug("REST request to save Walk-In Booking : {}", bookingDTO);
+         if (bookingDTO.getId() != null) {
+            throw new BadRequestAlertException("A new booking cannot already have an ID", ENTITY_NAME, "idexists");
+        }
+        // Force status if not provided, though service handles it. 
+        // Walk-in usually implies on-site, so maybe CONFIRMED? 
+        // Wizard sends 'PENDING_PAYMENT'.
+        
+        bookingDTO = bookingService.save(bookingDTO);
+        return ResponseEntity.created(new URI("/api/bookings/" + bookingDTO.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, bookingDTO.getId().toString()))
+            .body(bookingDTO);
+    }
+
+    /**
      * {@code PUT  /bookings/:id} : Updates an existing booking.
      *
      * @param id the id of the bookingDTO to save.

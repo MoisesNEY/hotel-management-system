@@ -52,3 +52,20 @@ export const approveBooking = async (id: number) => {
   const response = await apiClient.patch<BookingDTO>(`${API_URL}/${id}/approve`, {});
   return response.data;
 };
+
+export const createWalkInBooking = async (booking: BookingDTO) => {
+  const response = await apiClient.post<BookingDTO>(`${API_URL}/walk-in`, booking);
+  return response.data;
+};
+
+import { type RoomTypeAvailabilityDTO } from '../../types/adminTypes';
+
+export const checkAvailability = async (checkIn: string, checkOut: string) => {
+    const response = await apiClient.get<RoomTypeAvailabilityDTO[]>('/api/client/bookings/availability', {
+        params: {
+            checkIn,
+            checkOut
+        }
+    });
+    return response.data;
+};

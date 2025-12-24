@@ -6,6 +6,7 @@ import org.hotel.domain.Booking;
 import org.hotel.domain.Payment;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.domain.enumeration.InvoiceStatus;
+import org.hotel.repository.BookingRepository;
 import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.PaymentRepository;
 import org.hotel.service.dto.PaymentDTO;
@@ -28,17 +29,19 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final InvoiceRepository invoiceRepository;
-
     private final PaymentMapper paymentMapper;
-    
     private final MailService mailService;
+    private final BookingRepository bookingRepository;
 
-    public PaymentService(PaymentRepository paymentRepository, org.hotel.repository.InvoiceRepository invoiceRepository, PaymentMapper paymentMapper, MailService mailService) {
+    public PaymentService(PaymentRepository paymentRepository, org.hotel.repository.InvoiceRepository invoiceRepository, PaymentMapper paymentMapper, MailService mailService, org.hotel.repository.BookingRepository bookingRepository) {
         this.paymentRepository = paymentRepository;
         this.invoiceRepository = invoiceRepository;
         this.paymentMapper = paymentMapper;
         this.mailService = mailService;
+        this.bookingRepository = bookingRepository;
     }
+
+
 
     /**
      * Save a payment.
@@ -53,6 +56,10 @@ public class PaymentService {
         // Logic to Confirm Booking & Invoice
         if (payment.getInvoice() != null && payment.getInvoice().getId() != null) {
             invoiceRepository.findById(payment.getInvoice().getId()).ifPresent(invoice -> {
+                if (payment.getAmount().compareTo(invoice.getTotalAmount()) != 0) {
+                     throw new org.hotel.web.rest.errors.BusinessRuleException("No se admiten pagos parciales. El monto debe ser exactamente: " + invoice.getTotalAmount());
+                }
+
                 // 1. Mark Invoice as PAID
                 invoice.setStatus(InvoiceStatus.PAID);
                 
@@ -78,11 +85,24 @@ public class PaymentService {
         // Send Email if linked to an invoice with a user
         try {
             if (savedPayment.getInvoice() != null) {
-                 invoiceRepository.findById(savedPayment.getInvoice().getId()).ifPresent(invoice -> {
+            if (savedPayment.getInvoice() != null && savedPayment.getInvoice().getId() != null) {
+                 invoiceRepository.findOneWithToOneRelationships(savedPayment.getInvoice().getId()).ifPresent(invoice -> {
                      if (invoice.getBooking() != null && invoice.getBooking().getCustomer() != null) {
-                         mailService.sendPaymentSuccessEmail(invoice.getBooking().getCustomer(), invoice);
+                         // Force initialization of Customer and User for email context
+                         org.hotel.domain.Customer customer = invoice.getBooking().getCustomer();
+                         org.hibernate.Hibernate.initialize(customer);
+                         if (customer.getUser() != null) {
+                             org.hibernate.Hibernate.initialize(customer.getUser());
+                         }
+                         
+                         LOG.debug("Sending Payment Success Email. Customer: {}, Email: {}", customer.getId(), customer.getEmail());
+                         mailService.sendPaymentSuccessEmail(customer, invoice);
+                     } else {
+                         LOG.warn("Invoice {} has no linked booking or customer, skipping email. Booking present: {}", 
+                             invoice.getId(), invoice.getBooking() != null);
                      }
                  });
+            }
             }
         } catch (Exception e) {
             LOG.warn("Failed to send payment success email for payment {}", savedPayment.getId(), e);
@@ -98,10 +118,7 @@ public class PaymentService {
      * @return the persisted entity.
      */
     public PaymentDTO update(PaymentDTO paymentDTO) {
-        LOG.debug("Request to update Payment : {}", paymentDTO);
-        Payment payment = paymentMapper.toEntity(paymentDTO);
-        payment = paymentRepository.save(payment);
-        return paymentMapper.toDto(payment);
+        throw new org.hotel.web.rest.errors.BusinessRuleException("Los pagos registrados son definitivos y no pueden modificarse. Si hay un error, elimine el pago y créelo nuevamente.");
     }
 
     /**
@@ -111,17 +128,7 @@ public class PaymentService {
      * @return the persisted entity.
      */
     public Optional<PaymentDTO> partialUpdate(PaymentDTO paymentDTO) {
-        LOG.debug("Request to partially update Payment : {}", paymentDTO);
-
-        return paymentRepository
-            .findById(paymentDTO.getId())
-            .map(existingPayment -> {
-                paymentMapper.partialUpdate(existingPayment, paymentDTO);
-
-                return existingPayment;
-            })
-            .map(paymentRepository::save)
-            .map(paymentMapper::toDto);
+        throw new org.hotel.web.rest.errors.BusinessRuleException("Los pagos registrados son definitivos y no pueden modificarse. Si hay un error, elimine el pago y créelo nuevamente.");
     }
 
     /**
@@ -164,6 +171,35 @@ public class PaymentService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete Payment : {}", id);
-        paymentRepository.deleteById(id);
+        
+        // 1. Recover Payment to check impact
+        Optional<Payment> paymentOptional = paymentRepository.findById(id);
+        if (paymentOptional.isPresent()) {
+            Payment payment = paymentOptional.get();
+            
+            // 2. Check Invoice Impact
+            if (payment.getInvoice() != null) {
+                invoiceRepository.findById(payment.getInvoice().getId()).ifPresent(invoice -> {
+                    // Logic: If Invoice was PAID, it might need to revert to ISSUED if this payment covered the balance
+                    if (InvoiceStatus.PAID.equals(invoice.getStatus())) {
+                        LOG.info("Payment deletion reverting Invoice {} status to ISSUED", invoice.getId());
+                        invoice.setStatus(InvoiceStatus.ISSUED);
+                        invoiceRepository.save(invoice);
+                        
+                        // 3. Cascade to Booking (Revert to PENDING_PAYMENT if Confirmed)
+                        if (invoice.getBooking() != null) {
+                            Booking booking = invoice.getBooking();
+                            if (BookingStatus.CONFIRMED.equals(booking.getStatus())) {
+                                LOG.info("Payment deletion cascading to Booking {} status revert to PENDING_PAYMENT", booking.getId());
+                                booking.setStatus(BookingStatus.PENDING_PAYMENT);
+                                bookingRepository.save(booking);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            paymentRepository.deleteById(id);
+        }
     }
 }

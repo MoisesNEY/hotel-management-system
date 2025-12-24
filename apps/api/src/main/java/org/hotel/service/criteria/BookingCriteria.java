@@ -60,7 +60,7 @@ public class BookingCriteria implements Serializable, Criteria {
 
     private LongFilter serviceRequestsId;
 
-    private StringFilter customerId;
+    private LongFilter customerId;
 
     private Boolean distinct;
 
@@ -77,7 +77,7 @@ public class BookingCriteria implements Serializable, Criteria {
         this.specialRequests = other.optionalSpecialRequests().map(StringFilter::copy).orElse(null);
         this.bookingItemsId = other.optionalBookingItemsId().map(LongFilter::copy).orElse(null);
         this.serviceRequestsId = other.optionalServiceRequestsId().map(LongFilter::copy).orElse(null);
-        this.customerId = other.optionalCustomerId().map(StringFilter::copy).orElse(null);
+        this.customerId = other.optionalCustomerId().map(LongFilter::copy).orElse(null);
         this.distinct = other.distinct;
     }
 
@@ -276,22 +276,22 @@ public class BookingCriteria implements Serializable, Criteria {
         this.serviceRequestsId = serviceRequestsId;
     }
 
-    public StringFilter getCustomerId() {
+    public LongFilter getCustomerId() {
         return customerId;
     }
 
-    public Optional<StringFilter> optionalCustomerId() {
+    public Optional<LongFilter> optionalCustomerId() {
         return Optional.ofNullable(customerId);
     }
 
-    public StringFilter customerId() {
+    public LongFilter customerId() {
         if (customerId == null) {
-            setCustomerId(new StringFilter());
+            setCustomerId(new LongFilter());
         }
         return customerId;
     }
 
-    public void setCustomerId(StringFilter customerId) {
+    public void setCustomerId(LongFilter customerId) {
         this.customerId = customerId;
     }
 

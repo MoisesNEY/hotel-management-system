@@ -2,14 +2,16 @@ package org.hotel.service.client;
 
 import org.hotel.domain.Booking;
 import org.hotel.domain.BookingItem;
+import org.hotel.domain.Customer;
 import org.hotel.domain.RoomType;
-import org.hotel.domain.User;
+
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
+import org.hotel.repository.CustomerRepository;
 import org.hotel.repository.InvoiceRepository;
 import org.hotel.repository.RoomRepository;
 import org.hotel.repository.RoomTypeRepository;
-import org.hotel.repository.UserRepository;
+
 import org.hotel.security.SecurityUtils;
 import org.hotel.service.BookingDomainService;
 import org.hotel.service.MailService;
@@ -18,6 +20,8 @@ import org.hotel.service.dto.client.request.booking.BookingItemRequest;
 import org.hotel.service.dto.client.response.booking.BookingResponse;
 import org.hotel.service.dto.client.response.booking.RoomTypeAvailabilityDTO;
 import org.hotel.service.mapper.client.ClientBookingMapper;
+import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
 import org.hotel.web.rest.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +45,7 @@ public class ClientBookingService {
 
     private final BookingRepository bookingRepository;
     private final ClientBookingMapper clientBookingMapper;
-    private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
     private final BookingDomainService bookingDomainService;
@@ -51,7 +55,7 @@ public class ClientBookingService {
     public ClientBookingService(
         BookingRepository bookingRepository,
         ClientBookingMapper clientBookingMapper,
-        UserRepository userRepository,
+        CustomerRepository customerRepository,
         RoomTypeRepository roomTypeRepository,
         RoomRepository roomRepository,
         BookingDomainService bookingDomainService,
@@ -60,7 +64,7 @@ public class ClientBookingService {
     ) {
         this.bookingRepository = bookingRepository;
         this.clientBookingMapper = clientBookingMapper;
-        this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
         this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository;
         this.bookingDomainService = bookingDomainService;
@@ -70,7 +74,6 @@ public class ClientBookingService {
 
     /**
      * Crea una reserva desde el portal del cliente.
-     * Soporta múltiples habitaciones, valida disponibilidad en bloque y calcula precios individuales.
      */
     public BookingResponse createClientBooking(BookingCreateRequest request) {
         log.debug("Request to create client booking : {}", request);
@@ -79,20 +82,24 @@ public class ClientBookingService {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        User customer = userRepository.findOneByLogin(userLogin)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 2. Validar Fechas (Delegado)
+
+        // 2. Obtener Customer asociado
+        Customer customer = customerRepository.findOneByUser_Login(userLogin)
+            .orElseThrow(() -> new BusinessRuleException(
+                "No tienes un perfil de cliente creado. Por favor completa tu información personal primero."
+            ));
+
+        // 3. Validar Fechas (Delegado)
         long nights = bookingDomainService.validateAndCalculateNights(request.getCheckInDate(), request.getCheckOutDate());
 
-        // 3. Convertir DTO a Entidad
+        // 4. Convertir DTO a Entidad
         Booking booking = clientBookingMapper.toEntity(request);
         booking.setCustomer(customer);
         booking.setStatus(BookingStatus.PENDING_APPROVAL);
         booking.setCode("RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
-        // 4. Lógica Multi-Habitación (Mapeo Directo)
-        // Limpiamos los items mapeados automáticamente para reconstruir con validaciones de BD
+        // 5. Lógica Multi-Habitación
         booking.getBookingItems().clear();
 
         BigDecimal totalPriceAccumulated = BigDecimal.ZERO;
@@ -101,7 +108,6 @@ public class ClientBookingService {
             RoomType roomType = roomTypeRepository.findById(itemReq.getRoomTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("RoomType", itemReq.getRoomTypeId()));
 
-            // Calcular precio de ESTE item (Delegado)
             BigDecimal itemPrice = bookingDomainService.calculateItemPrice(roomType, nights);
             
             BookingItem item = new BookingItem();
@@ -109,15 +115,13 @@ public class ClientBookingService {
             item.setPrice(itemPrice);
             item.setOccupantName(itemReq.getOccupantName());
             
-            // Establecer relación bidireccional
             item.setBooking(booking);
             booking.getBookingItems().add(item);
             
-            // Sumar al total global
             totalPriceAccumulated = totalPriceAccumulated.add(itemPrice);
         }
         
-        // 5. Validación de Disponibilidad (Agrupada Delegada)
+        // 6. Validación de Disponibilidad
         Map<Long, Long> requestedRoomsByType = booking.getBookingItems().stream()
             .collect(Collectors.groupingBy(
                 item -> item.getRoomType().getId(), 
@@ -128,14 +132,10 @@ public class ClientBookingService {
             bookingDomainService.validateRoomAvailability(typeId, qty, request.getCheckInDate(), request.getCheckOutDate(), null);
         });
 
-        // 6. Guardar (Cascade guardará los items)
+        // 7. Guardar
         booking = bookingRepository.save(booking);
 
-        // 7. [REMOVED] Crear Factura Automática
-        // La factura se creará cuando el admin apruebe la reserva (PENDING_PAYMENT)
-        // clientInvoiceService.createInvoiceForBooking(booking);
-
-        // 8. Enviar Correo de Confirmación (Async) -> Solicitud Recibida
+        // 8. Enviar Correo
         try {
             mailService.sendBookingCreationEmail(customer, booking);
         } catch (Exception e) {
@@ -155,23 +155,19 @@ public class ClientBookingService {
 
         log.debug("Request to get all bookings for user : {}", userLogin);
 
-        // Usamos el query findAllWithToOneRelationships o similar si queremos traer los items ansiosamente
-        // Pero para lista simple, el findByCustomer_Login está bien, JPA traerá los items lazy o según config.
-        return bookingRepository.findByCustomer_Login(userLogin, pageable)
+        return bookingRepository.findByCustomer_User_Login(userLogin, pageable)
             .map(clientBookingMapper::toClientResponse);
     }
 
     /**
-     * Obtiene la disponibilidad de habitaciones para un rango de fechas.
+     * Obtiene la disponibilidad de habitaciones.
      */
     @Transactional(readOnly = true)
     public List<RoomTypeAvailabilityDTO> getAvailability(LocalDate checkIn, LocalDate checkOut) {
         log.debug("Request to get room availability between {} and {}", checkIn, checkOut);
         
-        // Validar fechas
         bookingDomainService.validateAndCalculateNights(checkIn, checkOut);
 
-        // Obtener todos los tipos de habitación
         List<RoomType> roomTypes = roomTypeRepository.findAll();
 
         return roomTypes.stream().map(type -> {
@@ -191,47 +187,43 @@ public class ClientBookingService {
 
     /**
      * Elimina o Cancela una reserva del cliente.
-     * Retorna un mensaje indicando si fue eliminada o cancelada.
      */
     public String deleteBooking(Long bookingId) {
-        // 1. Obtener Usuario Actual
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        // 2. Buscar Reserva con items (necesarios para validaciones)
         Booking booking = bookingRepository.findOneWithToOneRelationships(bookingId)
             .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
-        // 3. SEGURIDAD: Verificar pertenencia
-        if (!booking.getCustomer().getLogin().equals(userLogin)) {
-            throw new org.hotel.web.rest.errors.BadRequestAlertException("No tiene permisos para eliminar esta reserva", "booking", "accessDenied");
+        // SEGURIDAD: Verificar pertenencia (Customer check)
+        // El customer de la reserva debe tener un user con el login actual
+        if (booking.getCustomer() == null || 
+            booking.getCustomer().getUser() == null ||
+            !booking.getCustomer().getUser().getLogin().equals(userLogin)) {
+            
+            throw new BadRequestAlertException("No tiene permisos para eliminar esta reserva", "booking", "accessDenied");
         }
 
-        // 4. VALIDACIÓN DE ESTADO: No permitir si ya ingresó
         if (BookingStatus.CHECKED_IN.equals(booking.getStatus()) || 
             BookingStatus.CHECKED_OUT.equals(booking.getStatus())) {
-            throw new org.hotel.web.rest.errors.BusinessRuleException("No se puede eliminar una reserva que está en curso o ya finalizó.");
+            throw new BusinessRuleException("No se puede eliminar una reserva que está en curso o ya finalizó.");
         }
 
-        // 5. VALIDACIÓN DE TIEMPO: Política de 24h / No-Show
-        // Si la fecha de inicio es HOY o ANTES, y no hizo Check-in -> Es un cancelación tardía o No-Show.
         if (!booking.getCheckInDate().isAfter(LocalDate.now())) {
-             throw new org.hotel.web.rest.errors.BusinessRuleException("No se puede cancelar una reserva el mismo día del ingreso o fecha pasada. Contacte a soporte.");
+             throw new BusinessRuleException("No se puede cancelar una reserva el mismo día del ingreso o fecha pasada. Contacte a soporte.");
         }
 
-        // 6. VALIDACIÓN FINANCIERA: ¿Hay dinero de por medio?
+        // Validación Financiera
         List<org.hotel.domain.Invoice> invoices = invoiceRepository.findAllByBookingId(bookingId);
         boolean hasPayments = invoices.stream().anyMatch(inv -> 
             org.hotel.domain.enumeration.InvoiceStatus.PAID.equals(inv.getStatus())
         );
 
         if (hasPayments) {
-            // ACCIÓN: CANCELACIÓN LÓGICA
             booking.setStatus(BookingStatus.CANCELLED);
             bookingRepository.save(booking);
             return "La reserva ha sido CANCELADA (No eliminada) debido a pagos existentes. Por favor gestione el reembolso manualmente.";
         } else {
-            // ACCIÓN: BORRADO FÍSICO
             if (!invoices.isEmpty()) {
                  invoiceRepository.deleteAll(invoices);
             }
