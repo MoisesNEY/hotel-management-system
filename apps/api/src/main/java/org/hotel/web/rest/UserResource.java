@@ -105,19 +105,27 @@ public class UserResource {
     }
 
     /**
-     * {@code GET /admin/users} : get all users with all the details.
+     * {@code GET /admin/users} : get all users with all the details FROM KEYCLOAK.
      * Permitido para ADMIN y EMPLOYEE para poder mapear nombres y correos.
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority(\"" + AuthoritiesConstants.ADMIN + "\", \"" + AuthoritiesConstants.EMPLOYEE + "\")")
     public ResponseEntity<List<AdminUserDTO>> getAllUsers(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get all User for an admin/employee");
+        LOG.debug("REST request to get all Users from Keycloak for an admin/employee");
 
-        final Page<AdminUserDTO> page = userService.getAllManagedUsers(pageable);
-        HttpHeaders headers = PaginationUtil
-                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+
+        // Fetch users from Keycloak
+        List<AdminUserDTO> users = keycloakService.getAllUsers(page * size, size);
+        int totalCount = keycloakService.countUsers();
+
+        // Build headers with pagination info
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Count", String.valueOf(totalCount));
+
+        return new ResponseEntity<>(users, headers, HttpStatus.OK);
     }
 
     /**
@@ -132,42 +140,49 @@ public class UserResource {
     }
 
     /**
-     * {@code PUT /admin/users} : Updates an existing User.
+     * {@code PUT /admin/users} : Updates an existing User in Keycloak.
      * SOLO ADMINISTRADORES pueden editar usuarios.
      */
     @PutMapping
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<AdminUserDTO> updateUser(@Valid @RequestBody AdminUserDTO userDTO) {
-        LOG.debug("REST request to update User : {}", userDTO);
+        LOG.debug("REST request to update User in Keycloak: {}", userDTO);
 
-        userRepository.findOneByEmailIgnoreCase(userDTO.getEmail())
-                .filter(user -> !user.getId().equals(userDTO.getId()))
-                .ifPresent(user -> {
-                    throw new EmailAlreadyUsedException();
-                });
+        // Update user in Keycloak
+        keycloakService.updateUserAdmin(userDTO);
 
-        userRepository.findOneByLogin(userDTO.getLogin().toLowerCase())
-                .filter(user -> !user.getId().equals(userDTO.getId()))
-                .ifPresent(user -> {
-                    throw new LoginAlreadyUsedException();
-                });
+        // Also update in local DB if exists
+        userRepository.findById(userDTO.getId()).ifPresent(user -> {
+            user.setFirstName(userDTO.getFirstName());
+            user.setLastName(userDTO.getLastName());
+            user.setEmail(userDTO.getEmail());
+            userRepository.save(user);
+        });
 
-        Optional<AdminUserDTO> updatedUser = userService.updateUser(userDTO);
-
-        return ResponseUtil.wrapOrNotFound(
-                updatedUser,
-                HeaderUtil.createAlert(applicationName, "userManagement.updated", userDTO.getLogin()));
+        return ResponseEntity.ok()
+                .headers(HeaderUtil.createAlert(applicationName, "userManagement.updated", userDTO.getLogin()))
+                .body(userDTO);
     }
 
     /**
-     * {@code DELETE /admin/users/:login} : delete the "login" User.
+     * {@code DELETE /admin/users/:login} : delete the "login" User from Keycloak.
      * SOLO ADMINISTRADORES pueden eliminar usuarios.
      */
     @DeleteMapping("/{login}")
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deleteUser(@PathVariable("login") String login) {
-        LOG.debug("REST request to delete User: {}", login);
-        userService.deleteUser(login);
+        LOG.debug("REST request to delete User from Keycloak: {}", login);
+
+        // Delete from Keycloak
+        boolean deleted = keycloakService.deleteUserByUsername(login);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Also delete from local DB if exists
+        userRepository.findOneByLogin(login).ifPresent(userRepository::delete);
+
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createAlert(applicationName, "userManagement.deleted", login))
                 .build();

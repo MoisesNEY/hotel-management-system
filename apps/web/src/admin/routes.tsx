@@ -123,7 +123,7 @@ const routes: RouteConfig[] = [
     },
     {
         path: '/users',
-        name: 'Usuarios',
+        name: 'Empleados',
         icon: UserGroupIcon,
         component: UsersView,
         layout: '/admin',

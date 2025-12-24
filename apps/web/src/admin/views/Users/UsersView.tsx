@@ -4,18 +4,20 @@ import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
-import { getAllUsers } from '../../../services/admin/userService';
+import { getAllUsers, deleteUser } from '../../../services/admin/userService';
 import type { AdminUserDTO } from '../../../types/adminTypes';
 import UserForm from './UserForm';
 import { formatDate } from '../../utils/helpers';
-import { Plus, UserCheck, UserX, Shield, Users } from 'lucide-react';
+import { Plus, UserCheck, UserX, Shield, Pencil, Trash2 } from 'lucide-react';
 
 const UsersView = () => {
     const [users, setUsers] = useState<AdminUserDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [editingUser, setEditingUser] = useState<AdminUserDTO | null>(null);
     const [permissionError, setPermissionError] = useState(false);
-    const [filter, setFilter] = useState<'all' | 'employees'>('employees');
+    const [deleteConfirm, setDeleteConfirm] = useState<AdminUserDTO | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -25,7 +27,9 @@ const UsersView = () => {
         try {
             setLoading(true);
             const response = await getAllUsers(0, 100, 'login,asc');
-            setUsers(response.data);
+            // Filter only employees
+            const employees = response.data.filter(u => u.authorities?.includes('ROLE_EMPLOYEE'));
+            setUsers(employees);
         } catch (error: any) {
             console.error("Error loading users", error);
             if (error.response?.status === 403) {
@@ -37,12 +41,39 @@ const UsersView = () => {
     };
 
     const handleCreate = () => {
+        setEditingUser(null);
+        setShowForm(true);
+    };
+
+    const handleEdit = (user: AdminUserDTO) => {
+        setEditingUser(user);
         setShowForm(true);
     };
 
     const handleFormSuccess = () => {
         setShowForm(false);
+        setEditingUser(null);
         loadUsers();
+    };
+
+    const handleDeleteClick = (user: AdminUserDTO) => {
+        setDeleteConfirm(user);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirm?.login) return;
+
+        setDeleting(true);
+        try {
+            await deleteUser(deleteConfirm.login);
+            setDeleteConfirm(null);
+            loadUsers();
+        } catch (error) {
+            console.error("Error deleting user", error);
+            alert('Error al eliminar el usuario');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     const getRoleVariant = (role: string) => {
@@ -72,11 +103,6 @@ const UsersView = () => {
                 return role;
         }
     };
-
-    // Filter users based on selection
-    const filteredUsers = filter === 'employees'
-        ? users.filter(u => u.authorities?.includes('ROLE_EMPLOYEE'))
-        : users;
 
     const columns: Column<AdminUserDTO>[] = [
         {
@@ -142,6 +168,27 @@ const UsersView = () => {
                     {row.createdDate ? formatDate(row.createdDate) : '-'}
                 </span>
             )
+        },
+        {
+            header: 'Acciones',
+            accessor: (row) => (
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handleEdit(row)}
+                        className="p-1.5 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        title="Editar"
+                    >
+                        <Pencil size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleDeleteClick(row)}
+                        className="p-1.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Eliminar"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                </div>
+            )
         }
     ];
 
@@ -149,36 +196,12 @@ const UsersView = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Usuarios</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Crear y administrar cuentas de usuarios del sistema</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Empleados</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Crear, editar y eliminar cuentas de empleados</p>
                 </div>
                 <Button onClick={handleCreate} variant="primary" leftIcon={<Plus size={16} />}>
-                    Nuevo Usuario
+                    Nuevo Empleado
                 </Button>
-            </div>
-
-            {/* Filter tabs */}
-            <div className="flex gap-2">
-                <button
-                    onClick={() => setFilter('employees')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filter === 'employees'
-                        ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/30'
-                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
-                        }`}
-                >
-                    <Shield size={14} />
-                    Solo Empleados
-                </button>
-                <button
-                    onClick={() => setFilter('all')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filter === 'all'
-                        ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/30'
-                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
-                        }`}
-                >
-                    <Users size={14} />
-                    Todos los Usuarios
-                </button>
             </div>
 
             {permissionError ? (
@@ -188,7 +211,7 @@ const UsersView = () => {
                     </div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403)</h2>
                     <p className="max-w-md text-gray-500 dark:text-gray-400">
-                        No tienes permisos para ver la lista de usuarios. Esta sección solo está disponible para administradores.
+                        No tienes permisos para ver la lista de empleados. Esta sección solo está disponible para administradores.
                     </p>
                     <Button variant="secondary" onClick={loadUsers}>
                         Reintentar
@@ -197,27 +220,61 @@ const UsersView = () => {
             ) : (
                 <Card className="card-plain">
                     <Table
-                        data={filteredUsers}
+                        data={users}
                         columns={columns}
                         isLoading={loading}
-                        title={filter === 'employees' ? 'Empleados del Sistema' : 'Todos los Usuarios'}
-                        emptyMessage="No hay usuarios registrados"
+                        title="Empleados del Sistema"
+                        emptyMessage="No hay empleados registrados"
                         keyExtractor={(item) => item.id}
                     />
                 </Card>
             )}
 
-            {/* Modal de Creación */}
+            {/* Modal de Creación/Edición */}
             <Modal
                 isOpen={showForm}
-                onClose={() => setShowForm(false)}
-                title="Nuevo Usuario"
+                onClose={() => { setShowForm(false); setEditingUser(null); }}
+                title={editingUser ? "Editar Empleado" : "Nuevo Empleado"}
                 size="lg"
             >
                 <UserForm
+                    initialData={editingUser}
                     onSuccess={handleFormSuccess}
-                    onCancel={() => setShowForm(false)}
+                    onCancel={() => { setShowForm(false); setEditingUser(null); }}
                 />
+            </Modal>
+
+            {/* Modal de Confirmación de Eliminación */}
+            <Modal
+                isOpen={!!deleteConfirm}
+                onClose={() => setDeleteConfirm(null)}
+                title="Confirmar Eliminación"
+                size="sm"
+            >
+                <div className="p-6 space-y-4">
+                    <p className="text-gray-700 dark:text-gray-300">
+                        ¿Estás seguro de que deseas eliminar al usuario <strong>{deleteConfirm?.login}</strong>?
+                    </p>
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                        Esta acción no se puede deshacer.
+                    </p>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setDeleteConfirm(null)}
+                            disabled={deleting}
+                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors bg-transparent"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleDeleteConfirm}
+                            disabled={deleting}
+                            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {deleting ? 'Eliminando...' : 'Eliminar'}
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

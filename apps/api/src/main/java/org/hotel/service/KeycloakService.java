@@ -139,4 +139,144 @@ public class KeycloakService {
             throw new RuntimeException("Could not create user in Keycloak", e);
         }
     }
+
+    /**
+     * Get all users from Keycloak.
+     *
+     * @param firstResult first result index (for pagination).
+     * @param maxResults  maximum number of results.
+     * @return list of AdminUserDTO from Keycloak.
+     */
+    public List<AdminUserDTO> getAllUsers(int firstResult, int maxResults) {
+        LOG.debug("Request to get all users from Keycloak (first: {}, max: {})", firstResult, maxResults);
+
+        try (Keycloak keycloak = getKeycloakInstance()) {
+            String realmName = applicationProperties.getKeycloak().getRealm();
+            RealmResource realmResource = keycloak.realm(realmName);
+            UsersResource usersResource = realmResource.users();
+
+            List<UserRepresentation> keycloakUsers = usersResource.list(firstResult, maxResults);
+
+            return keycloakUsers.stream().map(kcUser -> {
+                AdminUserDTO dto = new AdminUserDTO();
+                dto.setId(kcUser.getId());
+                dto.setLogin(kcUser.getUsername());
+                dto.setEmail(kcUser.getEmail());
+                dto.setFirstName(kcUser.getFirstName());
+                dto.setLastName(kcUser.getLastName());
+                dto.setActivated(kcUser.isEnabled());
+                dto.setImageUrl(kcUser.getAttributes() != null && kcUser.getAttributes().containsKey("picture")
+                        ? kcUser.getAttributes().get("picture").get(0)
+                        : null);
+                dto.setLangKey(kcUser.getAttributes() != null && kcUser.getAttributes().containsKey("locale")
+                        ? kcUser.getAttributes().get("locale").get(0)
+                        : "es");
+
+                // Get user's groups and map to roles
+                try {
+                    var groups = usersResource.get(kcUser.getId()).groups();
+                    java.util.Set<String> authorities = new java.util.HashSet<>();
+                    for (var group : groups) {
+                        switch (group.getName()) {
+                            case "Admins" -> authorities.add(AuthoritiesConstants.ADMIN);
+                            case "Employees" -> authorities.add(AuthoritiesConstants.EMPLOYEE);
+                            case "Clients" -> authorities.add(AuthoritiesConstants.CLIENT);
+                        }
+                    }
+                    dto.setAuthorities(authorities);
+                } catch (Exception e) {
+                    LOG.warn("Could not get groups for user {}: {}", kcUser.getUsername(), e.getMessage());
+                }
+
+                // Set created date if available
+                if (kcUser.getCreatedTimestamp() != null) {
+                    dto.setCreatedDate(java.time.Instant.ofEpochMilli(kcUser.getCreatedTimestamp()));
+                }
+
+                return dto;
+            }).toList();
+
+        } catch (Exception e) {
+            LOG.error("Error getting users from Keycloak: {}", e.getMessage(), e);
+            throw new RuntimeException("Could not get users from Keycloak", e);
+        }
+    }
+
+    /**
+     * Count all users in Keycloak.
+     *
+     * @return total number of users.
+     */
+    public int countUsers() {
+        try (Keycloak keycloak = getKeycloakInstance()) {
+            String realmName = applicationProperties.getKeycloak().getRealm();
+            return keycloak.realm(realmName).users().count();
+        } catch (Exception e) {
+            LOG.error("Error counting users in Keycloak: {}", e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    /**
+     * Delete a user from Keycloak by username.
+     *
+     * @param username the username of the user to delete.
+     * @return true if deleted, false if not found.
+     */
+    public boolean deleteUserByUsername(String username) {
+        LOG.debug("Request to delete user from Keycloak: {}", username);
+
+        try (Keycloak keycloak = getKeycloakInstance()) {
+            String realmName = applicationProperties.getKeycloak().getRealm();
+            UsersResource usersResource = keycloak.realm(realmName).users();
+
+            // Find user by username
+            List<UserRepresentation> users = usersResource.search(username, true);
+            if (users.isEmpty()) {
+                LOG.warn("User '{}' not found in Keycloak", username);
+                return false;
+            }
+
+            String userId = users.get(0).getId();
+            usersResource.delete(userId);
+            LOG.info("User '{}' successfully deleted from Keycloak", username);
+            return true;
+
+        } catch (Exception e) {
+            LOG.error("Error deleting user from Keycloak: {}", e.getMessage(), e);
+            throw new RuntimeException("Could not delete user from Keycloak", e);
+        }
+    }
+
+    /**
+     * Update user in Keycloak by ID (for admin panel).
+     * This updates firstName, lastName, email only.
+     *
+     * @param userDTO user data to update.
+     * @return true if updated successfully.
+     */
+    public boolean updateUserAdmin(AdminUserDTO userDTO) {
+        LOG.debug("Request to update user in Keycloak (admin): {}", userDTO.getLogin());
+
+        try (Keycloak keycloak = getKeycloakInstance()) {
+            String realmName = applicationProperties.getKeycloak().getRealm();
+            UserResource userResource = keycloak.realm(realmName).users().get(userDTO.getId());
+
+            // Get existing user
+            UserRepresentation existing = userResource.toRepresentation();
+
+            // Update fields
+            existing.setFirstName(userDTO.getFirstName());
+            existing.setLastName(userDTO.getLastName());
+            existing.setEmail(userDTO.getEmail());
+
+            userResource.update(existing);
+            LOG.info("User '{}' successfully updated in Keycloak", userDTO.getLogin());
+            return true;
+
+        } catch (Exception e) {
+            LOG.error("Error updating user in Keycloak: {}", e.getMessage(), e);
+            throw new RuntimeException("Could not update user in Keycloak", e);
+        }
+    }
 }
