@@ -5,7 +5,6 @@ import {
     CalendarDaysIcon,
     SparklesIcon,
     UsersIcon,
-    MapPinIcon,
     UserIcon,
     ComputerDesktopIcon,
     UserGroupIcon,
@@ -23,7 +22,6 @@ import BookingsView from './views/Bookings/BookingsView';
 import WalkInWizard from './views/WalkIn/WalkInWizard'; // Import WalkInWizard
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView';
-import MapsView from './views/Maps/MapsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';

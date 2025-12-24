@@ -51,7 +51,6 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 
                 .authorizeHttpRequests(authz ->
-                // prettier-ignore
                 authz
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/room-types")).permitAll()
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/room-types/*")).permitAll()
@@ -65,7 +64,9 @@ public class SecurityConfiguration {
 
                         // --- Endpoints de empleado y administrador ---
                         
-                        // 1. Acceso de LECTURA (GET) para Empleados
+                        // 1. Acceso de LECTURA (GET) para Empleados y Admin
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/customers/**")) // Permite ver lista de clientes
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/customer-details/**"))
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/payments/**"))
@@ -79,11 +80,13 @@ public class SecurityConfiguration {
                         .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/service-requests/**"))
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
 
-                        // 2. !!! DESBLOQUEAR NOMBRES Y EMAILS PARA EMPLEADOS !!!
-                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/admin/users"))
+                        // 2. Gestion de Usuarios (Lectura para empleados para mapear nombres)
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/admin/users/**")) // Wildcard ** es vital aquí
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
 
-                        // 3. Acciones de Gestión (PATCH/POST/DELETE) para Empleados y Admin
+                        // 3. Acciones de Gestión y Creación (POST/PATCH) para Empleados y Admin
+                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/customers/**")) // Permite crear clientes (Walk-In)
+                            .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/assign-room"))
                             .hasAnyAuthority(AuthoritiesConstants.EMPLOYEE, AuthoritiesConstants.ADMIN)
                         .requestMatchers(mvc.pattern(HttpMethod.PATCH, "/api/bookings/*/check-in"))
@@ -100,7 +103,7 @@ public class SecurityConfiguration {
                         .requestMatchers(mvc.pattern("/management/health")).permitAll()
                         .requestMatchers(mvc.pattern("/management/info")).permitAll()
 
-                        // Bloqueo final de seguridad
+                        // Bloqueo final de seguridad para cualquier otra ruta de API
                         .requestMatchers(mvc.pattern("/api/**")).hasAuthority(AuthoritiesConstants.ADMIN))
                 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

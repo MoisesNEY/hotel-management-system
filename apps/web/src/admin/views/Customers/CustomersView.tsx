@@ -9,8 +9,13 @@ import type { CustomerDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 import { Trash2, Plus } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 const CustomersView = () => {
+    const { getHighestRole } = useAuth();
+    const userRole = getHighestRole();
+    const canDelete = userRole === 'ROLE_ADMIN';
+
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -29,7 +34,7 @@ const CustomersView = () => {
             // No need to fetch users separately anymore, CustomerDTO has the data
             const response = await getAllCustomers();
             setCustomers(response.data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading customers", error);
             if (error.response?.status === 403) {
                 setPermissionError(true);
@@ -85,6 +90,7 @@ const CustomersView = () => {
                 const lastName = row.lastName;
 
                 if (!firstName && !lastName) {
+                    const login = row.user?.login;
                     return login ? (
                         <span className="text-gray-600 dark:text-gray-400 font-medium">
                             {login}
@@ -143,14 +149,16 @@ const CustomersView = () => {
                     >
                         Editar
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleDelete(row.id)}
-                        iconOnly
-                    >
-                        <Trash2 size={14} />
-                    </Button>
+                    {canDelete && (
+                        <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => handleDelete(row.id)}
+                            iconOnly
+                        >
+                            <Trash2 size={14} />
+                        </Button>
+                    )}
                 </div>
             )
         }
@@ -202,11 +210,11 @@ const CustomersView = () => {
                 title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                 size="lg"
             >
-                     <CustomerForm
-                        initialData={editingCustomer}
-                        onSuccess={handleFormSuccess}
-                        onCancel={() => setShowForm(false)}
-                    />
+                <CustomerForm
+                    initialData={editingCustomer}
+                    onSuccess={handleFormSuccess}
+                    onCancel={() => setShowForm(false)}
+                />
             </Modal>
 
             {/* Modal de Confirmación de Eliminación */}
