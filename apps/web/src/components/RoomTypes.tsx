@@ -10,7 +10,8 @@ import type { RoomTypeDTO } from '../types/adminTypes';
 
 
 export const BookingStatus = {
-  PENDING: 'PENDING',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
   CONFIRMED: 'CONFIRMED',
   CANCELLED: 'CANCELLED',
   COMPLETED: 'COMPLETED'

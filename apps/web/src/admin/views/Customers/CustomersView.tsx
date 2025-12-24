@@ -4,19 +4,17 @@ import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
-import { getAllCustomerDetails, deleteCustomerDetails } from '../../../services/admin/customerDetailsService';
-import { getAllUsers } from '../../../services/admin/userService';
-import type { CustomerDetailsDTO, AdminUserDTO } from '../../../types/adminTypes';
+import { getAllCustomers, deleteCustomer } from '../../../services/admin/customerService';
+import type { CustomerDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 import { Trash2, Plus } from 'lucide-react';
 
 const CustomersView = () => {
-    const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
+    const [customers, setCustomers] = useState<CustomerDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
+    const [editingCustomer, setEditingCustomer] = useState<CustomerDTO | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerToDeleteId, setCustomerToDeleteId] = useState<number | null>(null);
 
@@ -27,18 +25,9 @@ const CustomersView = () => {
     const loadCustomers = async () => {
         try {
             setLoading(true);
-            const [customersParams, usersParams] = await Promise.all([
-                getAllCustomerDetails(),
-                getAllUsers(0, 100) // Fetch list of users to stitch key details
-            ]);
-
-            setCustomers(customersParams.data);
-
-            // Create User Lookup
-            const map: Record<string, AdminUserDTO> = {};
-            usersParams.data.forEach(u => map[u.id] = u);
-            setUsersMap(map);
-
+            // No need to fetch users separately anymore, CustomerDTO has the data
+            const response = await getAllCustomers();
+            setCustomers(response.data);
         } catch (error) {
             console.error("Error loading customers", error);
         } finally {
@@ -51,7 +40,7 @@ const CustomersView = () => {
         setShowForm(true);
     };
 
-    const handleEdit = (customer: CustomerDetailsDTO) => {
+    const handleEdit = (customer: CustomerDTO) => {
         setEditingCustomer(customer);
         setShowForm(true);
     };
@@ -65,7 +54,7 @@ const CustomersView = () => {
         if (!customerToDeleteId) return;
 
         try {
-            await deleteCustomerDetails(customerToDeleteId);
+            await deleteCustomer(customerToDeleteId);
             setCustomers(prev => prev.filter(c => c.id !== customerToDeleteId));
             setShowDeleteModal(false);
             setCustomerToDeleteId(null);
@@ -80,7 +69,7 @@ const CustomersView = () => {
         loadCustomers();
     };
 
-    const columns: Column<CustomerDetailsDTO>[] = [
+    const columns: Column<CustomerDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -88,11 +77,8 @@ const CustomersView = () => {
         {
             header: 'Nombre',
             accessor: (row) => {
-                const userId = row.user?.id;
-                const user = userId ? usersMap[userId] : undefined;
-
-                const firstName = user?.firstName || row.user?.firstName;
-                const lastName = user?.lastName || row.user?.lastName;
+                const firstName = row.firstName;
+                const lastName = row.lastName;
 
                 if (!firstName && !lastName) return <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>;
                 return <span className="font-semibold text-gray-900 dark:text-white tracking-tight">{`${firstName || ''} ${lastName || ''}`}</span>;
@@ -100,11 +86,7 @@ const CustomersView = () => {
         },
         {
             header: 'Email',
-            accessor: (row) => {
-                const userId = row.user?.id;
-                const user = userId ? usersMap[userId] : undefined;
-                return user?.email || row.user?.email || <span className="text-gray-400 italic">Sin Email</span>;
-            }
+            accessor: (row) => row.email || <span className="text-gray-400 italic">Sin Email</span>
         },
         {
             header: 'Género',
@@ -192,11 +174,11 @@ const CustomersView = () => {
                 title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                 size="lg"
             >
-                <CustomerForm
-                    initialData={editingCustomer}
-                    onSuccess={handleFormSuccess}
-                    onCancel={() => setShowForm(false)}
-                />
+                     <CustomerForm
+                        initialData={editingCustomer}
+                        onSuccess={handleFormSuccess}
+                        onCancel={() => setShowForm(false)}
+                    />
             </Modal>
 
             {/* Modal de Confirmación de Eliminación */}

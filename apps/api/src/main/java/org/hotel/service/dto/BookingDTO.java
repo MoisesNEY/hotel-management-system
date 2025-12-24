@@ -3,11 +3,8 @@ package org.hotel.service.dto;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.math.BigDecimal;
 import java.util.Objects;
 import org.hotel.domain.enumeration.BookingStatus;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A DTO for the {@link org.hotel.domain.Booking} entity.
@@ -37,11 +34,27 @@ public class BookingDTO implements Serializable {
     private String specialRequests;
 
     @NotNull
-    private UserDTO customer;
+    private CustomerDTO customer;
 
-    private BigDecimal totalPrice;
+    private java.util.List<BookingItemDTO> items;
+    
+    private java.math.BigDecimal totalPrice;
 
-    private Set<BookingItemDTO> items = new HashSet<>();
+    public java.math.BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(java.math.BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public java.util.List<BookingItemDTO> getItems() {
+        return items;
+    }
+
+    public void setItems(java.util.List<BookingItemDTO> items) {
+        this.items = items;
+    }
 
     public Long getId() {
         return id;
@@ -107,28 +120,12 @@ public class BookingDTO implements Serializable {
         this.specialRequests = specialRequests;
     }
 
-    public UserDTO getCustomer() {
+    public CustomerDTO getCustomer() {
         return customer;
     }
 
-    public void setCustomer(UserDTO customer) {
+    public void setCustomer(CustomerDTO customer) {
         this.customer = customer;
-    }
-
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public Set<BookingItemDTO> getItems() {
-        return items;
-    }
-
-    public void setItems(Set<BookingItemDTO> items) {
-        this.items = items;
     }
 
     @Override

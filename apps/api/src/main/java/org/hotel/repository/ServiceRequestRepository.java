@@ -48,5 +48,5 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
 
     boolean existsByStatusAndServiceId(RequestStatus requestStatus, Long id);
 
-    Page<ServiceRequest> findByBooking_Customer_Login(String userLogin, Pageable pageable);
+    Page<ServiceRequest> findByBooking_Customer_User_Login(String userLogin, Pageable pageable);
 }

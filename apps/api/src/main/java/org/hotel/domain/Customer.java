@@ -7,12 +7,12 @@ import java.time.LocalDate;
 import org.hotel.domain.enumeration.Gender;
 
 /**
- * A CustomerDetails.
+ * A Customer.
  */
 @Entity
-@Table(name = "customer_details")
+@Table(name = "customer")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class CustomerDetails implements Serializable {
+public class Customer implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -23,30 +23,32 @@ public class CustomerDetails implements Serializable {
     private Long id;
 
     @NotNull
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @NotNull
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(name = "email")
+    private String email;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false)
+    @Column(name = "gender")
     private Gender gender;
 
-    @NotNull
     @Pattern(regexp = "^\\+?[0-9]{7,15}$")
-    @Column(name = "phone", nullable = false)
+    @Column(name = "phone")
     private String phone;
 
-    @NotNull
-    @Column(name = "address_line_1", nullable = false)
+    @Column(name = "address_line_1")
     private String addressLine1;
 
-    @NotNull
-    @Column(name = "city", nullable = false)
+    @Column(name = "city")
     private String city;
 
-    @NotNull
-    @Column(name = "country", nullable = false)
+    @Column(name = "country")
     private String country;
-
-    @NotNull
-    @Column(name = "email", nullable = false)
-    private String email;
 
     @Column(name = "identification_type")
     private String identificationType;
@@ -59,8 +61,7 @@ public class CustomerDetails implements Serializable {
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @NotNull
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(unique = true)
     private User user;
 
@@ -70,7 +71,7 @@ public class CustomerDetails implements Serializable {
         return this.id;
     }
 
-    public CustomerDetails id(Long id) {
+    public Customer id(Long id) {
         this.setId(id);
         return this;
     }
@@ -79,11 +80,50 @@ public class CustomerDetails implements Serializable {
         this.id = id;
     }
 
+    public String getFirstName() {
+        return this.firstName;
+    }
+
+    public Customer firstName(String firstName) {
+        this.setFirstName(firstName);
+        return this;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return this.lastName;
+    }
+
+    public Customer lastName(String lastName) {
+        this.setLastName(lastName);
+        return this;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public Customer email(String email) {
+        this.setEmail(email);
+        return this;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public Gender getGender() {
         return this.gender;
     }
 
-    public CustomerDetails gender(Gender gender) {
+    public Customer gender(Gender gender) {
         this.setGender(gender);
         return this;
     }
@@ -96,7 +136,7 @@ public class CustomerDetails implements Serializable {
         return this.phone;
     }
 
-    public CustomerDetails phone(String phone) {
+    public Customer phone(String phone) {
         this.setPhone(phone);
         return this;
     }
@@ -109,7 +149,7 @@ public class CustomerDetails implements Serializable {
         return this.addressLine1;
     }
 
-    public CustomerDetails addressLine1(String addressLine1) {
+    public Customer addressLine1(String addressLine1) {
         this.setAddressLine1(addressLine1);
         return this;
     }
@@ -122,7 +162,7 @@ public class CustomerDetails implements Serializable {
         return this.city;
     }
 
-    public CustomerDetails city(String city) {
+    public Customer city(String city) {
         this.setCity(city);
         return this;
     }
@@ -135,7 +175,7 @@ public class CustomerDetails implements Serializable {
         return this.country;
     }
 
-    public CustomerDetails country(String country) {
+    public Customer country(String country) {
         this.setCountry(country);
         return this;
     }
@@ -144,24 +184,11 @@ public class CustomerDetails implements Serializable {
         this.country = country;
     }
 
-    public String getEmail() {
-        return this.email;
-    }
-
-    public CustomerDetails email(String email) {
-        this.setEmail(email);
-        return this;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getIdentificationType() {
         return this.identificationType;
     }
 
-    public CustomerDetails identificationType(String identificationType) {
+    public Customer identificationType(String identificationType) {
         this.setIdentificationType(identificationType);
         return this;
     }
@@ -174,7 +201,7 @@ public class CustomerDetails implements Serializable {
         return this.licenseId;
     }
 
-    public CustomerDetails licenseId(String licenseId) {
+    public Customer licenseId(String licenseId) {
         this.setLicenseId(licenseId);
         return this;
     }
@@ -187,7 +214,7 @@ public class CustomerDetails implements Serializable {
         return this.birthDate;
     }
 
-    public CustomerDetails birthDate(LocalDate birthDate) {
+    public Customer birthDate(LocalDate birthDate) {
         this.setBirthDate(birthDate);
         return this;
     }
@@ -204,7 +231,7 @@ public class CustomerDetails implements Serializable {
         this.user = user;
     }
 
-    public CustomerDetails user(User user) {
+    public Customer user(User user) {
         this.setUser(user);
         return this;
     }
@@ -216,10 +243,10 @@ public class CustomerDetails implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDetails)) {
+        if (!(o instanceof Customer)) {
             return false;
         }
-        return getId() != null && getId().equals(((CustomerDetails) o).getId());
+        return getId() != null && getId().equals(((Customer) o).getId());
     }
 
     @Override
@@ -231,14 +258,16 @@ public class CustomerDetails implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "CustomerDetails{" +
+        return "Customer{" +
             "id=" + getId() +
+            ", firstName='" + getFirstName() + "'" +
+            ", lastName='" + getLastName() + "'" +
+            ", email='" + getEmail() + "'" +
             ", gender='" + getGender() + "'" +
             ", phone='" + getPhone() + "'" +
             ", addressLine1='" + getAddressLine1() + "'" +
             ", city='" + getCity() + "'" +
             ", country='" + getCountry() + "'" +
-            ", email='" + getEmail() + "'" +
             ", identificationType='" + getIdentificationType() + "'" +
             ", licenseId='" + getLicenseId() + "'" +
             ", birthDate='" + getBirthDate() + "'" +

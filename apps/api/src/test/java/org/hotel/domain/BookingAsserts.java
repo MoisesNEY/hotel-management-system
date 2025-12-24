@@ -63,6 +63,8 @@ public class BookingAsserts {
      * @param actual the actual entity
      */
     public static void assertBookingUpdatableRelationshipsEquals(Booking expected, Booking actual) {
-        // empty method
+        assertThat(actual)
+            .as("Verify Booking relationships")
+            .satisfies(a -> assertThat(a.getCustomer()).as("check customer").isEqualTo(expected.getCustomer()));
     }
 }

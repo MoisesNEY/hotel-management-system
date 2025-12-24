@@ -5,12 +5,12 @@ import {
   MapPin, Globe, Save, ArrowRight,
   AlertCircle, X, CheckCircle2
 } from 'lucide-react';
-import { createProfile } from '../services/client/customerDetailsService';
-import { type CustomerDetailsCreateRequest } from '../types/clientTypes';
+import { createProfile } from '../services/client/customerService';
+import { type CustomerCreateRequest } from '../types/clientTypes';
 
-const CustomerDetailsForm: React.FC = () => {
+const ClientCustomerForm: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<CustomerDetailsCreateRequest>({
+  const [formData, setFormData] = useState<CustomerCreateRequest>({
     gender: 'MALE',
     phone: '',
     addressLine1: '',
@@ -317,13 +317,4 @@ const CustomerDetailsForm: React.FC = () => {
   );
 };
 
-export default CustomerDetailsForm;
-
-
-
-
-
-
-
-
-
+export default ClientCustomerForm;

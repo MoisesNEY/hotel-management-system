@@ -3,7 +3,7 @@ import {
     Calendar, Users, FileText, 
     Save, User, 
     AlertCircle, Loader2, 
-    CheckCircle2, Info, Plus, Trash2, ChevronDown
+    CheckCircle2, Info, Plus, Trash2, ChevronDown, UserPlus
 } from 'lucide-react';
 import Badge from '../../components/shared/Badge';
 import Modal from '../../components/shared/Modal';
@@ -12,17 +12,16 @@ import { createBooking, updateBooking, approveBooking } from '../../../services/
 import { registerManualPayment } from '../../../services/admin/paymentService';
 import { getAllRoomTypes } from '../../../services/admin/roomTypeService';
 import { getAllRooms } from '../../../services/admin/roomService';
-import { getAllCustomerDetails } from '../../../services/admin/customerDetailsService';
-import { getAllUsers } from '../../../services/admin/userService';
+import { getAllCustomers } from '../../../services/admin/customerService';
+import CustomerForm from '../Customers/CustomerForm';
 
 import { extractErrorMessage } from '../../utils/errorHelper';
 import type { 
     BookingDTO, 
     RoomTypeDTO, 
     RoomDTO,
-    CustomerDetailsDTO as CustomerDTO,
-    BookingStatus,
-    AdminUserDTO
+    CustomerDTO,
+    BookingStatus
 } from '../../../types/adminTypes';
 
 interface BookingFormProps {
@@ -36,7 +35,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     const [checkInDate, setCheckInDate] = useState('');
     const [checkOutDate, setCheckOutDate] = useState('');
     const [guestCount, setGuestCount] = useState(1);
-    const [status, setStatus] = useState<BookingStatus>('PENDING');
+    const [status, setStatus] = useState<BookingStatus>('PENDING_APPROVAL');
     const [notes, setNotes] = useState('');
 
     // Selection IDs and Data
@@ -47,40 +46,38 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
     const [rooms, setRooms] = useState<RoomDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
 
     // Local Assignment Modal in Form
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [assigningItemIndex, setAssigningItemIndex] = useState<number | null>(null);
+    
+    // Create Customer Modal
+    const [showCustomerModal, setShowCustomerModal] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     // Load list data
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [typesResponse, customersResponse, usersResponse, roomsResponse] = await Promise.all([
-                    getAllRoomTypes(0, 200),
-                    getAllCustomerDetails(0, 200),
-                    getAllUsers(0, 200),
-                    getAllRooms(0, 1000)
-                ]);
-                setRoomTypes(typesResponse.data);
-                setCustomers(customersResponse.data);
-                setRooms(roomsResponse.data);
+    const loadData = async () => {
+        try {
+            const [typesResponse, customersResponse, roomsResponse] = await Promise.all([
+                getAllRoomTypes(0, 200),
+                getAllCustomers(0, 200),
+                getAllRooms(0, 1000)
+            ]);
+            setRoomTypes(typesResponse.data);
+            setCustomers(customersResponse.data);
+            setRooms(roomsResponse.data);
+        } catch (e) {
+            console.error("Error loading form data", e);
+            setError("Error fatal al sincronizar con el servidor");
+        } finally {
+            setLoadingData(false);
+        }
+    };
 
-                const map: Record<string, AdminUserDTO> = {};
-                usersResponse.data.forEach((u: AdminUserDTO) => map[u.id] = u);
-                setUsersMap(map);
-            } catch (e) {
-                console.error("Error loading form data", e);
-                setError("Error fatal al sincronizar con el servidor");
-            } finally {
-                setLoadingData(false);
-            }
-        };
+    useEffect(() => {
         loadData();
     }, []);
 
@@ -90,7 +87,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             setCheckInDate(initialData.checkInDate || '');
             setCheckOutDate(initialData.checkOutDate || '');
             setGuestCount(initialData.guestCount || 1);
-            setStatus(initialData.status || 'PENDING');
+            setStatus(initialData.status || 'PENDING_APPROVAL');
             setNotes(initialData.notes || '');
 
             if (initialData.items) {
@@ -107,7 +104,8 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
     // Handle customer selection sync separately to ensure list is loaded
     useEffect(() => {
         if (initialData && initialData.customer && customers.length > 0) {
-            const matchingCustomer = customers.find(c => c.user?.id === initialData.customer.id);
+            // initialData.customer is now CustomerDTO
+            const matchingCustomer = customers.find(c => c.id === initialData.customer.id);
             if (matchingCustomer) {
                 setSelectedCustomerId(matchingCustomer.id);
             }
@@ -140,6 +138,13 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
         setAssigningItemIndex(null);
     };
 
+    const handleCustomerCreated = () => {
+        setShowCustomerModal(false);
+        loadData(); // Reload customers to include the new one
+        // Ideally we would select the new customer automatically, 
+        // but for now simple reload is safe.
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -161,7 +166,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
         try {
             const selectedCustomer = customers.find(c => c.id === Number(selectedCustomerId));
             
-            if (!selectedCustomer?.user) {
+            if (!selectedCustomer) {
                 throw new Error("Datos de selección de cliente inválidos");
             }
 
@@ -184,7 +189,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 guestCount: Number(guestCount),
                 status: status as BookingStatus,
                 notes,
-                customer: selectedCustomer.user,
+                customer: selectedCustomer, // Now correctly passing CustomerDTO
                 items: payload_items
             };
 
@@ -202,7 +207,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
         }
     };
 
-    const statuses: BookingStatus[] = ['PENDING_APPROVAL', 'PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT', 'PENDING'];
+    const statuses: BookingStatus[] = ['PENDING_APPROVAL', 'PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'CHECKED_OUT'];
 
     const inputStyle = "w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-default/20 focus:border-gold-default outline-none transition-all placeholder:text-gray-400 disabled:opacity-50 appearance-none";
     const labelStyle = "block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1";
@@ -233,7 +238,20 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Customer Section */}
                 <div className="space-y-2 group">
-                    <label className={labelStyle}>Huésped / Cliente <span className="text-gold-default">*</span></label>
+                    <div className='flex justify-between items-center'>
+                         <label className={labelStyle}>Huésped / Cliente <span className="text-gold-default">*</span></label>
+                         <Button 
+                             type="button" 
+                             variant="outline" 
+                             size="sm" 
+                             onClick={() => setShowCustomerModal(true)}
+                             leftIcon={<UserPlus size={14} />}
+                             className="h-6 text-[10px] px-2"
+                         >
+                             Nuevo Cliente
+                         </Button>
+                    </div>
+                   
                     <div className="relative">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gold-default transition-colors">
                             <User size={18} />
@@ -259,12 +277,10 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                 >
                                     <option value="" className="dark:bg-[#111111]">Seleccionar Cliente</option>
                                     {customers.map(c => {
-                                        const userId = c.user?.id;
-                                        const user = userId ? usersMap[userId] : undefined;
-                                        const name = `${user?.firstName || c.user?.firstName || 'Invitado'} ${user?.lastName || c.user?.lastName || ''}`;
+                                        const name = `${c.firstName} ${c.lastName}`;
                                         return (
                                             <option key={c.id} value={c.id} className="dark:bg-[#111111]">
-                                                {name} ({user?.email || c.user?.email || 'N/A'})
+                                                {name} ({c.email})
                                             </option>
                                         );
                                     })}
@@ -589,6 +605,20 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                             </div>
                         )}
                     </div>
+                </div>
+            </Modal>
+
+            {/* Create Customer Modal */}
+            <Modal
+                isOpen={showCustomerModal}
+                onClose={() => setShowCustomerModal(false)}
+                title="Registrar Nuevo Cliente"
+            >
+                <div className="max-h-[80vh] overflow-y-auto">
+                    <CustomerForm 
+                        onSuccess={handleCustomerCreated}
+                        onCancel={() => setShowCustomerModal(false)}
+                    />
                 </div>
             </Modal>
         </form>

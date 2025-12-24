@@ -48,6 +48,8 @@ public class BookingService {
     private final InvoiceRepository invoiceRepository;
     // ClientInvoiceService removed
     private final InvoiceService invoiceService;
+    private final CustomerService customerService;
+    private final org.hotel.repository.CustomerRepository customerRepository;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceRequestRepository serviceRequestRepository,
@@ -57,8 +59,9 @@ public class BookingService {
                           BookingDomainService bookingDomainService,
                           MailService mailService,
                           InvoiceRepository invoiceRepository,
-                          // ClientInvoiceService removed
-                          InvoiceService invoiceService) {
+                          InvoiceService invoiceService,
+                          CustomerService customerService,
+                          org.hotel.repository.CustomerRepository customerRepository) {
         this.bookingRepository = bookingRepository;
         this.serviceRequestRepository = serviceRequestRepository;
         this.roomTypeRepository = roomTypeRepository;
@@ -67,8 +70,9 @@ public class BookingService {
         this.bookingDomainService = bookingDomainService;
         this.mailService = mailService;
         this.invoiceRepository = invoiceRepository;
-        // this.clientInvoiceService removed
         this.invoiceService = invoiceService;
+        this.customerService = customerService;
+        this.customerRepository = customerRepository;
     }
 
     /**
@@ -98,9 +102,19 @@ public class BookingService {
         // Convertimos a entidad para trabajar con la lista de items
         Booking booking = bookingMapper.toEntity(bookingDTO);
 
-        // Generar código si no existe
+        // Resolve Customer if needed (e.g. for Online Users)
+        if (booking.getCustomer() == null) {
+             org.hotel.security.SecurityUtils.getCurrentUserLogin().flatMap(customerRepository::findOneByUser_Login)
+                 .ifPresent(booking::setCustomer);
+        }
+
+        // Generar código y estado si no existen
         if (booking.getCode() == null) {
+            booking.getCode(); // Ensure code generation logic is robust or let DB handle defaults if any
             booking.setCode("RES-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        }
+        if (booking.getStatus() == null) {
+            booking.setStatus(BookingStatus.PENDING_APPROVAL);
         }
 
         // Expansión de items basada en quantity
@@ -112,9 +126,14 @@ public class BookingService {
         // Guardamos (Cascade persistirá los BookingItems automáticamente)
         Booking savedBooking = bookingRepository.save(booking);
 
+        // Auto-generate invoice if created with PENDING_PAYMENT (e.g. Walk-In)
+        if (isNew && BookingStatus.PENDING_PAYMENT.equals(savedBooking.getStatus())) {
+             invoiceService.createInitialInvoice(savedBooking);
+        }
+
         // Send Email
         try {
-            if (savedBooking.getCustomer() != null) {
+            if (savedBooking.getCustomer() != null && savedBooking.getCustomer().getEmail() != null) {
                 // Creation Email (Only if new)
                 if (isNew) {
                      mailService.sendBookingCreationEmail(savedBooking.getCustomer(), savedBooking);
@@ -171,6 +190,24 @@ public class BookingService {
                 LOG.warn("Failed to send approved email for booking {}", savedBooking.getCode(), e);
              }
         }
+        
+        // Declined Email Logic for full Update
+        if (oldBookingOpt.isPresent() && 
+            BookingStatus.PENDING_APPROVAL.equals(oldBookingOpt.get().getStatus()) && 
+            BookingStatus.CANCELLED.equals(savedBooking.getStatus()) &&
+            savedBooking.getCustomer() != null) {
+             try {
+                 // Initialize lazy props
+                 org.hotel.domain.Customer customer = savedBooking.getCustomer();
+                 org.hibernate.Hibernate.initialize(customer);
+                 if (customer.getUser() != null) {
+                     org.hibernate.Hibernate.initialize(customer.getUser());
+                 }
+                mailService.sendBookingDeclinedEmail(customer, savedBooking);
+             } catch (Exception e) {
+                LOG.warn("Failed to send declined email for booking {}", savedBooking.getCode(), e);
+             }
+        }
 
         return bookingMapper.toDto(savedBooking);
     }
@@ -209,6 +246,25 @@ public class BookingService {
                              LOG.warn("Failed to send approved email for booking {}", saved.getCode(), e);
                           }
                      }
+                }
+                
+                // Declined/Cancelled Email logic
+                if (BookingStatus.PENDING_APPROVAL.equals(oldStatus) && 
+                    BookingStatus.CANCELLED.equals(saved.getStatus())) {
+                    if (saved.getCustomer() != null) {
+                         try {
+                              // Initialize Customer & User if needed (lazy loading safety)
+                             org.hotel.domain.Customer customer = saved.getCustomer();
+                             org.hibernate.Hibernate.initialize(customer);
+                             if (customer.getUser() != null) {
+                                 org.hibernate.Hibernate.initialize(customer.getUser());
+                             }
+                             
+                             mailService.sendBookingDeclinedEmail(customer, saved);
+                         } catch (Exception e) {
+                             LOG.warn("Failed to send declined email for booking {}", saved.getCode(), e);
+                         }
+                    }
                 }
 
                 return saved;
@@ -259,7 +315,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
 
-        if (!BookingStatus.PENDING_APPROVAL.equals(booking.getStatus()) && !BookingStatus.PENDING.equals(booking.getStatus())) {
+        if (!BookingStatus.PENDING_APPROVAL.equals(booking.getStatus())) {
             throw new BusinessRuleException("Solo reservas pendientes de aprobación pueden ser aprobadas. Estado actual: " + booking.getStatus());
         }
 
@@ -323,6 +379,16 @@ public class BookingService {
 
             // C. Actualizar el objeto RoomType dentro del item (por si venía incompleto del DTO)
             item.setRoomType(roomType);
+
+            // D. Validar Habitación Específica si ha sido asignada
+            if (item.getAssignedRoom() != null) {
+                bookingDomainService.validateSpecificRoomAvailability(
+                    item.getAssignedRoom().getId(),
+                    booking.getCheckInDate(),
+                    booking.getCheckOutDate(),
+                    currentBookingId
+                );
+            }
         }
 
         // 5. Validar Disponibilidad (Bloque crítico delegago)
@@ -343,8 +409,10 @@ public class BookingService {
             .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         if (BookingStatus.CHECKED_IN.equals(booking.getStatus()) ||
-            BookingStatus.CHECKED_OUT.equals(booking.getStatus())) {
-            throw new BusinessRuleException("No puede borrar una reserva en estado CHECK-IN o CHECK-OUT");
+            BookingStatus.CHECKED_OUT.equals(booking.getStatus()) ||
+            BookingStatus.CONFIRMED.equals(booking.getStatus()) ||
+            BookingStatus.PENDING_PAYMENT.equals(booking.getStatus())) {
+            throw new BusinessRuleException("No puede borrar una reserva en el estado actual " + booking.getStatus());
         }
         if (serviceRequestRepository.existsByBookingId(bookingId)) {
             throw new BusinessRuleException("La reserva tiene solicitudes de servicio asociadas, bórrelas primero");
