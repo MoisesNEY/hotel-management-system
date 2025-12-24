@@ -85,11 +85,24 @@ public class PaymentService {
         // Send Email if linked to an invoice with a user
         try {
             if (savedPayment.getInvoice() != null) {
-                 invoiceRepository.findById(savedPayment.getInvoice().getId()).ifPresent(invoice -> {
+            if (savedPayment.getInvoice() != null && savedPayment.getInvoice().getId() != null) {
+                 invoiceRepository.findOneWithToOneRelationships(savedPayment.getInvoice().getId()).ifPresent(invoice -> {
                      if (invoice.getBooking() != null && invoice.getBooking().getCustomer() != null) {
-                         mailService.sendPaymentSuccessEmail(invoice.getBooking().getCustomer(), invoice);
+                         // Force initialization of Customer and User for email context
+                         org.hotel.domain.Customer customer = invoice.getBooking().getCustomer();
+                         org.hibernate.Hibernate.initialize(customer);
+                         if (customer.getUser() != null) {
+                             org.hibernate.Hibernate.initialize(customer.getUser());
+                         }
+                         
+                         LOG.debug("Sending Payment Success Email. Customer: {}, Email: {}", customer.getId(), customer.getEmail());
+                         mailService.sendPaymentSuccessEmail(customer, invoice);
+                     } else {
+                         LOG.warn("Invoice {} has no linked booking or customer, skipping email. Booking present: {}", 
+                             invoice.getId(), invoice.getBooking() != null);
                      }
                  });
+            }
             }
         } catch (Exception e) {
             LOG.warn("Failed to send payment success email for payment {}", savedPayment.getId(), e);
