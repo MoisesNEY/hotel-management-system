@@ -190,6 +190,24 @@ public class BookingService {
                 LOG.warn("Failed to send approved email for booking {}", savedBooking.getCode(), e);
              }
         }
+        
+        // Declined Email Logic for full Update
+        if (oldBookingOpt.isPresent() && 
+            BookingStatus.PENDING_APPROVAL.equals(oldBookingOpt.get().getStatus()) && 
+            BookingStatus.CANCELLED.equals(savedBooking.getStatus()) &&
+            savedBooking.getCustomer() != null) {
+             try {
+                 // Initialize lazy props
+                 org.hotel.domain.Customer customer = savedBooking.getCustomer();
+                 org.hibernate.Hibernate.initialize(customer);
+                 if (customer.getUser() != null) {
+                     org.hibernate.Hibernate.initialize(customer.getUser());
+                 }
+                mailService.sendBookingDeclinedEmail(customer, savedBooking);
+             } catch (Exception e) {
+                LOG.warn("Failed to send declined email for booking {}", savedBooking.getCode(), e);
+             }
+        }
 
         return bookingMapper.toDto(savedBooking);
     }
@@ -228,6 +246,25 @@ public class BookingService {
                              LOG.warn("Failed to send approved email for booking {}", saved.getCode(), e);
                           }
                      }
+                }
+                
+                // Declined/Cancelled Email logic
+                if (BookingStatus.PENDING_APPROVAL.equals(oldStatus) && 
+                    BookingStatus.CANCELLED.equals(saved.getStatus())) {
+                    if (saved.getCustomer() != null) {
+                         try {
+                              // Initialize Customer & User if needed (lazy loading safety)
+                             org.hotel.domain.Customer customer = saved.getCustomer();
+                             org.hibernate.Hibernate.initialize(customer);
+                             if (customer.getUser() != null) {
+                                 org.hibernate.Hibernate.initialize(customer.getUser());
+                             }
+                             
+                             mailService.sendBookingDeclinedEmail(customer, saved);
+                         } catch (Exception e) {
+                             LOG.warn("Failed to send declined email for booking {}", saved.getCode(), e);
+                         }
+                    }
                 }
 
                 return saved;

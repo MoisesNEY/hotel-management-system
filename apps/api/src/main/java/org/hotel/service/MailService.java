@@ -83,6 +83,12 @@ public class MailService {
         sendCustomerEmail(customer, booking, null, "mail/bookingApproved", "¡Tu reserva ha sido Confirmada! - Hotel App");
     }
 
+    @Async
+    public void sendBookingDeclinedEmail(org.hotel.domain.Customer customer, Booking booking) {
+        log.debug("Sending booking declined email to '{}'", customer.getEmail());
+        sendCustomerEmail(customer, booking, null, "mail/bookingDeclined", "Actualización sobre tu solicitud de reserva - Hotel App");
+    }
+
     private void sendCustomerEmail(org.hotel.domain.Customer customer, Booking booking, Invoice invoice, String templateName, String subject) {
         if (customer.getEmail() == null) {
             log.warn("Customer {} has no email, skipping email sending.", customer.getId());
