@@ -33,6 +33,7 @@ import InvoiceList from './views/Finance/InvoiceList';
 import InvoiceForm from './views/Finance/InvoiceForm';
 import PaymentList from './views/Finance/PaymentList';
 import PaymentForm from './views/Finance/PaymentForm';
+import UsersView from './views/Users/UsersView';
 import { BanknotesIcon } from '@heroicons/react/24/outline';
 
 export interface RouteConfig {
@@ -115,6 +116,22 @@ const routes: RouteConfig[] = [
         name: 'Clientes',
         icon: UsersIcon,
         component: CustomersView,
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
+    },
+    {
+        path: '/users',
+        name: 'Empleados',
+        icon: UserGroupIcon,
+        component: UsersView,
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
+    },
+    {
+        path: '/maps',
+        name: 'Mapas',
+        icon: MapPinIcon,
+        component: MapsView,
         layout: '/admin',
         allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },

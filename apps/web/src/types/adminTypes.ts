@@ -62,6 +62,14 @@ export interface AdminUserDTO extends UserDTO {
   lastModifiedDate?: string; // ISO Date
 }
 
+export interface CreateUserDTO {
+  login: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export interface CustomerDTO {
   id: number;
   firstName: string;
