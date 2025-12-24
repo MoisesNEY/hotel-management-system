@@ -4,12 +4,16 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import org.hotel.config.Constants;
+import java.util.Set;
+import org.hotel.domain.Authority;
 import org.hotel.domain.User;
+import org.hotel.repository.AuthorityRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.AuthoritiesConstants;
+import org.hotel.service.KeycloakService;
 import org.hotel.service.UserService;
 import org.hotel.service.dto.AdminUserDTO;
+import org.hotel.service.dto.CreateUserDTO;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.hotel.web.rest.errors.EmailAlreadyUsedException;
 import org.hotel.web.rest.errors.LoginAlreadyUsedException;
@@ -22,35 +26,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import jakarta.validation.Valid;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
-/**
- * REST controller for managing users.
- * <p>
- * This class accesses the {@link org.hotel.domain.User} entity, and needs to
- * fetch its collection of authorities.
- * <p>
- * For a normal use-case, it would be better to have an eager relationship
- * between User and Authority,
- * and send everything to the client side: there would be no View Model and DTO,
- * a lot less code, and an outer-join
- * which would be good for performance.
- * <p>
- * We use a View Model and a DTO for 3 reasons:
- * <ul>
- * <li>We want to keep a lazy association between the user and the authorities,
- * because people don't
- * always have authorities, and sometimes lots of them.</li>
- * <li>We want to be able to hand write the DTO and the View Model to override
- * different parts of the standard Spring MVC configuration.</li>
- * <li>We want to separate the internal domain objects and the API contract
- * (DTOs).</li>
- * </ul>
- */
 @RestController
 @RequestMapping("/api/admin/users")
 public class UserResource {
@@ -62,95 +51,146 @@ public class UserResource {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final KeycloakService keycloakService;
+    private final AuthorityRepository authorityRepository;
 
-    public UserResource(UserService userService, UserRepository userRepository) {
+    public UserResource(UserService userService, UserRepository userRepository, KeycloakService keycloakService,
+            AuthorityRepository authorityRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
+        this.keycloakService = keycloakService;
+        this.authorityRepository = authorityRepository;
     }
 
     /**
-     * {@code GET /admin/users} : get all users with all the details - calling this
-     * are only allowed for the administrators.
-     *
-     * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         all users.
+     * {@code POST /admin/users} : Creates a new User with ROLE_EMPLOYEE.
+     * SOLO ADMINISTRADORES pueden crear usuarios.
+     */
+    @PostMapping
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
+    public ResponseEntity<AdminUserDTO> createUser(@Valid @RequestBody CreateUserDTO createDTO)
+            throws URISyntaxException {
+        LOG.debug("REST request to create User : {}", createDTO.getLogin());
+
+        // Validate login uniqueness
+        if (userRepository.findOneByLogin(createDTO.getLogin().toLowerCase()).isPresent()) {
+            throw new LoginAlreadyUsedException();
+        }
+
+        // Validate email uniqueness
+        if (userRepository.findOneByEmailIgnoreCase(createDTO.getEmail()).isPresent()) {
+            throw new EmailAlreadyUsedException();
+        }
+
+        // Create user in Keycloak
+        String keycloakUserId = keycloakService.createUser(createDTO);
+
+        // Sync user to local database
+        User newUser = new User();
+        newUser.setId(keycloakUserId);
+        newUser.setLogin(createDTO.getLogin().toLowerCase());
+        newUser.setEmail(createDTO.getEmail().toLowerCase());
+        newUser.setFirstName(createDTO.getFirstName());
+        newUser.setLastName(createDTO.getLastName());
+        newUser.setActivated(true);
+        newUser.setLangKey("es"); // Default language
+
+        // Assign ROLE_EMPLOYEE authority
+        Set<Authority> authorities = new HashSet<>();
+        authorityRepository.findById(AuthoritiesConstants.EMPLOYEE).ifPresent(authorities::add);
+        newUser.setAuthorities(authorities);
+
+        userRepository.save(newUser);
+        LOG.info("User {} saved to local database", createDTO.getLogin());
+
+        // Build response DTO
+        AdminUserDTO result = new AdminUserDTO(newUser);
+
+        return ResponseEntity
+                .created(new URI("/api/admin/users/" + result.getLogin()))
+                .headers(HeaderUtil.createAlert(applicationName, "userManagement.created", result.getLogin()))
+                .body(result);
+    }
+
+    /**
+     * {@code GET /admin/users} : get all users with all the details FROM KEYCLOAK.
+     * Permitido para ADMIN y EMPLOYEE para poder mapear nombres y correos.
      */
     @GetMapping
-    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
+    @PreAuthorize("hasAnyAuthority(\"" + AuthoritiesConstants.ADMIN + "\", \"" + AuthoritiesConstants.EMPLOYEE + "\")")
     public ResponseEntity<List<AdminUserDTO>> getAllUsers(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get all User for an admin");
+        LOG.debug("REST request to get all Users from Keycloak for an admin/employee");
 
-        // Usamos el método que devuelve AdminUserDTO (con roles, estado activado, etc.)
-        final Page<AdminUserDTO> page = userService.getAllManagedUsers(pageable);
-        HttpHeaders headers = PaginationUtil
-                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+
+        // Fetch users from Keycloak
+        List<AdminUserDTO> users = keycloakService.getAllUsers(page * size, size);
+        int totalCount = keycloakService.countUsers();
+
+        // Build headers with pagination info
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Count", String.valueOf(totalCount));
+
+        return new ResponseEntity<>(users, headers, HttpStatus.OK);
     }
 
     /**
      * {@code GET /admin/users/:login} : get the "login" user.
-     *
-     * @param login the login of the user to find.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the "login" user, or with status {@code 404 (Not Found)}.
+     * ACCESO: ADMIN y EMPLOYEE.
      */
     @GetMapping("/{login}")
-    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
+    @PreAuthorize("hasAnyAuthority(\"" + AuthoritiesConstants.ADMIN + "\", \"" + AuthoritiesConstants.EMPLOYEE + "\")")
     public ResponseEntity<AdminUserDTO> getUser(@PathVariable("login") String login) {
         LOG.debug("REST request to get User : {}", login);
         return ResponseUtil.wrapOrNotFound(userService.getUserWithAuthoritiesByLogin(login).map(AdminUserDTO::new));
     }
 
     /**
-     * {@code PUT /admin/users} : Updates an existing User.
-     *
-     * @param userDTO the user to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated user.
+     * {@code PUT /admin/users} : Updates an existing User in Keycloak.
+     * SOLO ADMINISTRADORES pueden editar usuarios.
      */
     @PutMapping
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<AdminUserDTO> updateUser(@Valid @RequestBody AdminUserDTO userDTO) {
-        LOG.debug("REST request to update User : {}", userDTO);
+        LOG.debug("REST request to update User in Keycloak: {}", userDTO);
 
-        // Validaciones básicas antes de llamar al servicio
-        userRepository.findOneByEmailIgnoreCase(userDTO.getEmail())
-                .filter(user -> !user.getId().equals(userDTO.getId()))
-                .ifPresent(user -> {
-                    throw new EmailAlreadyUsedException();
-                });
+        // Update user in Keycloak
+        keycloakService.updateUserAdmin(userDTO);
 
-        userRepository.findOneByLogin(userDTO.getLogin().toLowerCase())
-                .filter(user -> !user.getId().equals(userDTO.getId()))
-                .ifPresent(user -> {
-                    throw new LoginAlreadyUsedException();
-                });
+        // Also update in local DB if exists
+        userRepository.findById(userDTO.getId()).ifPresent(user -> {
+            user.setFirstName(userDTO.getFirstName());
+            user.setLastName(userDTO.getLastName());
+            user.setEmail(userDTO.getEmail());
+            userRepository.save(user);
+        });
 
-        // Aquí es donde ocurre la magia de ACTIVAR/DESACTIVAR y CAMBIAR ROLES
-        // Necesitas implementar este método en UserService que reciba AdminUserDTO
-        // O usar los métodos parciales que discutimos antes.
-        // JHipster estándar suele tener un método updateUser(AdminUserDTO) en el
-        // servicio.
-        Optional<AdminUserDTO> updatedUser = userService.updateUser(userDTO);
-
-        return ResponseUtil.wrapOrNotFound(
-                updatedUser,
-                HeaderUtil.createAlert(applicationName, "userManagement.updated", userDTO.getLogin()));
+        return ResponseEntity.ok()
+                .headers(HeaderUtil.createAlert(applicationName, "userManagement.updated", userDTO.getLogin()))
+                .body(userDTO);
     }
 
     /**
-     * {@code DELETE /admin/users/:login} : delete the "login" User.
-     *
-     * @param login the login of the user to delete.
-     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     * {@code DELETE /admin/users/:login} : delete the "login" User from Keycloak.
+     * SOLO ADMINISTRADORES pueden eliminar usuarios.
      */
     @DeleteMapping("/{login}")
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deleteUser(@PathVariable("login") String login) {
-        LOG.debug("REST request to delete User: {}", login);
-        userService.deleteUser(login);
+        LOG.debug("REST request to delete User from Keycloak: {}", login);
+
+        // Delete from Keycloak
+        boolean deleted = keycloakService.deleteUserByUsername(login);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Also delete from local DB if exists
+        userRepository.findOneByLogin(login).ifPresent(userRepository::delete);
+
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createAlert(applicationName, "userManagement.deleted", login))
                 .build();

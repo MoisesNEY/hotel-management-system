@@ -78,7 +78,7 @@ const BookingsView = () => {
     const handleItemSelect = async (itemId: number) => {
         setSelectedItemId(itemId);
         setSelectedRoomId('');
-        
+
         const item = selectedBooking?.items?.find(i => i.id === itemId);
         if (!item) return;
 
@@ -205,17 +205,17 @@ const BookingsView = () => {
             accessor: (row) => {
                 const total = row.items?.length || 0;
                 const assigned = row.items?.filter(i => i.assignedRoom).length || 0;
-                
+
                 return (
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                           <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{assigned}/{total}</span>
-                           <div className="w-16 h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                               <div 
-                                 className="h-full bg-emerald-500 transition-all duration-500" 
-                                 style={{ width: `${(assigned/total) * 100}%` }}
-                               />
-                           </div>
+                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{assigned}/{total}</span>
+                            <div className="w-16 h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-emerald-500 transition-all duration-500"
+                                    style={{ width: `${(assigned / total) * 100}%` }}
+                                />
+                            </div>
                         </div>
                         <div className="flex flex-wrap gap-1">
                             {row.items?.map((item, idx) => (
@@ -253,18 +253,18 @@ const BookingsView = () => {
             header: 'Acciones',
             accessor: (row) => (
                 <div className="flex gap-2">
-                     <Button size="sm" variant="ghost" onClick={() => handleViewDetails(row)} iconOnly title="Ver Detalles">
+                    <Button size="sm" variant="ghost" onClick={() => handleViewDetails(row)} iconOnly title="Ver Detalles">
                         <Eye size={18} className="text-gray-500" />
                     </Button>
 
                     {/* Quick Approve Action */}
                     {row.status === 'PENDING_APPROVAL' && (
-                        <Button 
-                            size="sm" 
-                            variant="success" 
+                        <Button
+                            size="sm"
+                            variant="success"
                             onClick={async (e) => {
                                 e.stopPropagation();
-                                if(!window.confirm(`¿Aprobar reserva ${row.code || row.id}?`)) return;
+                                if (!window.confirm(`¿Aprobar reserva ${row.code || row.id}?`)) return;
                                 try {
                                     setLoading(true);
                                     await approveBooking(row.id);
@@ -275,25 +275,25 @@ const BookingsView = () => {
                                 } finally {
                                     setLoading(false);
                                 }
-                            }} 
+                            }}
                             title="Aprobar Solicitud"
                             iconOnly
                         >
                             <CheckCircle2 size={14} />
                         </Button>
                     )}
-                    
-                     {/* Quick Pay Action */}
-                     {row.status === 'PENDING_PAYMENT' && row.invoiceId && (
-                        <Button 
-                            size="sm" 
-                            variant="info" 
+
+                    {/* Quick Pay Action */}
+                    {row.status === 'PENDING_PAYMENT' && row.invoiceId && (
+                        <Button
+                            size="sm"
+                            variant="info"
                             onClick={async (e) => {
                                 e.stopPropagation();
                                 const amountStr = prompt(`Registrar pago manual para ${row.code}.\nMonto total: ${formatCurrency(row.totalPrice || 0)}`, row.totalPrice?.toString());
-                                if(!amountStr) return;
+                                if (!amountStr) return;
                                 const amount = parseFloat(amountStr);
-                                if(isNaN(amount) || amount <= 0) return;
+                                if (isNaN(amount) || amount <= 0) return;
 
                                 try {
                                     setLoading(true);
@@ -305,7 +305,7 @@ const BookingsView = () => {
                                 } finally {
                                     setLoading(false);
                                 }
-                            }} 
+                            }}
                             title="Registrar Pago"
                             iconOnly
                         >
@@ -377,12 +377,12 @@ const BookingsView = () => {
                     onCancel={handleFormCancel}
                 />
             </Modal>
-            
-            <BookingDetailsModal 
+
+            <BookingDetailsModal
                 isOpen={showDetailsModal}
                 onClose={() => {
-                   setShowDetailsModal(false);
-                   setDetailsBooking(null);
+                    setShowDetailsModal(false);
+                    setDetailsBooking(null);
                 }}
                 booking={detailsBooking}
             />
@@ -453,11 +453,10 @@ const BookingsView = () => {
                 size="sm"
             >
                 <div className="p-10 flex flex-col items-center text-center space-y-6">
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
-                        feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
-                        feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
-                        'bg-amber-500/10 text-amber-500'
-                    }`}>
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                            feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                                'bg-amber-500/10 text-amber-500'
+                        }`}>
                         {feedback.type === 'success' && <CheckCircle2 size={40} />}
                         {feedback.type === 'error' && <XCircle size={40} />}
                         {feedback.type === 'warning' && <AlertTriangle size={40} />}
@@ -468,8 +467,8 @@ const BookingsView = () => {
                             {feedback.message}
                         </p>
                     </div>
-                    <Button 
-                        variant={feedback.type === 'success' ? 'primary' : 'danger'} 
+                    <Button
+                        variant={feedback.type === 'success' ? 'primary' : 'danger'}
                         className="w-full rounded-2xl py-4"
                         onClick={() => setFeedback({ ...feedback, show: false })}
                     >

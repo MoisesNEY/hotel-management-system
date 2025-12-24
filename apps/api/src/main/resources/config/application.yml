@@ -49,6 +49,7 @@ management:
           - prometheus
           - threaddump
           - liquibase
+          - metrics
   endpoint:
     health:
       show-details: when_authorized
@@ -69,7 +70,7 @@ management:
       enabled: true
   health:
     mail:
-      enabled: false # When using the MailService, configure an SMTP server and set this to true
+      enabled: true # Mailpit/SMTP health check enabled
   prometheus:
     metrics:
       export:

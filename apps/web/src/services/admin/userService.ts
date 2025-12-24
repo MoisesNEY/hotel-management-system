@@ -1,5 +1,5 @@
 import { apiClient } from '../api';
-import { type AdminUserDTO } from '../../types/adminTypes';
+import { type AdminUserDTO, type CreateUserDTO } from '../../types/adminTypes';
 
 const API_URL = '/api/admin/users';
 
@@ -15,7 +15,7 @@ export const getAllUsers = async (
       sort,
     },
   });
-  
+
   const totalCount = response.headers['x-total-count'];
   return {
     data: response.data,
@@ -28,7 +28,7 @@ export const getUser = async (login: string) => {
   return response.data;
 };
 
-export const createUser = async (user: AdminUserDTO) => {
+export const createUser = async (user: CreateUserDTO) => {
   const response = await apiClient.post<AdminUserDTO>(API_URL, user);
   return response.data;
 };

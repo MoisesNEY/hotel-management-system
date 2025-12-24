@@ -85,12 +85,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const profile = await keycloak.loadUserProfile();
         setUserProfile(profile);
 
-        if (keycloak.realmAccess?.roles) {
-          console.log('[AuthProvider] Realm Roles:', keycloak.realmAccess.roles);
-          setRoles(keycloak.realmAccess.roles);
-        } else if (keycloak.resourceAccess?.['hotel-app']?.roles) {
-          setRoles(keycloak.resourceAccess['hotel-app'].roles);
-        }
+        const realmRoles = keycloak.realmAccess?.roles || [];
+        const resourceRoles = keycloak.resourceAccess?.['hotel-app']?.roles || [];
+        const allRoles = [...new Set([...realmRoles, ...resourceRoles])];
+
+        console.log('[AuthProvider] Combined Roles:', allRoles);
+        setRoles(allRoles);
 
         // Sync with backend
         try {
@@ -169,9 +169,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    * Obtiene el rol más alto del usuario actual
    */
   const getHighestRole = (): UserRole | null => {
-    if (roles.includes('ROLE_ADMIN')) return 'ROLE_ADMIN';
-    if (roles.includes('ROLE_EMPLOYEE')) return 'ROLE_EMPLOYEE';
-    if (roles.includes('ROLE_CLIENT')) return 'ROLE_CLIENT';
+    const r = roles.map(role => role.toUpperCase().trim());
+    if (r.includes('ROLE_ADMIN') || r.includes('ROL_ADMIN')) return 'ROLE_ADMIN';
+    if (r.includes('ROLE_EMPLOYEE') || r.includes('ROL_EMPLEADO')) return 'ROLE_EMPLOYEE';
+    if (r.includes('ROLE_CLIENT') || r.includes('ROL_CLIENTE')) return 'ROLE_CLIENT';
     return null;
   };
 

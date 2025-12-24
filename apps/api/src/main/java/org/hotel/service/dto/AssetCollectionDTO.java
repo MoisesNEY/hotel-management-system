@@ -29,6 +29,8 @@ public class AssetCollectionDTO implements Serializable {
     @Size(max = 500)
     private String description;
 
+    private Boolean isActive;
+
     public Long getId() {
         return id;
     }
@@ -69,6 +71,14 @@ public class AssetCollectionDTO implements Serializable {
         this.description = description;
     }
 
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -94,11 +104,12 @@ public class AssetCollectionDTO implements Serializable {
     @Override
     public String toString() {
         return "AssetCollectionDTO{" +
-            "id=" + getId() +
-            ", code='" + getCode() + "'" +
-            ", name='" + getName() + "'" +
-            ", type='" + getType() + "'" +
-            ", description='" + getDescription() + "'" +
-            "}";
+                "id=" + getId() +
+                ", code='" + getCode() + "'" +
+                ", name='" + getName() + "'" +
+                ", type='" + getType() + "'" +
+                ", description='" + getDescription() + "'" +
+                ", isActive='" + getIsActive() + "'" +
+                "}";
     }
 }

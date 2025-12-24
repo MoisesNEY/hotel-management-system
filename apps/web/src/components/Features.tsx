@@ -1,10 +1,11 @@
 import React from 'react';
 import { Shield, Clock, Wifi, Utensils, Car, ConciergeBell, Star } from 'lucide-react';
-import { useListContent, useSingleContent } from '../hooks/useContent';
+import { useListContent, useSingleContent, useSectionVisibility } from '../hooks/useContent';
 
 const Features: React.FC = () => {
     const { data: features, loading } = useListContent('HOME_FEATURES');
     const { data: header } = useSingleContent('HEADER_FEATURES');
+    const { isVisible, loading: visibilityLoading } = useSectionVisibility('HOME_FEATURES');
 
     // Icon colors array matching the CSS
     const iconColors = [
@@ -20,7 +21,7 @@ const Features: React.FC = () => {
         const t = title.toLowerCase();
         const colorClass = iconColors[index % iconColors.length];
         const iconProps = { size: 32, className: colorClass };
-        
+
         if (t.includes('seguridad')) return <Shield {...iconProps} />;
         if (t.includes('tiempo')) return <Clock {...iconProps} />;
         if (t.includes('wifi') || t.includes('conexión')) return <Wifi {...iconProps} />;
@@ -30,10 +31,12 @@ const Features: React.FC = () => {
         return <Star {...iconProps} />;
     };
 
-    if (loading) return null;
+    if (loading || visibilityLoading) return null;
+    if (!isVisible) return null;
+    if (features.length === 0) return null;
 
     return (
-        <section className="bg-white dark:bg-[#1a1a2e] py-[70px] border-t border-b border-gray-200 dark:border-gray-700 flex flex-col items-center" id="caracteristicas">
+        <section className="bg-white dark:bg-[#1a1a2e] py-20 border-t border-b border-gray-200 dark:border-gray-700 flex flex-col items-center" id="caracteristicas">
             <div className="max-w-7xl mx-auto px-5 w-full">
                 <div className="text-center mb-10 flex flex-col items-center justify-center">
                     <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white mb-2.5 font-semibold">

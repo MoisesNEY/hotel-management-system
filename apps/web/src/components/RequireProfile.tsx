@@ -6,7 +6,7 @@ import { getAccount } from '../services/accountService';
 import LoadingScreen from './shared/LoadingScreen';
 
 const RequireProfile: React.FC = () => {
-  const { isAuthenticated, isInitialized } = useAuth();
+  const { isAuthenticated, isInitialized, hasRole } = useAuth();
   const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,16 +14,15 @@ const RequireProfile: React.FC = () => {
 
   useEffect(() => {
     const checkProfile = async () => {
-      console.log('[RequireProfile] Starting check...', {
-        isInitialized,
-        isAuthenticated,
-        pathname: location.pathname,
-        hasChecked: hasCheckedRef.current
-      });
-
       // 1. Si no está autenticado, esperamos
       if (!isInitialized || !isAuthenticated) {
-        console.log('[RequireProfile] Not initialized or not authenticated, skipping check');
+        setIsChecking(false);
+        return;
+      }
+
+      // 1.5 Si es Admin o Empleado, no necesita perfil de cliente
+      if (hasRole('ROLE_EMPLOYEE')) {
+        hasCheckedRef.current = true;
         setIsChecking(false);
         return;
       }
@@ -38,7 +37,7 @@ const RequireProfile: React.FC = () => {
       // 3. Verificar si decidió saltar en esta sesión
       const skipped = sessionStorage.getItem('skip_customer_details') === 'true';
       console.log('[RequireProfile] Skip flag:', skipped);
-      
+
       if (skipped) {
         hasCheckedRef.current = true;
         setIsChecking(false);
@@ -47,17 +46,17 @@ const RequireProfile: React.FC = () => {
 
       // 3.5 Verificar si acabamos de crear el perfil (navegación desde el formulario)
       if (location.state && location.state.profileJustCreated) {
-           console.log('[RequireProfile] Profile just created (from state), assuming validity.');
-           localStorage.setItem('hasCompletedExtraInfo', 'true');
-           hasCheckedRef.current = true;
-           setIsChecking(false);
-           return;
+        console.log('[RequireProfile] Profile just created (from state), assuming validity.');
+        localStorage.setItem('hasCompletedExtraInfo', 'true');
+        hasCheckedRef.current = true;
+        setIsChecking(false);
+        return;
       }
 
       // 4. Verificar localStorage primero (optimización)
       const localCompleted = localStorage.getItem('hasCompletedExtraInfo') === 'true';
       console.log('[RequireProfile] LocalStorage completed flag:', localCompleted);
-      
+
       if (localCompleted) {
         console.log('[RequireProfile] Profile already marked as complete in localStorage');
         hasCheckedRef.current = true;
@@ -69,28 +68,28 @@ const RequireProfile: React.FC = () => {
       try {
         console.log('[RequireProfile] Calling backend to verify profile...');
         await getAccount();
-        
+
         const profileData = await getMyProfile();
         console.log('[RequireProfile] ✅ Profile exists!', profileData);
-        
+
         // Marcar como completado
         localStorage.setItem('hasCompletedExtraInfo', 'true');
         hasCheckedRef.current = true;
         setIsChecking(false);
-        
+
       } catch (error: any) {
         console.warn('[RequireProfile] Error verifying profile:', error);
-        
+
         // Si recibimos un 404, CONFIRMAMOS que no tiene perfil
         if (error.response && error.response.status === 404) {
-             console.log('[RequireProfile] ❌ Profile not found (404), redirecting to /customer');
-             hasCheckedRef.current = true;
-             navigate('/customer', { replace: true, state: { from: location } });
+          console.log('[RequireProfile] ❌ Profile not found (404), redirecting to /customer');
+          hasCheckedRef.current = true;
+          navigate('/customer', { replace: true, state: { from: location } });
         } else {
-            // Otro error - fail open para no bloquear
-            console.error('[RequireProfile] Unexpected error, allowing access:', error);
-            hasCheckedRef.current = true;
-            setIsChecking(false);
+          // Otro error - fail open para no bloquear
+          console.error('[RequireProfile] Unexpected error, allowing access:', error);
+          hasCheckedRef.current = true;
+          setIsChecking(false);
         }
       }
     };
@@ -99,7 +98,7 @@ const RequireProfile: React.FC = () => {
   }, [isInitialized, isAuthenticated, navigate, location]);
 
   if (!isInitialized || isChecking) {
-    return <LoadingScreen message="Actualizando perfil..." />; 
+    return <LoadingScreen message="Actualizando perfil..." />;
   }
 
   return <Outlet />;

@@ -11,6 +11,7 @@ export interface AssetCollection {
   name?: string;        // Nombre legible (ej: Portada Principal)
   type?: typeof CollectionType[keyof typeof CollectionType];
   description?: string;
+  isActive?: boolean;
   items?: WebContent[]; // Relación OneToMany
 }
 
@@ -59,6 +60,14 @@ export interface AdminUserDTO extends UserDTO {
   createdDate?: string; // ISO Date
   lastModifiedBy?: string;
   lastModifiedDate?: string; // ISO Date
+}
+
+export interface CreateUserDTO {
+  login: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface CustomerDTO {

@@ -26,10 +26,7 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
         return this.findAllWithToOneRelationships(pageable);
     }
 
-    @Query(
-        value = "select webContent from WebContent webContent left join fetch webContent.collection",
-        countQuery = "select count(webContent) from WebContent webContent"
-    )
+    @Query(value = "select webContent from WebContent webContent left join fetch webContent.collection", countQuery = "select count(webContent) from WebContent webContent")
     Page<WebContent> findAllWithToOneRelationships(Pageable pageable);
 
     @Query("select webContent from WebContent webContent left join fetch webContent.collection")
@@ -37,9 +34,26 @@ public interface WebContentRepository extends JpaRepository<WebContent, Long>, J
 
     @Query("select webContent from WebContent webContent left join fetch webContent.collection where webContent.id =:id")
     Optional<WebContent> findOneWithToOneRelationships(@Param("id") Long id);
-    // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, ordenado.
-    List<WebContent> findAllByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(String code);
 
-    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo (evita arrays vacíos).
-    Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueOrderBySortOrderAsc(String code);
+    // 1. Para Carruseles y Listas: Trae todo lo activo de una sección, siempre que
+    // la sección esté activa (o null).
+    @Query("select w from WebContent w join w.collection c where c.code = :code " +
+            "and (w.isActive = true) " +
+            "and (c.isActive = true) " +
+            "order by w.sortOrder asc")
+    List<WebContent> findAllByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
+            @Param("code") String code);
+
+    // 2. Para Hero/Mapas: Trae solo el PRIMER elemento activo de una sección activa
+    // (o null).
+    @Query("select w from WebContent w join w.collection c where c.code = :code " +
+            "and (w.isActive = true or w.isActive is null) " +
+            "and (c.isActive = true or c.isActive is null) " +
+            "order by w.sortOrder asc")
+    List<WebContent> findByCollectionCodeAndIsActiveRobust(@Param("code") String code);
+
+    default Optional<WebContent> findFirstByCollectionCodeAndIsActiveTrueAndCollectionIsActiveTrueOrderBySortOrderAsc(
+            String code) {
+        return findByCollectionCodeAndIsActiveRobust(code).stream().findFirst();
+    }
 }

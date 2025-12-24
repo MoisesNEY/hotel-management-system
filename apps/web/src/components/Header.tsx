@@ -3,10 +3,18 @@ import { Hotel, Menu, X, LogOut, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
+import { useSectionVisibility } from '../hooks/useContent';
 
 const Header: React.FC = () => {
-  const { isAuthenticated, userProfile, login, logout, hasProfile } = useAuth();
+  const { isAuthenticated, userProfile, login, logout, hasProfile, getHighestRole } = useAuth();
   const navigate = useNavigate();
+
+  // Visibility hooks for Navbar links
+  const { isVisible: showFeatures, loading: loadingFeatures } = useSectionVisibility('HOME_FEATURES');
+  const { isVisible: showRooms, loading: loadingRooms } = useSectionVisibility('HEADER_ROOMS');
+  const { isVisible: showServices, loading: loadingServices } = useSectionVisibility('HEADER_SERVICES');
+  const { isVisible: showGallery, loading: loadingGallery } = useSectionVisibility('HOME_GALLERY');
+  const { isVisible: showContact, loading: loadingContact } = useSectionVisibility('CONTACT_INFO');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,7 +27,13 @@ const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      const sections = ['home', 'caracteristicas', 'habitaciones', 'servicios', 'galeria', 'contacto'];
+      const sections = ['home'];
+      if (showFeatures !== false) sections.push('caracteristicas');
+      if (showRooms !== false) sections.push('habitaciones');
+      if (showServices !== false) sections.push('servicios');
+      if (showGallery !== false) sections.push('galeria');
+      if (showContact !== false) sections.push('contacto');
+
       let closestSection = sections[0];
       let minDistance = Infinity;
 
@@ -39,7 +53,7 @@ const Header: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-
+    // ... rest of useEffect
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.user-menu-container') && !target.closest('.user-profile-btn')) {
@@ -53,7 +67,7 @@ const Header: React.FC = () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [showFeatures, showRooms, showServices, showGallery, showContact]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleUserMenu = () => setShowUserMenu(!showUserMenu);
@@ -110,6 +124,12 @@ const Header: React.FC = () => {
 
   const email = userProfile?.email || '';
 
+  const userRole = getHighestRole();
+  const roleLabel =
+    userRole === 'ROLE_ADMIN' ? 'Administrador' :
+      userRole === 'ROLE_EMPLOYEE' ? 'Empleado' :
+        userRole === 'ROLE_CLIENT' ? 'Cliente' : 'Usuario';
+
   const getInitials = (name?: string) => {
     if (!name) return '';
     return name
@@ -160,7 +180,6 @@ const Header: React.FC = () => {
               max-md:p-6 max-md:rounded-xl max-md:mt-4 max-md:border max-md:border-white/10
               max-md:shadow-[0_10px_30px_rgba(0,0,0,0.4)] max-md:gap-0
             `}>
-              {/* Nav Links */}
               <a
                 href="#home"
                 className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
@@ -176,9 +195,11 @@ const Header: React.FC = () => {
               >
                 Inicio
               </a>
-              <a
-                href="#caracteristicas"
-                className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
+
+              {(showFeatures !== false || loadingFeatures) && (
+                <a
+                  href="#caracteristicas"
+                  className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
                   ${isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'} hover:opacity-90
                   max-md:py-4 max-md:w-full max-md:text-center max-md:border-b max-md:border-white/10
                   ${activeLink === 'caracteristicas' ? 'font-semibold after:w-full' : 'after:w-0'}
@@ -187,13 +208,16 @@ const Header: React.FC = () => {
                   after:transition-all after:duration-300 after:rounded-sm
                   hover:after:w-full
                 `}
-                onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}
-              >
-                Características
-              </a>
-              <a
-                href="#habitaciones"
-                className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
+                  onClick={(e) => { e.preventDefault(); handleLinkClick('caracteristicas'); }}
+                >
+                  Características
+                </a>
+              )}
+
+              {(showRooms !== false || loadingRooms) && (
+                <a
+                  href="#habitaciones"
+                  className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
                   ${isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'} hover:opacity-90
                   max-md:py-4 max-md:w-full max-md:text-center max-md:border-b max-md:border-white/10
                   ${activeLink === 'habitaciones' ? 'font-semibold after:w-full' : 'after:w-0'}
@@ -202,13 +226,16 @@ const Header: React.FC = () => {
                   after:transition-all after:duration-300 after:rounded-sm
                   hover:after:w-full
                 `}
-                onClick={(e) => { e.preventDefault(); handleLinkClick('habitaciones'); }}
-              >
-                Habitaciones
-              </a>
-              <a
-                href="#servicios"
-                className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
+                  onClick={(e) => { e.preventDefault(); handleLinkClick('habitaciones'); }}
+                >
+                  Habitaciones
+                </a>
+              )}
+
+              {(showServices !== false || loadingServices) && (
+                <a
+                  href="#servicios"
+                  className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
                   ${isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'} hover:opacity-90
                   max-md:py-4 max-md:w-full max-md:text-center max-md:border-b max-md:border-white/10
                   ${activeLink === 'servicios' ? 'font-semibold after:w-full' : 'after:w-0'}
@@ -217,13 +244,16 @@ const Header: React.FC = () => {
                   after:transition-all after:duration-300 after:rounded-sm
                   hover:after:w-full
                 `}
-                onClick={(e) => { e.preventDefault(); handleLinkClick('servicios'); }}
-              >
-                Servicios
-              </a>
-              <a
-                href="#galeria"
-                className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
+                  onClick={(e) => { e.preventDefault(); handleLinkClick('servicios'); }}
+                >
+                  Servicios
+                </a>
+              )}
+
+              {(showGallery !== false || loadingGallery) && (
+                <a
+                  href="#galeria"
+                  className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
                   ${isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'} hover:opacity-90
                   max-md:py-4 max-md:w-full max-md:text-center max-md:border-b max-md:border-white/10
                   ${activeLink === 'galeria' ? 'font-semibold after:w-full' : 'after:w-0'}
@@ -232,13 +262,16 @@ const Header: React.FC = () => {
                   after:transition-all after:duration-300 after:rounded-sm
                   hover:after:w-full
                 `}
-                onClick={(e) => { e.preventDefault(); handleLinkClick('galeria'); }}
-              >
-                Galeria
-              </a>
-              <a
-                href="#contacto"
-                className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
+                  onClick={(e) => { e.preventDefault(); handleLinkClick('galeria'); }}
+                >
+                  Galeria
+                </a>
+              )}
+
+              {(showContact !== false || loadingContact) && (
+                <a
+                  href="#contacto"
+                  className={`nav-link relative py-2 font-medium transition-all duration-300 font-['Inter'] text-[0.95rem] tracking-wide
                   ${isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'} hover:opacity-90
                   max-md:py-4 max-md:w-full max-md:text-center max-md:border-b-0
                   ${activeLink === 'contacto' ? 'font-semibold after:w-full' : 'after:w-0'}
@@ -247,10 +280,11 @@ const Header: React.FC = () => {
                   after:transition-all after:duration-300 after:rounded-sm
                   hover:after:w-full
                 `}
-                onClick={(e) => { e.preventDefault(); handleLinkClick('contacto'); }}
-              >
-                Contacto
-              </a>
+                  onClick={(e) => { e.preventDefault(); handleLinkClick('contacto'); }}
+                >
+                  Contacto
+                </a>
+              )}
 
               {/* Auth Buttons */}
               <div className="flex gap-3 max-md:flex-col max-md:w-full max-md:mt-5 max-md:gap-2.5">
@@ -335,6 +369,9 @@ const Header: React.FC = () => {
                               </span>
                               <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                 {email}
+                              </span>
+                              <span className="mt-1 text-[10px] font-bold text-gold-default uppercase tracking-wider">
+                                {roleLabel}
                               </span>
                             </div>
                           </div>

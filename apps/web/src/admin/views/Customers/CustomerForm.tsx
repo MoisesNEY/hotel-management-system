@@ -13,7 +13,7 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    
+
     // Customer Detail fields
     const [gender, setGender] = useState<Gender>('OTHER');
     const [phone, setPhone] = useState('');
@@ -32,7 +32,7 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
             setFirstName(initialData.firstName || '');
             setLastName(initialData.lastName || '');
             setEmail(initialData.email || '');
-            
+
             setGender(initialData.gender);
             setPhone(initialData.phone);
             setBirthDate(initialData.birthDate);
@@ -226,7 +226,7 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
                     disabled={loading}
                     className="px-6 py-2 bg-gold-500 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-gold-600 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {loading ? 'Guardando...' : 'Guardar'}
+                    {loading ? 'Sincronizando...' : initialData ? 'Actualizar Cliente' : 'Guardar Cliente'}
                 </button>
             </div>
         </form>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Plus, Edit, Upload, X, Link, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Edit, Upload, X, Link, Loader2, ChevronDown } from 'lucide-react';
 import { CollectionType, defaultWebContent, type AssetCollection, type WebContent } from '../../../types/adminTypes';
 import { AssetCollectionService } from '../../../services/admin/assetCollectionService';
 import { WebContentService } from '../../../services/admin/webContentService';
@@ -11,6 +11,94 @@ import Table from '../../components/shared/Table';
 import Card from '../../components/shared/Card';
 
 const CMSEditor: React.FC = () => {
+    // Tipado para evitar errores de acceso a propiedades
+    interface FieldConfig {
+        label?: string;
+        placeholder?: string;
+        show?: boolean;
+        type?: 'text' | 'textarea' | 'select';
+        options?: string[];
+    }
+
+    const SCHEMA_CONFIG: Record<string, Record<string, FieldConfig>> = {
+        [CollectionType.SINGLE_IMAGE]: {
+            title: { label: "Título de Sección", show: true, placeholder: "Ej: Bienvenido al Paraíso" },
+            subtitle: { label: "Descripción / Slogan", show: true, placeholder: "Ej: Tu mejor descanso..." },
+            imageUrl: { label: "Imagen Destacada", show: true },
+            actionUrl: { label: "Texto Pie de Foto / Quote", show: true, placeholder: "Frase inspiradora..." },
+            sortOrder: { show: true },
+            isActive: { show: true }
+        },
+        [CollectionType.GALLERY]: {
+            title: { label: "Título de la Imagen", show: true, placeholder: "Ej: Habitación Junior Suite" },
+            subtitle: { label: "Descripción / Pie", show: true, placeholder: "Ej: Vista al mar..." },
+            imageUrl: { label: "Fotografía", show: true },
+            actionUrl: { show: false },
+            sortOrder: { show: true },
+            isActive: { show: true }
+        },
+        [CollectionType.TEXT_LIST]: {
+            title: { label: "Título / Nombre", show: true, placeholder: "Ej: Wi-Fi Gratis o Teléfono" },
+            subtitle: { label: "Valor / Descripción", show: true, placeholder: "Ej: +1 234 567 o Servicio 24/7" },
+            imageUrl: { show: false },
+            actionUrl: { label: "Enlace o Identificador", show: true, placeholder: "Ej: tel:, mailto: o una URL" },
+            sortOrder: { show: true },
+            isActive: { show: true }
+        },
+        [CollectionType.MAP_EMBED]: {
+            title: { label: "Título de Ubicación", show: true, placeholder: "Ej: Cómo llegar" },
+            subtitle: { show: false },
+            imageUrl: { show: false },
+            actionUrl: { label: "Código Iframe / Link de Mapa", show: true, placeholder: "Pega el link de Google Maps o Iframe" },
+            sortOrder: { show: false },
+            isActive: { show: false }
+        }
+    };
+
+    // Especialización por código de sección (Overrides)
+    const CODE_OVERRIDES: Record<string, Partial<Record<string, FieldConfig>>> = {
+        'SOCIAL_NETWORKS': {
+            title: { label: "Red Social", show: true, placeholder: "Ej: Instagram" },
+            subtitle: { show: false },
+            imageUrl: { show: false },
+            actionUrl: { label: "Enlace a Perfil", show: true, placeholder: "Ej: https://instagram.com/mihotel" },
+            sortOrder: { show: false },
+            isActive: { show: false }
+        },
+        'CONTACT_INFO': {
+            title: {
+                label: "Tipo de Dato",
+                show: true,
+                type: 'select',
+                options: ['Dirección', 'Teléfono', 'Email']
+            },
+            subtitle: { label: "Valor a mostrar", show: true, placeholder: "Ej: +505 8888 8888" },
+            actionUrl: { label: "Acción al hacer clic", show: true, placeholder: "Ej: tel:+50588888888" },
+            imageUrl: { show: false },
+            sortOrder: { show: false }
+        },
+        'HOME_FEATURES': {
+            title: { label: "Característica", show: true, placeholder: "Ej: Piscina Climatizada" },
+            subtitle: { label: "Breve Descripción", show: true, placeholder: "Ej: Abierta 24hs..." },
+            actionUrl: { show: false },
+            imageUrl: { show: false }
+        }
+    };
+
+    const getConfig = (field: string): FieldConfig => {
+        const type = collection?.type || CollectionType.SINGLE_IMAGE;
+        const code = collection?.code || '';
+
+        // Normalizar código para búsqueda (case-insensitive y trim)
+        const normalizedCode = Object.keys(CODE_OVERRIDES).find(
+            key => key.toUpperCase() === code.toUpperCase().trim()
+        );
+
+        const base = SCHEMA_CONFIG[type][field] || { show: false };
+        const override = normalizedCode ? CODE_OVERRIDES[normalizedCode][field] : {};
+
+        return { ...base, ...override };
+    };
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -56,6 +144,14 @@ const CMSEditor: React.FC = () => {
             } else {
                 await WebContentService.create(payload);
             }
+
+            // Sincronización de visibilidad: 
+            // Si el item guardado está activo, asegurarnos de que la colección también lo esté
+            // para que no sea "engañoso" en la lista principal.
+            if (editingItem.isActive && collection.isActive === false) {
+                await AssetCollectionService.update({ ...collection, isActive: true });
+            }
+
             setEditingItem(null); // Cerrar editor
             loadData(collection.id!); // Recargar lista
         } catch (error) {
@@ -212,26 +308,70 @@ const CMSEditor: React.FC = () => {
                         </button>
                     </div>
                     <div className="p-6 overflow-y-auto flex-auto space-y-4">
-                        <Input
-                            label="Título Principal"
-                            value={editingItem.title || ''}
-                            onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
-                            placeholder="Ej: Portada de Invierno"
-                        />
+                        {/* 1. Título dinámico */}
+                        {getConfig('title').show && (
+                            <>
+                                {getConfig('title').type === 'select' ? (
+                                    <div className="mb-4">
+                                        <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
+                                            {getConfig('title').label}
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all appearance-none cursor-pointer"
+                                                value={editingItem.title || ''}
+                                                onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
+                                            >
+                                                <option value="">Seleccionar tipo...</option>
+                                                {getConfig('title').options?.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                                <ChevronDown size={16} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Input
+                                        label={getConfig('title').label}
+                                        value={editingItem.title || ''}
+                                        onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
+                                        placeholder={getConfig('title').placeholder}
+                                    />
+                                )}
+                            </>
+                        )}
 
-                        <div>
-                            <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Subtítulo / Descripción</label>
-                            <textarea
-                                className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
-                                value={editingItem.subtitle || ''}
-                                onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
-                                placeholder="Escribe una descripción breve o subtítulo..."
-                            />
-                        </div>
+                        {/* 2. Subtítulo dinámico */}
+                        {getConfig('subtitle').show && (
+                            <div>
+                                <label className="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
+                                    {getConfig('subtitle').label}
+                                </label>
+                                {getConfig('subtitle').type === 'textarea' || !getConfig('subtitle').type ? (
+                                    <textarea
+                                        className="block w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white shadow-sm placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-gold-default focus:border-gold-default transition-all min-h-[100px] text-sm leading-relaxed"
+                                        value={editingItem.subtitle || ''}
+                                        onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
+                                        placeholder={getConfig('subtitle').placeholder}
+                                    />
+                                ) : (
+                                    <Input
+                                        value={editingItem.subtitle || ''}
+                                        onChange={e => setEditingItem({ ...editingItem, subtitle: e.target.value })}
+                                        placeholder={getConfig('subtitle').placeholder}
+                                    />
+                                )}
+                            </div>
+                        )}
 
-                        {(collection?.type === CollectionType.GALLERY || collection?.type === CollectionType.SINGLE_IMAGE) && (
+                        {/* 3. Imagen dinámica */}
+                        {getConfig('imageUrl').show && (
                             <div className="space-y-4">
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Imagen / Multimedia</label>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">
+                                    {getConfig('imageUrl').label}
+                                </label>
 
                                 <div className="flex gap-3">
                                     <div className="relative flex-1">
@@ -287,38 +427,45 @@ const CMSEditor: React.FC = () => {
                             </div>
                         )}
 
-                        {(collection?.type === CollectionType.TEXT_LIST || collection?.type === CollectionType.MAP_EMBED) && (
+                        {/* 4. Action URL dinámica */}
+                        {getConfig('actionUrl').show && (
                             <Input
-                                label="Action URL / Google Maps Iframe"
+                                label={getConfig('actionUrl').label}
                                 value={editingItem.actionUrl || ''}
                                 onChange={e => setEditingItem({ ...editingItem, actionUrl: e.target.value })}
-                                placeholder="URL de destino o código de mapa"
+                                placeholder={getConfig('actionUrl').placeholder}
                             />
                         )}
 
-                        <div className="flex flex-wrap -mx-2 pt-2">
-                            <div className="w-1/2 px-2">
-                                <Input
-                                    label="Orden de Visualización"
-                                    type="number"
-                                    value={editingItem.sortOrder || 1}
-                                    onChange={e => setEditingItem({ ...editingItem, sortOrder: parseInt(e.target.value) })}
-                                />
-                            </div>
-                            <div className="w-1/2 px-2 flex items-center pt-6">
-                                <label className="inline-flex items-center cursor-pointer select-none group">
-                                    <div className="relative flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            className="w-5 h-5 text-gold-default bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 rounded-lg focus:ring-gold-default focus:ring-offset-0 transition duration-200 cursor-pointer"
-                                            checked={editingItem.isActive !== false}
-                                            onChange={e => setEditingItem({ ...editingItem, isActive: e.target.checked })}
+                        {(getConfig('sortOrder').show || getConfig('isActive').show) && (
+                            <div className="flex flex-wrap -mx-2 pt-2">
+                                {getConfig('sortOrder').show && (
+                                    <div className="w-1/2 px-2">
+                                        <Input
+                                            label="Orden de Visualización"
+                                            type="number"
+                                            value={editingItem.sortOrder || 1}
+                                            onChange={e => setEditingItem({ ...editingItem, sortOrder: parseInt(e.target.value) })}
                                         />
-                                        <span className="ml-3 text-sm font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Activo en Web</span>
                                     </div>
-                                </label>
+                                )}
+                                {getConfig('isActive').show && (
+                                    <div className="w-1/2 px-2 flex items-center pt-6">
+                                        <label className="inline-flex items-center cursor-pointer select-none group">
+                                            <div className="relative flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-5 h-5 text-gold-default bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 rounded-lg focus:ring-gold-default focus:ring-offset-0 transition duration-200 cursor-pointer"
+                                                    checked={editingItem.isActive !== false}
+                                                    onChange={e => setEditingItem({ ...editingItem, isActive: e.target.checked })}
+                                                />
+                                                <span className="ml-3 text-sm font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Activo en Web</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        )}
 
                     </div>
                     <div className="p-6 border-t border-gray-100 dark:border-white/5 text-right bg-gray-50/80 dark:bg-white/[0.03] flex justify-end gap-3 rounded-b-3xl">
@@ -377,16 +524,7 @@ const CMSEditor: React.FC = () => {
                 </div>
 
                 {collection.type === CollectionType.GALLERY && renderGalleryEditor()}
-                {collection.type === CollectionType.TEXT_LIST && renderTextListEditor()}
-                {collection.type === CollectionType.MAP_EMBED && renderTextListEditor()}
-
-                {collection.type === CollectionType.SINGLE_IMAGE && (
-                    <div className="bg-blue-50/50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-blue-700 dark:text-blue-300 px-5 py-4 rounded-2xl flex items-start gap-4 mb-8 shadow-sm">
-                        <div className="mt-0.5 bg-blue-100 dark:bg-blue-500/20 p-2 rounded-lg"><Edit size={18} /></div>
-                        <span className="text-sm font-medium leading-relaxed">Para el Hero (Single Image), usa el botón de editar en la lista de abajo. Solo debería haber 1 elemento activo para un diseño óptimo.</span>
-                    </div>
-                )}
-                {collection.type === CollectionType.SINGLE_IMAGE && renderTextListEditor()}
+                {(collection.type === CollectionType.TEXT_LIST || collection.type === CollectionType.MAP_EMBED || collection.type === CollectionType.SINGLE_IMAGE) && renderTextListEditor()}
             </Card>
         </div>
     );

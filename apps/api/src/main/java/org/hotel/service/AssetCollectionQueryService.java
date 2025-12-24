@@ -78,6 +78,7 @@ public class AssetCollectionQueryService extends QueryService<AssetCollection> {
                 buildStringSpecification(criteria.getName(), AssetCollection_.name),
                 buildSpecification(criteria.getType(), AssetCollection_.type),
                 buildStringSpecification(criteria.getDescription(), AssetCollection_.description),
+                buildSpecification(criteria.getIsActive(), AssetCollection_.isActive),
                 buildSpecification(criteria.getItemsId(), root -> root.join(AssetCollection_.items, JoinType.LEFT).get(WebContent_.id))
             );
         }

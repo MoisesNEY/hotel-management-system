@@ -2,7 +2,9 @@
   "annotations": {
     "changelogDate": "20251211184754"
   },
-  "applications": ["hotelBackend"],
+  "applications": [
+    "hotelBackend"
+  ],
   "clientRootFolder": "hotelBackend",
   "databaseType": "sql",
   "dto": "mapstruct",
@@ -10,22 +12,32 @@
     {
       "fieldName": "code",
       "fieldType": "String",
-      "fieldValidateRules": ["required", "unique"]
+      "fieldValidateRules": [
+        "required",
+        "unique"
+      ]
     },
     {
       "fieldName": "checkInDate",
       "fieldType": "LocalDate",
-      "fieldValidateRules": ["required"]
+      "fieldValidateRules": [
+        "required"
+      ]
     },
     {
       "fieldName": "checkOutDate",
       "fieldType": "LocalDate",
-      "fieldValidateRules": ["required"]
+      "fieldValidateRules": [
+        "required"
+      ]
     },
     {
       "fieldName": "guestCount",
       "fieldType": "Integer",
-      "fieldValidateRules": ["required", "min"],
+      "fieldValidateRules": [
+        "required",
+        "min"
+      ],
       "fieldValidateRulesMin": "1"
     },
     {

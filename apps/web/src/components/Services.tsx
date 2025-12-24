@@ -5,7 +5,7 @@ import { createServiceRequest } from '../services/client/serviceRequestService';
 import { getAllHotelServices } from '../services/admin/hotelServiceService';
 import { getMyBookings } from '../services/client/bookingService';
 import { useAuth } from '../contexts/AuthProvider';
-import { useSingleContent } from '../hooks/useContent';
+import { useSingleContent, useSectionVisibility } from '../hooks/useContent';
 import type { HotelServiceDTO } from '../types/adminTypes';
 import type { BookingResponse } from '../types/clientTypes';
 
@@ -40,6 +40,7 @@ const Services: React.FC = () => {
   });
 
   const { data: header } = useSingleContent('HEADER_SERVICES');
+  const { isVisible, loading: visibilityLoading } = useSectionVisibility('HEADER_SERVICES');
 
   // Service card colors
   const serviceColors = [
@@ -170,9 +171,13 @@ const Services: React.FC = () => {
     }
   };
 
+  if (loading || visibilityLoading) return null;
+  if (!isVisible) return null;
+  if (services.length === 0) return null;
+
   return (
     <>
-      <section className="bg-white dark:bg-[#1a1a2e] py-[100px] relative" id="servicios">
+      <section className="bg-white dark:bg-[#1a1a2e] py-20 relative" id="servicios">
         <div className="max-w-7xl mx-auto px-5">
           <div className="text-center mb-[60px]">
             <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">

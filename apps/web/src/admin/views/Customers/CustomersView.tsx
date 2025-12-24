@@ -9,14 +9,20 @@ import type { CustomerDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 import { Trash2, Plus } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 const CustomersView = () => {
+    const { getHighestRole } = useAuth();
+    const userRole = getHighestRole();
+    const canDelete = userRole === 'ROLE_ADMIN';
+
     const [customers, setCustomers] = useState<CustomerDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerDTO | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerToDeleteId, setCustomerToDeleteId] = useState<number | null>(null);
+    const [permissionError, setPermissionError] = useState(false);
 
     useEffect(() => {
         loadCustomers();
@@ -28,8 +34,11 @@ const CustomersView = () => {
             // No need to fetch users separately anymore, CustomerDTO has the data
             const response = await getAllCustomers();
             setCustomers(response.data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading customers", error);
+            if (error.response?.status === 403) {
+                setPermissionError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -80,7 +89,16 @@ const CustomersView = () => {
                 const firstName = row.firstName;
                 const lastName = row.lastName;
 
-                if (!firstName && !lastName) return <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>;
+                if (!firstName && !lastName) {
+                    const login = row.user?.login;
+                    return login ? (
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                            {login}
+                        </span>
+                    ) : (
+                        <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>
+                    );
+                }
                 return <span className="font-semibold text-gray-900 dark:text-white tracking-tight">{`${firstName || ''} ${lastName || ''}`}</span>;
             }
         },
@@ -131,14 +149,16 @@ const CustomersView = () => {
                     >
                         Editar
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleDelete(row.id)}
-                        iconOnly
-                    >
-                        <Trash2 size={14} />
-                    </Button>
+                    {canDelete && (
+                        <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => handleDelete(row.id)}
+                            iconOnly
+                        >
+                            <Trash2 size={14} />
+                        </Button>
+                    )}
                 </div>
             )
         }
@@ -156,16 +176,32 @@ const CustomersView = () => {
                 </Button>
             </div>
 
-            <Card className="card-plain">
-                <Table
-                    data={customers}
-                    columns={columns}
-                    isLoading={loading}
-                    title="Listado de Clientes"
-                    emptyMessage="No hay clientes registrados"
-                    keyExtractor={(item) => item.id}
-                />
-            </Card>
+            {permissionError ? (
+                <Card className="p-12 text-center flex flex-col items-center justify-center space-y-4">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center">
+                        <Trash2 size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403 )</h2>
+                    <p className="max-w-md text-gray-500 dark:text-gray-400">
+                        El servidor ha rechazado el acceso a la lista de clientes para tu rol actual.
+                        Por favor, contacta al administrador para que habilite los permisos de <code className="bg-gray-100 dark:bg-white/5 px-1 rounded text-red-500 font-bold">ROL_EMPLEADO</code> en el backend.
+                    </p>
+                    <Button variant="secondary" onClick={loadCustomers}>
+                        Reintentar
+                    </Button>
+                </Card>
+            ) : (
+                <Card className="card-plain">
+                    <Table
+                        data={customers}
+                        columns={columns}
+                        isLoading={loading}
+                        title="Listado de Clientes"
+                        emptyMessage="No hay clientes registrados"
+                        keyExtractor={(item) => item.id}
+                    />
+                </Card>
+            )}
 
             {/* Modal de Cliente */}
             <Modal
@@ -174,11 +210,11 @@ const CustomersView = () => {
                 title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                 size="lg"
             >
-                     <CustomerForm
-                        initialData={editingCustomer}
-                        onSuccess={handleFormSuccess}
-                        onCancel={() => setShowForm(false)}
-                    />
+                <CustomerForm
+                    initialData={editingCustomer}
+                    onSuccess={handleFormSuccess}
+                    onCancel={() => setShowForm(false)}
+                />
             </Modal>
 
             {/* Modal de Confirmación de Eliminación */}

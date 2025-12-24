@@ -8,7 +8,7 @@ const API_URL = 'api/public/content';
  * Usa los códigos definidos en el Backend (HOME_HERO, HOME_GALLERY, etc.)
  */
 export const PublicContentService = {
-  
+
   /**
    * Obtiene una lista de contenidos (Para Carruseles, Features, Listas)
    * Ej: getList('HOME_GALLERY')
@@ -28,12 +28,25 @@ export const PublicContentService = {
   },
 
   getHero: () => PublicContentService.getSingle('HOME_HERO'),
-  
+
   getFeatures: () => PublicContentService.getList('HOME_FEATURES'),
-  
+
   getGallery: () => PublicContentService.getList('HOME_GALLERY'),
-  
+
   getContactInfo: () => PublicContentService.getList('CONTACT_INFO'),
-  
-  getLocationMap: () => PublicContentService.getSingle('MAIN_LOCATION')
+
+  getLocationMap: () => PublicContentService.getSingle('MAIN_LOCATION'),
+
+  /**
+   * Verifica si una sección está activa/visible en el CMS.
+   */
+  checkVisibility: async (code: string): Promise<boolean> => {
+    try {
+      const response = await apiClient.get<boolean>(`${API_URL}/status/${code}`);
+      return response.data;
+    } catch (error) {
+      console.warn(`Could not check visibility for [${code}], defaulting to true`);
+      return true;
+    }
+  }
 };
