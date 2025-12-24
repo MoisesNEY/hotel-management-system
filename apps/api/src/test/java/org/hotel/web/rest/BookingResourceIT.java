@@ -18,10 +18,9 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.hotel.IntegrationTest;
 import org.hotel.domain.Booking;
-import org.hotel.domain.User;
+import org.hotel.domain.Customer;
 import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
-import org.hotel.repository.UserRepository;
 import org.hotel.service.BookingService;
 import org.hotel.service.dto.BookingDTO;
 import org.hotel.service.mapper.BookingMapper;
@@ -65,7 +64,7 @@ class BookingResourceIT {
     private static final Integer SMALLER_GUEST_COUNT = 1 - 1;
 
     private static final BookingStatus DEFAULT_STATUS = BookingStatus.PENDING_APPROVAL;
-    private static final BookingStatus UPDATED_STATUS = BookingStatus.CONFIRMED;
+    private static final BookingStatus UPDATED_STATUS = BookingStatus.PENDING_PAYMENT;
 
     private static final String DEFAULT_NOTES = "AAAAAAAAAA";
     private static final String UPDATED_NOTES = "BBBBBBBBBB";
@@ -84,9 +83,6 @@ class BookingResourceIT {
 
     @Autowired
     private BookingRepository bookingRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Mock
     private BookingRepository bookingRepositoryMock;
@@ -123,10 +119,15 @@ class BookingResourceIT {
             .notes(DEFAULT_NOTES)
             .specialRequests(DEFAULT_SPECIAL_REQUESTS);
         // Add required entity
-        User user = UserResourceIT.createEntity();
-        em.persist(user);
-        em.flush();
-        booking.setCustomer(user);
+        Customer customer;
+        if (TestUtil.findAll(em, Customer.class).isEmpty()) {
+            customer = CustomerResourceIT.createEntity();
+            em.persist(customer);
+            em.flush();
+        } else {
+            customer = TestUtil.findAll(em, Customer.class).get(0);
+        }
+        booking.setCustomer(customer);
         return booking;
     }
 
@@ -146,10 +147,15 @@ class BookingResourceIT {
             .notes(UPDATED_NOTES)
             .specialRequests(UPDATED_SPECIAL_REQUESTS);
         // Add required entity
-        User user = UserResourceIT.createEntity();
-        em.persist(user);
-        em.flush();
-        updatedBooking.setCustomer(user);
+        Customer customer;
+        if (TestUtil.findAll(em, Customer.class).isEmpty()) {
+            customer = CustomerResourceIT.createUpdatedEntity();
+            em.persist(customer);
+            em.flush();
+        } else {
+            customer = TestUtil.findAll(em, Customer.class).get(0);
+        }
+        updatedBooking.setCustomer(customer);
         return updatedBooking;
     }
 
@@ -164,7 +170,6 @@ class BookingResourceIT {
             bookingRepository.delete(insertedBooking);
             insertedBooking = null;
         }
-        userRepository.deleteAll();
     }
 
     @Test
@@ -793,23 +798,23 @@ class BookingResourceIT {
     @Test
     @Transactional
     void getAllBookingsByCustomerIsEqualToSomething() throws Exception {
-        User customer;
-        if (TestUtil.findAll(em, User.class).isEmpty()) {
+        Customer customer;
+        if (TestUtil.findAll(em, Customer.class).isEmpty()) {
             bookingRepository.saveAndFlush(booking);
-            customer = UserResourceIT.createEntity();
+            customer = CustomerResourceIT.createEntity();
         } else {
-            customer = TestUtil.findAll(em, User.class).get(0);
+            customer = TestUtil.findAll(em, Customer.class).get(0);
         }
         em.persist(customer);
         em.flush();
         booking.setCustomer(customer);
         bookingRepository.saveAndFlush(booking);
-        String customerId = customer.getId();
+        Long customerId = customer.getId();
         // Get all the bookingList where customer equals to customerId
         defaultBookingShouldBeFound("customerId.equals=" + customerId);
 
-        // Get all the bookingList where customer equals to "invalid-id"
-        defaultBookingShouldNotBeFound("customerId.equals=" + "invalid-id");
+        // Get all the bookingList where customer equals to (customerId + 1)
+        defaultBookingShouldNotBeFound("customerId.equals=" + (customerId + 1));
     }
 
     private void defaultBookingFiltering(String shouldBeFound, String shouldNotBeFound) throws Exception {

@@ -7,7 +7,6 @@
   ],
   "clientRootFolder": "hotelBackend",
   "databaseType": "sql",
-  "documentation": "Define una \"Sección\" en la web pública.\\nEj: 'CONTACT_INFO', 'HOME_HERO', 'FOOTER_MAP'",
   "dto": "mapstruct",
   "fields": [
     {

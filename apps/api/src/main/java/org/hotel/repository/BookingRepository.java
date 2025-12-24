@@ -1,6 +1,5 @@
 package org.hotel.repository;
 
-import java.net.http.HttpHeaders;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -16,65 +15,40 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpecificationExecutor<Booking> {
-    Page<Booking> findByCustomer_Login(String login, Pageable pageable);
-    Optional<Booking> findByIdAndCustomer_Login(Long id, String login);
+    default Optional<Booking> findOneWithEagerRelationships(Long id) {
+        return this.findOneWithToOneRelationships(id);
+    }
+
+    default List<Booking> findAllWithEagerRelationships() {
+        return this.findAllWithToOneRelationships();
+    }
+
+    default Page<Booking> findAllWithEagerRelationships(Pageable pageable) {
+        return this.findAllWithToOneRelationships(pageable);
+    }
 
     @Query(
-        value = "select booking from Booking booking " +
-            "left join fetch booking.customer " +
-            "left join fetch booking.bookingItems bi " +
-            "left join fetch bi.roomType " +
-            "left join fetch bi.assignedRoom",
+        value = "select booking from Booking booking left join fetch booking.customer",
         countQuery = "select count(booking) from Booking booking"
     )
     Page<Booking> findAllWithToOneRelationships(Pageable pageable);
 
-    @Query("select booking from Booking booking " +
-        "left join fetch booking.customer " +
-        "left join fetch booking.bookingItems bi " +
-        "left join fetch bi.roomType " +
-        "left join fetch bi.assignedRoom " +
-        "where booking.id =:id")
+    @Query("select booking from Booking booking left join fetch booking.customer")
+    List<Booking> findAllWithToOneRelationships();
+
+    @Query("select booking from Booking booking left join fetch booking.customer where booking.id =:id")
     Optional<Booking> findOneWithToOneRelationships(@Param("id") Long id);
 
-    @Query("""
-        SELECT COUNT(b) FROM Booking b
-        JOIN b.bookingItems bi
-        WHERE bi.roomType.id = :roomTypeId
-        AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'PENDING_PAYMENT')
-        AND b.checkInDate < :checkOutDate
-        AND b.checkOutDate > :checkInDate
-    """)
-    long countOverlappingBookings(
-        @Param("roomTypeId") Long roomTypeId,
-        @Param("checkInDate") LocalDate checkInDate,
-        @Param("checkOutDate") LocalDate checkOutDate
-    );
+    @Query("select count(b) from Booking b join b.bookingItems bi where bi.roomType.id = :roomTypeId and b.status <> 'CANCELLED' and ((b.checkInDate < :checkOut and b.checkOutDate > :checkIn))")
+    long countOverlappingBookings(@Param("roomTypeId") Long roomTypeId, @Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut);
 
-    /**
-     * Valida Disponibilidad (Update):
-     * Lo mismo, pero excluyendo la reserva actual (excludeId) para no auto-bloquearse.
-     */
-    @Query("""
-        SELECT COUNT(b) FROM Booking b
-        JOIN b.bookingItems bi
-        WHERE bi.roomType.id = :typeId
-        AND b.id != :excludeId
-        AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'PENDING_PAYMENT')
-        AND (b.checkInDate < :checkOut AND b.checkOutDate > :checkIn)
-    """)
-    long countOverlappingBookingsExcludingSelf(
-        @Param("typeId") Long typeId,
-        @Param("checkIn") LocalDate checkIn,
-        @Param("checkOut") LocalDate checkOut,
-        @Param("excludeId") Long excludeId
-    );
+    @Query("select count(b) from Booking b join b.bookingItems bi where bi.roomType.id = :roomTypeId and b.status <> 'CANCELLED' and ((b.checkInDate < :checkOut and b.checkOutDate > :checkIn)) and b.id <> :excludeId")
+    long countOverlappingBookingsExcludingSelf(@Param("roomTypeId") Long roomTypeId, @Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut, @Param("excludeId") Long excludeId);
 
-    // Validar integridad referencial al borrar Usuario
-    boolean existsByCustomerId(String userId);
+    @Query("select count(b) from Booking b join b.bookingItems bi where bi.assignedRoom.id = :roomId and b.status <> 'CANCELLED' and ((b.checkInDate < :checkOut and b.checkOutDate > :checkIn)) and (:excludeId is null or b.id <> :excludeId)")
+    long countOverlappingBookingsForSpecificRoom(@Param("roomId") Long roomId, @Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut, @Param("excludeId") Long excludeId);
 
-    // Validar estado activo por ID
-    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.id = :id AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'PENDING_PAYMENT')")
-    boolean existsActiveBookingById(@Param("id") Long id);
+    Page<Booking> findByCustomer_User_Login(String login, Pageable pageable);
 
+    Optional<Booking> findByIdAndCustomer_User_Login(Long id, String login);
 }

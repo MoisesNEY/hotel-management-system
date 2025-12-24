@@ -5,7 +5,6 @@
   "applications": ["hotelBackend"],
   "clientRootFolder": "hotelBackend",
   "databaseType": "sql",
-  "documentation": "El contenido real. Puede ser una imagen, un teléfono o una coordenada.",
   "dto": "mapstruct",
   "fields": [
     {

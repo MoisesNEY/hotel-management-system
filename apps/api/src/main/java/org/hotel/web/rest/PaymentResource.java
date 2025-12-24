@@ -178,6 +178,7 @@ public class PaymentResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority(\"" + org.hotel.security.AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deletePayment(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Payment : {}", id);
         paymentService.delete(id);

@@ -15,77 +15,77 @@ application {
   entities *
 }
 
-
 // ENUMS
 
 enum BookingStatus {
   PENDING_APPROVAL,
-  PENDING_PAYMENT
+  PENDING_PAYMENT,
   CONFIRMED,
   CHECKED_IN,
   CHECKED_OUT,
   CANCELLED
-
 }
+
 enum RoomStatus {
   AVAILABLE,
   OCCUPIED,
   DIRTY,
   MAINTENANCE,
   UNAVAILABLE
-
 }
+
 enum RequestStatus {
   OPEN,
   IN_PROGRESS,
   COMPLETED,
   REJECTED
-
 }
+
 enum Gender {
   MALE,
   FEMALE,
   OTHER
-
 }
+
 enum CollectionType {
   SINGLE_IMAGE,
   GALLERY,
   TEXT_LIST,
   MAP_EMBED
-
 }
+
 enum ServiceStatus {
   OPERATIONAL,
   CLOSED,
   FULL_CAPACITY,
   DOWN
-
 }
+
 enum PaymentMethod {
   CREDIT_CARD,
   CASH,
   PAYPAL,
   BANK_TRANSFER
-
 }
+
 enum InvoiceStatus {
   DRAFT,
   ISSUED,
   PAID,
   CANCELLED
-
 }
 
 // ENTIDADES CORE
 
-entity CustomerDetails {
-  gender Gender required,
-  phone String required pattern(/^\+?[0-9]{7,15}$/),
-  addressLine1 String required,
-  city String required,
-  country String required,
-  email String required,
+entity Customer {
+  firstName String required,
+  lastName String required,
+  email String,
+  gender Gender,
+  phone String pattern(/^\+?[0-9]{7,15}$/),
+  addressLine1 String,
+  city String,
+  country String,
   identificationType String,
   licenseId String required,
   birthDate LocalDate required
@@ -119,7 +119,7 @@ entity Booking {
 
 entity BookingItem {
   price BigDecimal required min(0),
-  occupantName String // El "Dueño de las llaves" de esta habitación específica
+  occupantName String
 }
 
 entity HotelService {
@@ -167,7 +167,7 @@ entity Payment {
   referenceId String
 }
 
-// ENTIDADES DE CONTENIDO)
+// ENTIDADES DE CONTENIDO
 
 entity AssetCollection {
   code String required unique minlength(2) maxlength(50),
@@ -189,7 +189,7 @@ entity WebContent {
 // RELACIONES
 
 relationship OneToOne {
-  CustomerDetails{user(login) required} to User with builtInEntity
+  Customer{user(login)} to User with builtInEntity
 }
 
 relationship OneToMany {
@@ -208,7 +208,7 @@ relationship OneToMany {
 relationship ManyToOne {
   BookingItem{roomType(name) required} to RoomType,
   BookingItem{assignedRoom(roomNumber)} to Room,
-  Booking{customer(login) required} to User with builtInEntity,
+  Booking{customer(licenseId) required} to Customer,
   ServiceRequest{service(name) required} to HotelService,
   Invoice{booking(code)} to Booking
 }

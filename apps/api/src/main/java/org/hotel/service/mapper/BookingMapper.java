@@ -1,56 +1,39 @@
 package org.hotel.service.mapper;
 
-import java.math.BigDecimal;
 import org.hotel.domain.Booking;
-import org.hotel.domain.User;
+import org.hotel.domain.Customer;
 import org.hotel.service.dto.BookingDTO;
-import org.hotel.service.dto.UserDTO;
+import org.hotel.service.dto.CustomerDTO;
 import org.mapstruct.*;
 
 /**
  * Mapper for the entity {@link Booking} and its DTO {@link BookingDTO}.
  */
-@Mapper(componentModel = "spring", uses = { BookingItemMapper.class })
+@Mapper(componentModel = "spring", uses = { BookingItemMapper.class, CustomerMapper.class })
 public interface BookingMapper extends EntityMapper<BookingDTO, Booking> {
-    @Mapping(target = "customer", source = "customer", qualifiedByName = "userLoginToEntity")
-    @Mapping(target = "bookingItems", source = "items")
-    Booking toEntity(BookingDTO bookingDTO);
-
-    @Mapping(target = "customer", source = "customer", qualifiedByName = "userLogin")
+    @Mapping(target = "customer", source = "customer", qualifiedByName = "customerBasic")
     @Mapping(target = "items", source = "bookingItems")
     BookingDTO toDto(Booking s);
 
-    @Override
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "customer", source = "customer", qualifiedByName = "userLoginToEntity")
-    @Mapping(target = "bookingItems", source = "items")
-    void partialUpdate(@MappingTarget Booking entity, BookingDTO dto);
-
-    @Named("userLoginToEntity")
+    @Named("customerBasic")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "login", source = "login")
-    User toEntityUserLogin(UserDTO userDTO);
-
-    @Named("userLogin")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "login", source = "login")
+    @Mapping(target = "licenseId", source = "licenseId")
     @Mapping(target = "firstName", source = "firstName")
     @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "email", source = "email")
-    UserDTO toDtoUserLogin(User user);
+    @Mapping(target = "phone", source = "phone")
+    CustomerDTO toDtoCustomerBasic(Customer customer);
 
     @AfterMapping
-    default void calculateTotalPrice(Booking booking, @MappingTarget BookingDTO bookingDTO) {
-        if (booking.getBookingItems() == null || booking.getBookingItems().isEmpty()) {
-            bookingDTO.setTotalPrice(BigDecimal.ZERO);
-            return;
+    default void calculateTotalPrice(@MappingTarget BookingDTO bookingDTO, Booking booking) {
+        if (booking.getBookingItems() != null) {
+            java.math.BigDecimal total = booking.getBookingItems().stream()
+                .map(org.hotel.domain.BookingItem::getPrice)
+                .filter(java.util.Objects::nonNull)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            bookingDTO.setTotalPrice(total);
         }
-        BigDecimal total = booking.getBookingItems().stream()
-            .map(item -> item.getPrice() != null ? item.getPrice() : BigDecimal.ZERO)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        bookingDTO.setTotalPrice(total);
     }
 
     @AfterMapping
