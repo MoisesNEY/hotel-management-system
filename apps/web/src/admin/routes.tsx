@@ -19,7 +19,7 @@ import {
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
 import RoomTypesView from './views/RoomTypes/RoomTypesView';
-import BookingsView from './views/Bookings/BookingsView'; 
+import BookingsView from './views/Bookings/BookingsView';
 import WalkInWizard from './views/WalkIn/WalkInWizard'; // Import WalkInWizard
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView';

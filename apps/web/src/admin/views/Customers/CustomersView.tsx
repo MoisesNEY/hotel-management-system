@@ -29,7 +29,7 @@ const CustomersView = () => {
             // No need to fetch users separately anymore, CustomerDTO has the data
             const response = await getAllCustomers();
             setCustomers(response.data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading customers", error);
             if (error.response?.status === 403) {
                 setPermissionError(true);
@@ -85,6 +85,7 @@ const CustomersView = () => {
                 const lastName = row.lastName;
 
                 if (!firstName && !lastName) {
+                    const login = row.user?.login;
                     return login ? (
                         <span className="text-gray-600 dark:text-gray-400 font-medium">
                             {login}
@@ -202,11 +203,11 @@ const CustomersView = () => {
                 title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                 size="lg"
             >
-                     <CustomerForm
-                        initialData={editingCustomer}
-                        onSuccess={handleFormSuccess}
-                        onCancel={() => setShowForm(false)}
-                    />
+                <CustomerForm
+                    initialData={editingCustomer}
+                    onSuccess={handleFormSuccess}
+                    onCancel={() => setShowForm(false)}
+                />
             </Modal>
 
             {/* Modal de Confirmación de Eliminación */}
