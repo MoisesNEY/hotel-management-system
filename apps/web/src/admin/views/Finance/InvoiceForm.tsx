@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PlusIcon, TrashIcon, BanknotesIcon } from '@heroicons/react/24/outline';
 import { createInvoice, getInvoiceById, updateInvoice } from '../../../services/admin/invoiceService';
+import { registerManualPayment } from '../../../services/admin/paymentService';
 import type { InvoiceDTO, InvoiceItemDTO } from '../../../types/adminTypes';
 
 const InvoiceForm: React.FC = () => {
@@ -10,6 +11,7 @@ const InvoiceForm: React.FC = () => {
     const isEditMode = !!id;
 
     const [loading, setLoading] = useState(false);
+    const [paying, setPaying] = useState(false);
     const [formData, setFormData] = useState<Partial<InvoiceDTO>>({
         code: '',
         issuedDate: new Date().toISOString(),

@@ -47,6 +47,6 @@ export interface ManualPaymentRequest {
 }
 
 export const registerManualPayment = async (request: ManualPaymentRequest) => {
-  const response = await api.post<PaymentDTO>(`/api/invoices/${request.invoiceId}/pay`);
+  const response = await api.post<PaymentDTO>(`${BASE_URL}/manual`, request);
   return response.data;
 };
