@@ -1,12 +1,8 @@
 package org.hotel.service;
 
 import jakarta.persistence.criteria.JoinType;
+import org.hotel.domain.*; // for static metamodels
 import org.hotel.domain.Booking;
-import org.hotel.domain.BookingItem_;
-import org.hotel.domain.Booking_;
-import org.hotel.domain.ServiceRequest_;
-import org.hotel.domain.User_;
-import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.repository.BookingRepository;
 import org.hotel.service.criteria.BookingCriteria;
 import org.hotel.service.dto.BookingDTO;
@@ -72,15 +68,7 @@ public class BookingQueryService extends QueryService<Booking> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<Booking> createSpecification(BookingCriteria criteria) {
-        Specification<Booking> specification = Specification.where((root, query, cb) -> {
-            // Fetch bookingItems and nested relationships only for data queries, not count queries
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                jakarta.persistence.criteria.Fetch<Booking, org.hotel.domain.BookingItem> itemsFetch = root.fetch(Booking_.bookingItems, JoinType.LEFT);
-                itemsFetch.fetch(BookingItem_.roomType, JoinType.LEFT);
-                itemsFetch.fetch(BookingItem_.assignedRoom, JoinType.LEFT);
-            }
-            return null;
-        });
+        Specification<Booking> specification = Specification.where(null);
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             specification = Specification.allOf(
@@ -99,7 +87,7 @@ public class BookingQueryService extends QueryService<Booking> {
                 buildSpecification(criteria.getServiceRequestsId(), root ->
                     root.join(Booking_.serviceRequests, JoinType.LEFT).get(ServiceRequest_.id)
                 ),
-                buildSpecification(criteria.getCustomerId(), root -> root.join(Booking_.customer, JoinType.LEFT).get(User_.id))
+                buildSpecification(criteria.getCustomerId(), root -> root.join(Booking_.customer, JoinType.LEFT).get(Customer_.id))
             );
         }
         return specification;

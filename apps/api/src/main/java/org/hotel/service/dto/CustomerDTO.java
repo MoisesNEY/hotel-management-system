@@ -7,31 +7,31 @@ import java.util.Objects;
 import org.hotel.domain.enumeration.Gender;
 
 /**
- * A DTO for the {@link org.hotel.domain.CustomerDetails} entity.
+ * A DTO for the {@link org.hotel.domain.Customer} entity.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class CustomerDetailsDTO implements Serializable {
+public class CustomerDTO implements Serializable {
 
     private Long id;
 
     @NotNull
-    private Gender gender;
+    private String firstName;
 
     @NotNull
+    private String lastName;
+
+    private String email;
+
+    private Gender gender;
+
     @Pattern(regexp = "^\\+?[0-9]{7,15}$")
     private String phone;
 
-    @NotNull
     private String addressLine1;
 
-    @NotNull
     private String city;
 
-    @NotNull
     private String country;
-
-    @NotNull
-    private String email;
 
     private String identificationType;
 
@@ -41,7 +41,6 @@ public class CustomerDetailsDTO implements Serializable {
     @NotNull
     private LocalDate birthDate;
 
-    @NotNull
     private UserDTO user;
 
     public Long getId() {
@@ -50,6 +49,30 @@ public class CustomerDetailsDTO implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Gender getGender() {
@@ -92,14 +115,6 @@ public class CustomerDetailsDTO implements Serializable {
         this.country = country;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getIdentificationType() {
         return identificationType;
     }
@@ -137,15 +152,15 @@ public class CustomerDetailsDTO implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDetailsDTO)) {
+        if (!(o instanceof CustomerDTO)) {
             return false;
         }
 
-        CustomerDetailsDTO customerDetailsDTO = (CustomerDetailsDTO) o;
+        CustomerDTO customerDTO = (CustomerDTO) o;
         if (this.id == null) {
             return false;
         }
-        return Objects.equals(this.id, customerDetailsDTO.id);
+        return Objects.equals(this.id, customerDTO.id);
     }
 
     @Override
@@ -156,14 +171,16 @@ public class CustomerDetailsDTO implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "CustomerDetailsDTO{" +
+        return "CustomerDTO{" +
             "id=" + getId() +
+            ", firstName='" + getFirstName() + "'" +
+            ", lastName='" + getLastName() + "'" +
+            ", email='" + getEmail() + "'" +
             ", gender='" + getGender() + "'" +
             ", phone='" + getPhone() + "'" +
             ", addressLine1='" + getAddressLine1() + "'" +
             ", city='" + getCity() + "'" +
             ", country='" + getCountry() + "'" +
-            ", email='" + getEmail() + "'" +
             ", identificationType='" + getIdentificationType() + "'" +
             ", licenseId='" + getLicenseId() + "'" +
             ", birthDate='" + getBirthDate() + "'" +

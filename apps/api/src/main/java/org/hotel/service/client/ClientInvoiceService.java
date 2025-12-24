@@ -43,7 +43,7 @@ public class ClientInvoiceService {
         
         log.debug("Request to get invoices for user : {}", userLogin);
 
-        return invoiceRepository.findByBooking_Customer_Login(userLogin, pageable)
+        return invoiceRepository.findByBooking_Customer_User_Login(userLogin, pageable)
             .map(invoiceMapper::toDto);
     }
 
@@ -57,7 +57,8 @@ public class ClientInvoiceService {
         return invoiceRepository.findOneWithToOneRelationships(id)
             .filter(invoice -> invoice.getBooking() != null && 
                              invoice.getBooking().getCustomer() != null && 
-                             invoice.getBooking().getCustomer().getLogin().equals(userLogin))
+                             invoice.getBooking().getCustomer().getUser() != null &&
+                             invoice.getBooking().getCustomer().getUser().getLogin().equals(userLogin))
             .map(invoiceMapper::toDto);
     }
 

@@ -1,6 +1,5 @@
-// Export all client services
-export * from './bookingService';
-export * from './customerDetailsService';
-export * from './serviceRequestService';
-export * from './invoiceService';
-export * from './paymentService';
+export * as bookingService from './bookingService';
+export * as customerService from './customerService';
+export * as invoiceService from './invoiceService';
+export * as paymentService from './paymentService';
+export * as serviceRequestService from './serviceRequestService';

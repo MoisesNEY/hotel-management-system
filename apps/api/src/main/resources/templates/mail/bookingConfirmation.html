@@ -65,13 +65,14 @@
             <p style="font-size: 13px; color: #666; text-align: center;">Te notificaremos tan pronto como tu pago sea confirmado para finalizar tu reserva.</p>
             
             <div class="button-container">
-                <!-- Check if user has 'ROLE_ADMIN' authority -->
-                <a th:if="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+            <div class="button-container">
+                <!-- Check if user has 'ROLE_ADMIN' authority using 'account' variable -->
+                <a th:if="${account != null && account.authorities.![name].contains('ROLE_ADMIN')}" 
                    th:href="|${baseUrl}/admin/bookings|" 
                    class="button">Gestionar Reserva</a>
                    
                 <!-- Else (User) -->
-                <a th:unless="${#strings.contains(user.authorities, 'ROLE_ADMIN')}" 
+                <a th:unless="${account != null && account.authorities.![name].contains('ROLE_ADMIN')}" 
                    th:href="|${baseUrl}/client/dashboard|" 
                    class="button">Ver Mi Reserva</a>
             </div>

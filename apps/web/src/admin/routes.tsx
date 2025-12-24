@@ -11,14 +11,16 @@ import {
     UserGroupIcon,
     DocumentTextIcon,
     ChartBarIcon,
-    TableCellsIcon
+    TableCellsIcon,
+    UserPlusIcon
 } from '@heroicons/react/24/outline';
 
 // Import views
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
 import RoomTypesView from './views/RoomTypes/RoomTypesView';
-import BookingsView from './views/Bookings/BookingsView';
+import BookingsView from './views/Bookings/BookingsView'; 
+import WalkInWizard from './views/WalkIn/WalkInWizard'; // Import WalkInWizard
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView';
 import MapsView from './views/Maps/MapsView';
@@ -78,6 +80,13 @@ const routes: RouteConfig[] = [
         component: BookingsView,
         layout: '/admin',
         allowedRoles: ['ROLE_ADMIN']
+    },
+    {
+        path: '/walk-in',
+        name: 'Walk-In',
+        icon: UserPlusIcon,
+        component: WalkInWizard,
+        layout: '/admin'
     },
     {
         path: '/services',

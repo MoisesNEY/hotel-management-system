@@ -1,6 +1,5 @@
 // Enums as union types (for erasableSyntaxOnly compatibility)
 export type BookingStatus =
-    | 'PENDING'
     | 'PENDING_APPROVAL'
     | 'PENDING_PAYMENT'
     | 'CONFIRMED'
@@ -105,8 +104,8 @@ export interface PaymentCaptureRequest {
     invoiceId: number;
 }
 
-// Customer Details Types
-export interface CustomerDetailsCreateRequest {
+// Customer Types (Renamed from CustomerDetails)
+export interface CustomerCreateRequest {
     gender: Gender;
     phone: string;
     addressLine1: string;
@@ -114,17 +113,21 @@ export interface CustomerDetailsCreateRequest {
     country: string;
     licenseId: string;
     birthDate: string; // ISO date string (YYYY-MM-DD)
+    firstName?: string;
+    lastName?: string;
 }
 
-export interface CustomerDetailsUpdateRequest {
-    gender: Gender;
-    phone: string;
-    addressLine1: string;
-    city: string;
-    country: string;
+export interface CustomerUpdateRequest {
+    firstName?: string;
+    lastName?: string;
+    gender?: Gender;
+    phone?: string;
+    addressLine1?: string;
+    city?: string;
+    country?: string;
 }
 
-export interface CustomerDetailsResponse {
+export interface CustomerResponse {
     id: number;
     gender: Gender;
     phone: string;

@@ -14,7 +14,7 @@
                                  baseTableName="booking"
                                  constraintName="fk_booking__customer_id"
                                  referencedColumnNames="id"
-                                 referencedTableName="jhi_user"
+                                 referencedTableName="customer"
                                  />
     </changeSet>
 </databaseChangeLog>

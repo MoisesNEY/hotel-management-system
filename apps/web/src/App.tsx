@@ -3,7 +3,7 @@ import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './contexts/AuthProvider';
 import LandingPage from './pages/LandingPage';
-import CustomerDetailsPage from './pages/CustomerDetailsPage';
+import ClientCustomerPage from './pages/ClientCustomerPage';
 import UserProfilePage from './pages/UserProfilePage';
 import ClientLayout from './layouts/ClientLayout';
 import ClientDashboardPage from './pages/ClientDashboardPage';
@@ -54,7 +54,7 @@ function App() {
           </Route>
 
           {/* Ruta para llenar detalles (excluida de RequireProfile para evitar ciclo) */}
-          <Route path="/customer" element={<CustomerDetailsPage />} />
+          <Route path="/customer" element={<ClientCustomerPage />} />
           
           {/* Rutas Administrativas (Requieren Rol) */}
           <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']} />}>

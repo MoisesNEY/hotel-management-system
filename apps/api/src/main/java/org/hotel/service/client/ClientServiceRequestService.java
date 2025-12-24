@@ -59,7 +59,7 @@ public class ClientServiceRequestService {
 
         // VALIDACIÓN DE SEGURIDAD
         // Buscamos la reserva PERO solo si pertenece a este usuario.
-        Booking booking = bookingRepository.findByIdAndCustomer_Login(request.getBookingId(), userLogin)
+        Booking booking = bookingRepository.findByIdAndCustomer_User_Login(request.getBookingId(), userLogin)
             .orElseThrow(() -> new AccessDeniedException("No tienes permiso para solicitar servicios en esta reserva o no existe."));
 
         // Buscar el servicio solicitado
@@ -120,7 +120,7 @@ public class ClientServiceRequestService {
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
         // Metodo para filtar por login
-        return serviceRequestRepository.findByBooking_Customer_Login(userLogin, pageable)
+        return serviceRequestRepository.findByBooking_Customer_User_Login(userLogin, pageable)
             .map(clientServiceRequestMapper::toClientResponse);
     }
 }

@@ -4,43 +4,49 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CustomerDetailsTestSamples {
+public class CustomerTestSamples {
 
     private static final Random random = new Random();
     private static final AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
-    public static CustomerDetails getCustomerDetailsSample1() {
-        return new CustomerDetails()
+    public static Customer getCustomerSample1() {
+        return new Customer()
             .id(1L)
+            .firstName("firstName1")
+            .lastName("lastName1")
+            .email("email1")
             .phone("phone1")
             .addressLine1("addressLine11")
             .city("city1")
             .country("country1")
-            .email("email1")
             .identificationType("identificationType1")
             .licenseId("licenseId1");
     }
 
-    public static CustomerDetails getCustomerDetailsSample2() {
-        return new CustomerDetails()
+    public static Customer getCustomerSample2() {
+        return new Customer()
             .id(2L)
+            .firstName("firstName2")
+            .lastName("lastName2")
+            .email("email2")
             .phone("phone2")
             .addressLine1("addressLine12")
             .city("city2")
             .country("country2")
-            .email("email2")
             .identificationType("identificationType2")
             .licenseId("licenseId2");
     }
 
-    public static CustomerDetails getCustomerDetailsRandomSampleGenerator() {
-        return new CustomerDetails()
+    public static Customer getCustomerRandomSampleGenerator() {
+        return new Customer()
             .id(longCount.incrementAndGet())
+            .firstName(UUID.randomUUID().toString())
+            .lastName(UUID.randomUUID().toString())
+            .email(UUID.randomUUID().toString())
             .phone(UUID.randomUUID().toString())
             .addressLine1(UUID.randomUUID().toString())
             .city(UUID.randomUUID().toString())
             .country(UUID.randomUUID().toString())
-            .email(UUID.randomUUID().toString())
             .identificationType(UUID.randomUUID().toString())
             .licenseId(UUID.randomUUID().toString());
     }

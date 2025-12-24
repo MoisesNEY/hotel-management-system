@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { getAllInvoices, deleteInvoice } from '../../../services/admin/invoiceService';
+import { PlusIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { getAllInvoices, deleteInvoice, cancelInvoice } from '../../../services/admin/invoiceService';
 import type { InvoiceDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
 import ActionButton from '../../../admin/components/shared/ActionButton';
@@ -53,6 +53,18 @@ const InvoiceList: React.FC = () => {
             } catch (error) {
                 console.error("Error deleting invoice", error);
                 // In a real app, show toast error
+            }
+        }
+    };
+
+    const handleCancelClick = async (id: number) => {
+        if (window.confirm("¿Seguro que deseas cancelar esta factura emitida?")) {
+            try {
+                await cancelInvoice(id);
+                loadInvoices();
+            } catch (error) {
+                 console.error("Error cancelling invoice", error);
+                 alert("No se pudo cancelar la factura. Verifique reglas de negocio.");
             }
         }
     };
@@ -133,33 +145,45 @@ const InvoiceList: React.FC = () => {
                                                     : invoice.status === 'PENDING'
                                                         ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20'
                                                         : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                                                    }`}>
-                                                    {invoice.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <ActionButton
-                                                        onClick={() => navigate(`/admin/invoices/edit/${invoice.id}`)}
-                                                        icon={PencilSquareIcon}
-                                                        label="Editar"
-                                                        variant="ghost"
-                                                    />
-                                                    <ActionButton
+                                            }`}>
+                                                {invoice.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <ActionButton 
+                                                    onClick={() => navigate(`/admin/invoices/edit/${invoice.id}`)}
+                                                    icon={PencilSquareIcon}
+                                                    label="Editar"
+                                                    variant="ghost"
+                                                />
+        
+                                                {invoice.status === 'DRAFT' && (
+                                                    <ActionButton 
                                                         onClick={() => handleDeleteClick(invoice.id)}
                                                         icon={TrashIcon}
                                                         label="Eliminar"
                                                         variant="ghost"
                                                         className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
                                                     />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                )}
+                                                {invoice.status === 'ISSUED' && (
+                                                    <ActionButton 
+                                                        onClick={() => handleCancelClick(invoice.id)}
+                                                        icon={ExclamationTriangleIcon}
+                                                        label="Cancelar"
+                                                        variant="ghost"
+                                                        className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10"
+                                                    />
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                     {/* Pagination (Simple) */}
                     <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">

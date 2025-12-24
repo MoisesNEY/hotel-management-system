@@ -8,7 +8,7 @@ import org.hotel.domain.enumeration.BookingStatus;
 import org.hotel.service.dto.client.request.booking.BookingCreateRequest;
 import org.hotel.service.dto.client.request.booking.BookingItemRequest; // Asegúrate de crear este DTO
 import org.hotel.service.dto.client.response.booking.BookingResponse;
-import org.hotel.service.dto.client.response.booking.BookingItemResponse; // Asegúrate de crear este DTO
+import org.hotel.service.dto.client.response.booking.BookingResponse.BookingItemResponse;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -28,7 +28,7 @@ public interface ClientBookingMapper {
     BookingItemResponse toItemResponse(BookingItem item);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", constant = "PENDING")
+    @Mapping(target = "status", constant = "PENDING_APPROVAL")
     @Mapping(target = "customer", ignore = true)
     @Mapping(target = "bookingItems", source = "items")
     @Mapping(target = "notes", ignore = true)

@@ -12,7 +12,8 @@ export const API_ENDPOINTS = {
 
 export const BOOKING_STATUS_COLORS = {
     CONFIRMED: 'success',
-    PENDING: 'warning',
+    PENDING_APPROVAL: 'warning',
+    PENDING_PAYMENT: 'complementary',
     CANCELLED: 'danger',
     CHECKED_IN: 'info',
     CHECKED_OUT: 'primary'

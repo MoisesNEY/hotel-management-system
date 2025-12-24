@@ -5,10 +5,13 @@ import { getAllPayments, deletePayment } from '../../../services/admin/paymentSe
 import type { PaymentDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
 import ActionButton from '../../../admin/components/shared/ActionButton';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 const PaymentList: React.FC = () => {
     const navigate = useNavigate();
+    const { hasRole } = useAuth();
     const [payments, setPayments] = useState<PaymentDTO[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -80,19 +83,76 @@ const PaymentList: React.FC = () => {
                 </button>
             </div>
 
-            {permissionError ? (
-                <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-red-200 dark:border-red-900/20 p-12 text-center flex flex-col items-center justify-center space-y-4">
-                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center">
-                        <TrashIcon className="w-8 h-8" />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403)</h2>
-                    <p className="max-w-md text-gray-500 dark:text-gray-400">
-                        El servidor ha rechazado el acceso a la lista de pagos para tu rol actual.
-                        Por favor, contacta al administrador para habilitar los permisos de <code className="bg-gray-100 dark:bg-white/5 px-1 rounded text-red-500 font-bold">ROL_EMPLEADO</code> en el backend.
-                    </p>
-                    <button
-                        onClick={loadPayments}
-                        className="px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+            <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
+                        <tr>
+                            <th className="px-6 py-4">ID</th>
+                            <th className="px-6 py-4">Fecha</th>
+                            <th className="px-6 py-4">Ref. Factura</th>
+                            <th className="px-6 py-4">Monto</th>
+                            <th className="px-6 py-4">Método</th>
+                            <th className="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
+                        {loading ? (
+                            <tr><td colSpan={6} className="py-8 text-center text-gray-500">Cargando...</td></tr>
+                        ) : !payments || payments.length === 0 ? (
+                            <tr><td colSpan={6} className="py-8 text-center text-gray-500">No hay pagos registrados</td></tr>
+                        ) : (
+                            payments.map((payment) => (
+                                <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    <td className="px-6 py-4 text-gray-500">#{payment.id}</td>
+                                    <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                                        {new Date(payment.date).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-6 py-4 font-mono text-[#d4af37]">
+                                        {payment.invoice?.code || String(payment.invoice?.id || '')}
+                                    </td>
+                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                                        ${payment.amount}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex px-2 py-1 rounded bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                            {payment.method}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            {/* Edit Button Removed: Payments are immutable ledger records */}
+                                            
+                                            {/* Delete allowed for ADMIN only */}
+                                            {hasRole('ROLE_ADMIN') && (
+                                                <ActionButton 
+                                                    onClick={() => handleDelete(payment)}
+                                                    icon={TrashIcon}
+                                                    label="Eliminar"
+                                                    variant="ghost"
+                                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                />
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+                 {/* Pagination (Simple) */}
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
+                    <button 
+                        disabled={page === 0}
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
+                    >
+                        Anterior
+                    </button>
+                    <span className="text-sm py-1 text-gray-600 dark:text-gray-400">Página {page + 1} de {totalPages || 1}</span>
+                    <button 
+                        disabled={page >= totalPages - 1}
+                        onClick={() => setPage(p => p + 1)}
+                        className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
                     >
                         Reintentar
                     </button>

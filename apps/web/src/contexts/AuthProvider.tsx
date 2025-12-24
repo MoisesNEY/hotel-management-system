@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 3. Verificar backend (Solo si no está confirmado localmente o para confirmar)
     try {
       // Import dinámico para evitar ciclos si customerDetailsService importa auth
-      const { getMyProfile } = await import('../services/client/customerDetailsService');
+      const { getMyProfile } = await import('../services/client/customerService');
       await getMyProfile();
 
       // Si tiene perfil (200 OK)

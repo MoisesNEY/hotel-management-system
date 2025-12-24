@@ -4,19 +4,17 @@ import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
-import { getAllCustomerDetails, deleteCustomerDetails } from '../../../services/admin/customerDetailsService';
-import { getAllUsers } from '../../../services/admin/userService';
-import type { CustomerDetailsDTO, AdminUserDTO } from '../../../types/adminTypes';
+import { getAllCustomers, deleteCustomer } from '../../../services/admin/customerService';
+import type { CustomerDTO, AdminUserDTO } from '../../../types/adminTypes';
 import CustomerForm from './CustomerForm';
 import { formatDate } from '../../utils/helpers';
 import { Trash2, Plus } from 'lucide-react';
 
 const CustomersView = () => {
-    const [customers, setCustomers] = useState<CustomerDetailsDTO[]>([]);
-    const [usersMap, setUsersMap] = useState<Record<string, AdminUserDTO>>({});
+    const [customers, setCustomers] = useState<CustomerDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [editingCustomer, setEditingCustomer] = useState<CustomerDetailsDTO | null>(null);
+    const [editingCustomer, setEditingCustomer] = useState<CustomerDTO | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerToDeleteId, setCustomerToDeleteId] = useState<number | null>(null);
     const [permissionError, setPermissionError] = useState(false);
@@ -28,25 +26,10 @@ const CustomersView = () => {
     const loadCustomers = async () => {
         try {
             setLoading(true);
-
-            // Fetch customers
-            const customersParams = await getAllCustomerDetails();
-            setCustomers(customersParams.data);
-
-            // Fetch users (optional, might fail if user is not admin)
-            try {
-                const usersParams = await getAllUsers(0, 200);
-                const map: Record<string, AdminUserDTO> = {};
-                usersParams.data.forEach(u => {
-                    if (u.id) map[u.id] = u;
-                    if (u.login) map[u.login] = u;
-                });
-                console.log("[CustomersView] Users mapped:", Object.keys(map).length);
-                setUsersMap(map);
-            } catch (userError) {
-                console.warn("Could not load users list.");
-            }
-        } catch (error: any) {
+            // No need to fetch users separately anymore, CustomerDTO has the data
+            const response = await getAllCustomers();
+            setCustomers(response.data);
+        } catch (error) {
             console.error("Error loading customers", error);
             if (error.response?.status === 403) {
                 setPermissionError(true);
@@ -61,7 +44,7 @@ const CustomersView = () => {
         setShowForm(true);
     };
 
-    const handleEdit = (customer: CustomerDetailsDTO) => {
+    const handleEdit = (customer: CustomerDTO) => {
         setEditingCustomer(customer);
         setShowForm(true);
     };
@@ -75,7 +58,7 @@ const CustomersView = () => {
         if (!customerToDeleteId) return;
 
         try {
-            await deleteCustomerDetails(customerToDeleteId);
+            await deleteCustomer(customerToDeleteId);
             setCustomers(prev => prev.filter(c => c.id !== customerToDeleteId));
             setShowDeleteModal(false);
             setCustomerToDeleteId(null);
@@ -90,7 +73,7 @@ const CustomersView = () => {
         loadCustomers();
     };
 
-    const columns: Column<CustomerDetailsDTO>[] = [
+    const columns: Column<CustomerDTO>[] = [
         {
             header: 'ID',
             accessor: (row) => row.id
@@ -98,13 +81,8 @@ const CustomersView = () => {
         {
             header: 'Nombre',
             accessor: (row) => {
-                const userId = row.user?.id;
-                const userLogin = row.user?.login;
-                const user = (userId ? usersMap[userId] : null) || (userLogin ? usersMap[userLogin] : null);
-
-                const firstName = user?.firstName || row.user?.firstName;
-                const lastName = user?.lastName || row.user?.lastName;
-                const login = user?.login || row.user?.login;
+                const firstName = row.firstName;
+                const lastName = row.lastName;
 
                 if (!firstName && !lastName) {
                     return login ? (
@@ -120,21 +98,7 @@ const CustomersView = () => {
         },
         {
             header: 'Email',
-            accessor: (row) => {
-                const userId = row.user?.id;
-                const userLogin = row.user?.login;
-                const user = (userId ? usersMap[userId] : null) || (userLogin ? usersMap[userLogin] : null);
-
-                const email = user?.email || row.user?.email;
-
-                return email ? (
-                    <span className="text-gray-900 dark:text-white font-medium">{email}</span>
-                ) : (
-                    <span className="text-gray-400 dark:text-gray-500 italic text-xs bg-gray-50 dark:bg-white/5 px-2 py-0.5 rounded border border-gray-200 dark:border-white/5">
-                        Email no disponible
-                    </span>
-                );
-            }
+            accessor: (row) => row.email || <span className="text-gray-400 italic">Sin Email</span>
         },
         {
             header: 'Género',
@@ -238,11 +202,11 @@ const CustomersView = () => {
                 title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                 size="lg"
             >
-                <CustomerForm
-                    initialData={editingCustomer}
-                    onSuccess={handleFormSuccess}
-                    onCancel={() => setShowForm(false)}
-                />
+                     <CustomerForm
+                        initialData={editingCustomer}
+                        onSuccess={handleFormSuccess}
+                        onCancel={() => setShowForm(false)}
+                    />
             </Modal>
 
             {/* Modal de Confirmación de Eliminación */}

@@ -31,6 +31,13 @@ public interface BookingItemMapper extends EntityMapper<BookingItemDTO, BookingI
     @Mapping(target = "name", source = "name")
     RoomTypeDTO toDtoRoomTypeName(RoomType roomType);
 
+    @AfterMapping
+    default void mapRoomTypeName(@MappingTarget BookingItemDTO request, BookingItem item) {
+        if (item.getRoomType() != null) {
+            request.setRoomTypeName(item.getRoomType().getName());
+        }
+    }
+
     @Named("roomRoomNumber")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")

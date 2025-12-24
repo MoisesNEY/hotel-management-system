@@ -74,8 +74,6 @@ export const getBookingStatusConfig = (status: BookingStatus) => {
             return { label: 'Pend. Aprobación', variant: 'warning' as const };
         case 'PENDING_PAYMENT':
             return { label: 'Pend. Pago', variant: 'info' as const };
-        case 'PENDING':
-            return { label: 'Pendiente', variant: 'warning' as const };
         case 'CHECKED_IN':
             return { label: 'Check-In', variant: 'primary' as const };
         case 'CHECKED_OUT':
