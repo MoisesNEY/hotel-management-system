@@ -56,6 +56,10 @@ public class PaymentService {
         // Logic to Confirm Booking & Invoice
         if (payment.getInvoice() != null && payment.getInvoice().getId() != null) {
             invoiceRepository.findById(payment.getInvoice().getId()).ifPresent(invoice -> {
+                if (payment.getAmount().compareTo(invoice.getTotalAmount()) != 0) {
+                     throw new org.hotel.web.rest.errors.BusinessRuleException("No se admiten pagos parciales. El monto debe ser exactamente: " + invoice.getTotalAmount());
+                }
+
                 // 1. Mark Invoice as PAID
                 invoice.setStatus(InvoiceStatus.PAID);
                 
