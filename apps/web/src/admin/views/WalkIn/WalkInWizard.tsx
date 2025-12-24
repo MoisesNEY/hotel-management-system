@@ -301,8 +301,8 @@ const WalkInWizard = () => {
                         )}
 
                         {isCreatingCustomer && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-                                <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 dark:border-[#333] transform transition-all scale-100">
+                            <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fadeIn">
+                                <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 dark:border-[#333] transform transition-all scale-100 m-4">
 
                                     {/* Header */}
                                     <div className="bg-gray-50 dark:bg-[#252525] p-5 border-b border-gray-100 dark:border-[#333] flex justify-between items-center">
