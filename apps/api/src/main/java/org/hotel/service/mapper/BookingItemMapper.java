@@ -13,7 +13,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link BookingItem} and its DTO {@link BookingItemDTO}.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BookingItemMapper extends EntityMapper<BookingItemDTO, BookingItem> {
     @Mapping(target = "roomType", source = "roomType")
     @Mapping(target = "assignedRoom", source = "assignedRoom")
