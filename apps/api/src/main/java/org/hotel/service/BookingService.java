@@ -372,8 +372,10 @@ public class BookingService {
             .orElseThrow(() -> new ResourceNotFoundException("Reserva", bookingId));
 
         if (BookingStatus.CHECKED_IN.equals(booking.getStatus()) ||
-            BookingStatus.CHECKED_OUT.equals(booking.getStatus())) {
-            throw new BusinessRuleException("No puede borrar una reserva en estado CHECK-IN o CHECK-OUT");
+            BookingStatus.CHECKED_OUT.equals(booking.getStatus()) ||
+            BookingStatus.CONFIRMED.equals(booking.getStatus()) ||
+            BookingStatus.PENDING_PAYMENT.equals(booking.getStatus())) {
+            throw new BusinessRuleException("No puede borrar una reserva en el estado actual " + booking.getStatus());
         }
         if (serviceRequestRepository.existsByBookingId(bookingId)) {
             throw new BusinessRuleException("La reserva tiene solicitudes de servicio asociadas, bórrelas primero");

@@ -16,6 +16,7 @@ import org.hotel.repository.InvoiceRepository;
 import org.hotel.service.dto.InvoiceDTO;
 import org.hotel.service.mapper.InvoiceMapper;
 import org.hotel.web.rest.errors.BadRequestAlertException;
+import org.hotel.web.rest.errors.BusinessRuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -202,10 +203,10 @@ public class InvoiceService {
 
             // 1. Check strict constrains
             if (InvoiceStatus.PAID.equals(invoice.getStatus())) {
-                 throw new BadRequestAlertException("Cannot delete a PAID invoice", "invoice", "cannotdeletepaid");
+                 throw new BusinessRuleException("No se puede eliminar una factura con estado pagada.");
             }
             if (!invoice.getPayments().isEmpty()) {
-                 throw new BadRequestAlertException("Cannot delete invoice with existing payments", "invoice", "haspayments");
+                 throw new BusinessRuleException("No se puede eliminar una factura con pagos.");
             }
 
             // 2. Logic based on Status
@@ -220,12 +221,8 @@ public class InvoiceService {
                  invoice.setStatus(InvoiceStatus.CANCELLED);
                  invoiceRepository.save(invoice);
             } else if (InvoiceStatus.CANCELLED.equals(invoice.getStatus())) {
-                 // Already cancelled, maybe allow physical delete? Or no-op?
-                 // For safety given the audit trail nature, we'll block physical delete here too unless explicit.
-                 // But sticking to user request: "permiter borrar" for Draft only.
-                 throw new BadRequestAlertException("Cannot delete a Cancelled invoice. It is part of audit.", "invoice", "cannotdeletecancelled");
+                 throw new BusinessRuleException("No se puede eliminar una factura con estado cancelada, forma parte de datos de auditoria.");
             } else {
-                 // Unhandled status (shouldn't happen)
                  invoiceRepository.deleteById(id);
             }
         }
