@@ -1,16 +1,12 @@
 package org.hotel.web.rest;
 
-import jakarta.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
-import org.hotel.config.Constants;
-import org.hotel.domain.User;
+import java.util.List;
+import java.util.Optional;
+
 import org.hotel.repository.UserRepository;
 import org.hotel.security.AuthoritiesConstants;
 import org.hotel.service.UserService;
 import org.hotel.service.dto.AdminUserDTO;
-import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.hotel.web.rest.errors.EmailAlreadyUsedException;
 import org.hotel.web.rest.errors.LoginAlreadyUsedException;
 import org.slf4j.Logger;
@@ -22,8 +18,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import jakarta.validation.Valid;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
@@ -47,7 +51,7 @@ public class UserResource {
 
     /**
      * {@code GET /admin/users} : get all users with all the details.
-     * Permitido para ADMIN y EMPLOYEE para poder mapear nombres y correos.
+     * ACCESO: ADMIN y EMPLOYEE (para visualizar nombres en listas de reserva/clientes).
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority(\"" + AuthoritiesConstants.ADMIN + "\", \"" + AuthoritiesConstants.EMPLOYEE + "\")")
@@ -63,7 +67,7 @@ public class UserResource {
 
     /**
      * {@code GET /admin/users/:login} : get the "login" user.
-     * Permitido para ADMIN y EMPLOYEE.
+     * ACCESO: ADMIN y EMPLOYEE.
      */
     @GetMapping("/{login}")
     @PreAuthorize("hasAnyAuthority(\"" + AuthoritiesConstants.ADMIN + "\", \"" + AuthoritiesConstants.EMPLOYEE + "\")")
@@ -74,7 +78,7 @@ public class UserResource {
 
     /**
      * {@code PUT /admin/users} : Updates an existing User.
-     * SOLO ADMINISTRADORES pueden editar usuarios.
+     * ACCESO RESTRINGIDO: Solo Admin puede modificar usuarios del sistema.
      */
     @PutMapping
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
@@ -102,7 +106,7 @@ public class UserResource {
 
     /**
      * {@code DELETE /admin/users/:login} : delete the "login" User.
-     * SOLO ADMINISTRADORES pueden eliminar usuarios.
+     * ACCESO RESTRINGIDO: Solo Admin puede borrar usuarios.
      */
     @DeleteMapping("/{login}")
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")

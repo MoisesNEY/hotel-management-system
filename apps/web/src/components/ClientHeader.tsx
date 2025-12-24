@@ -5,7 +5,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 
 const ClientHeader: React.FC = () => {
-  const { userProfile, logout } = useAuth();
+  const { userProfile, logout, getHighestRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,6 +25,12 @@ const ClientHeader: React.FC = () => {
 
   const username = `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || userProfile?.username || 'Cliente';
 
+  const userRole = getHighestRole();
+  const roleLabel =
+    userRole === 'ROLE_ADMIN' ? 'Administrador' :
+      userRole === 'ROLE_EMPLOYEE' ? 'Empleado' :
+        userRole === 'ROLE_CLIENT' ? 'Cliente' : 'Usuario';
+
   const menuItems = [
     { name: 'Dashboard', path: '/client/dashboard' },
     { name: 'Servicios', path: '/client/services' },
@@ -32,9 +38,8 @@ const ClientHeader: React.FC = () => {
   ];
 
   return (
-    <header className={`fixed top-0 w-full z-[1000] transition-all duration-300 ${
-      isScrolled ? 'bg-white/95 dark:bg-[#050505]/95 backdrop-blur-md border-b border-gray-200 dark:border-white/5 py-4 shadow-sm dark:shadow-none' : 'bg-transparent py-6'
-    }`}>
+    <header className={`fixed top-0 w-full z-[1000] transition-all duration-300 ${isScrolled ? 'bg-white/95 dark:bg-[#050505]/95 backdrop-blur-md border-b border-gray-200 dark:border-white/5 py-4 shadow-sm dark:shadow-none' : 'bg-transparent py-6'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -49,9 +54,8 @@ const ClientHeader: React.FC = () => {
               <Link
                 key={item.path + item.name}
                 to={item.path}
-                className={`text-sm font-medium tracking-wide transition-colors hover:text-[#d4af37] ${
-                  location.pathname === item.path ? 'text-[#d4af37]' : 'text-gray-600 dark:text-gray-400'
-                }`}
+                className={`text-sm font-medium tracking-wide transition-colors hover:text-[#d4af37] ${location.pathname === item.path ? 'text-[#d4af37]' : 'text-gray-600 dark:text-gray-400'
+                  }`}
               >
                 {item.name}
               </Link>
@@ -61,11 +65,11 @@ const ClientHeader: React.FC = () => {
           {/* User Section */}
           <div className="flex items-center gap-2">
             <ThemeToggle variant="icon" className="p-2.5 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-[#d4af37]" />
-            
+
             <div className="h-8 w-px bg-white/10 mx-2 hidden sm:block"></div>
 
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-white/10 transition-all group"
               >
@@ -74,7 +78,7 @@ const ClientHeader: React.FC = () => {
                 </div>
                 <div className="hidden sm:flex flex-col items-start leading-tight">
                   <span className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-[#d4af37] transition-colors">{username}</span>
-                  <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Cliente</span>
+                  <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{roleLabel}</span>
                 </div>
                 <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 group-hover:text-[#d4af37] ${showUserMenu ? 'rotate-180' : ''}`} />
               </button>
@@ -82,11 +86,16 @@ const ClientHeader: React.FC = () => {
               {showUserMenu && (
                 <div className="absolute top-[calc(100%+12px)] right-0 w-64 bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-                    <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Sesión activa</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Sesión activa</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-default/10 text-gold-default border border-gold-default/20">
+                        {roleLabel}
+                      </span>
+                    </div>
                     <p className="text-sm font-semibold text-[#d4af37] truncate">{userProfile?.email || username}</p>
                   </div>
                   <div className="p-2 space-y-1">
-                    <button 
+                    <button
                       onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-all group"
                     >
@@ -96,7 +105,7 @@ const ClientHeader: React.FC = () => {
                       Mi Perfil
                     </button>
                     <div className="h-px bg-gray-100 dark:bg-white/5 my-1 mx-2"></div>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all group"
                     >
@@ -133,7 +142,7 @@ const ClientHeader: React.FC = () => {
               </Link>
             ))}
             <div className="h-px bg-white/5 my-2" />
-            <button 
+            <button
               onClick={handleLogout}
               className="flex items-center gap-3 text-rose-500 font-medium"
             >

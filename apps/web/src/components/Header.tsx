@@ -6,7 +6,7 @@ import ThemeToggle from './ThemeToggle';
 import { useSectionVisibility } from '../hooks/useContent';
 
 const Header: React.FC = () => {
-  const { isAuthenticated, userProfile, login, logout, hasProfile } = useAuth();
+  const { isAuthenticated, userProfile, login, logout, hasProfile, getHighestRole } = useAuth();
   const navigate = useNavigate();
 
   // Visibility hooks for Navbar links
@@ -123,6 +123,12 @@ const Header: React.FC = () => {
     'Usuario';
 
   const email = userProfile?.email || '';
+
+  const userRole = getHighestRole();
+  const roleLabel =
+    userRole === 'ROLE_ADMIN' ? 'Administrador' :
+      userRole === 'ROLE_EMPLOYEE' ? 'Empleado' :
+        userRole === 'ROLE_CLIENT' ? 'Cliente' : 'Usuario';
 
   const getInitials = (name?: string) => {
     if (!name) return '';
@@ -363,6 +369,9 @@ const Header: React.FC = () => {
                               </span>
                               <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                 {email}
+                              </span>
+                              <span className="mt-1 text-[10px] font-bold text-gold-default uppercase tracking-wider">
+                                {roleLabel}
                               </span>
                             </div>
                           </div>
