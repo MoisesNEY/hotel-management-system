@@ -15,7 +15,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { userProfile, logout } = useAuth();
+    const { userProfile, logout, getHighestRole } = useAuth();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
@@ -53,6 +53,12 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     };
 
     const username = `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || userProfile?.username || 'Administrador';
+
+    const userRole = getHighestRole();
+    const roleLabel =
+        userRole === 'ROLE_ADMIN' ? 'Administrador' :
+            userRole === 'ROLE_EMPLOYEE' ? 'Empleado' :
+                userRole === 'ROLE_CLIENT' ? 'Cliente' : 'Usuario';
 
     const getInitials = (name: string) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -133,7 +139,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                                     {username}
                                 </span>
                                 <span className="text-[10px] text-gray-500 font-medium uppercase tracking-tighter">
-                                    Administrador
+                                    {roleLabel}
                                 </span>
                             </div>
                             <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
@@ -143,7 +149,12 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                         {showUserMenu && (
                             <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 p-2 animate-[scaleIn_0.2s_ease-out] origin-top-right">
                                 <div className="px-4 py-3 mb-1">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Cuenta</p>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Cuenta</p>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-default/10 text-gold-default border border-gold-default/20">
+                                            {roleLabel}
+                                        </span>
+                                    </div>
                                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{userProfile?.email || 'admin@hotel.com'}</p>
                                 </div>
 

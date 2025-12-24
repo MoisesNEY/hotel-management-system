@@ -5,7 +5,6 @@ import {
     CalendarDaysIcon,
     SparklesIcon,
     UsersIcon,
-    MapPinIcon,
     UserIcon,
     ComputerDesktopIcon,
     UserGroupIcon,
@@ -20,11 +19,10 @@ import {
 import Dashboard from './views/Dashboard/Dashboard';
 import RoomsView from './views/Rooms/RoomsView';
 import RoomTypesView from './views/RoomTypes/RoomTypesView';
-import BookingsView from './views/Bookings/BookingsView'; 
+import BookingsView from './views/Bookings/BookingsView';
 import WalkInWizard from './views/WalkIn/WalkInWizard'; // Import WalkInWizard
 import ServicesView from './views/Services/ServicesView';
 import CustomersView from './views/Customers/CustomersView';
-import MapsView from './views/Maps/MapsView';
 import UserProfileView from './views/UserProfile/UserProfileView';
 import TablesView from './views/Tables/TablesView';
 import CMSList from './views/CMS/CMSList';
@@ -37,6 +35,7 @@ import InvoiceForm from './views/Finance/InvoiceForm';
 import PaymentList from './views/Finance/PaymentList';
 import PaymentForm from './views/Finance/PaymentForm';
 import SystemHealthView from './views/SystemHealth/SystemHealthView';
+import UsersView from './views/Users/UsersView';
 import { BanknotesIcon } from '@heroicons/react/24/outline';
 
 export interface RouteConfig {
@@ -121,6 +120,14 @@ const routes: RouteConfig[] = [
         component: CustomersView,
         layout: '/admin',
         allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
+    },
+    {
+        path: '/users',
+        name: 'Empleados',
+        icon: UserGroupIcon,
+        component: UsersView,
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
     {
         path: '/maps',

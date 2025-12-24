@@ -28,6 +28,7 @@ import Card from '../../components/shared/Card';
 import * as dashboardService from '../../../services/admin/dashboardService';
 import { getRoomsChartData, type RoomsChartData } from '../../../services/admin/roomService';
 import { getServicesChartData, type ServicesChartData } from '../../../services/admin/serviceRequestService';
+import { getAllCustomers } from '../../../services/admin/customerService';
 import type { DashboardStats, ChartData } from '../../../services/admin/dashboardService';
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
@@ -53,7 +54,12 @@ const Dashboard = () => {
     const { hasRole } = useAuth();
     const isDark = theme === 'dark';
     const isAdmin = hasRole('ROLE_ADMIN');
-    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [stats, setStats] = useState<DashboardStats>({
+        totalBookings: 0,
+        totalRevenue: 0,
+        occupancyRate: 0,
+        usersCount: 0
+    });
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<ChartData | null>(null);
     const [roomsChartData, setRoomsChartData] = useState<RoomsChartData | null>(null);
@@ -65,13 +71,17 @@ const Dashboard = () => {
                 setLoading(true);
 
                 // Endpoints que todos pueden ver
-                const [servicesData, dashboardData] = await Promise.all([
+                const [servicesData, dashboardData, customersData] = await Promise.all([
                     getServicesChartData(),
-                    dashboardService.getStats()
+                    dashboardService.getStats(),
+                    getAllCustomers(0, 1)
                 ]);
 
                 setServicesChartData(servicesData);
-                setStats(dashboardData);
+                setStats({
+                    ...dashboardData,
+                    usersCount: customersData.total
+                });
 
                 // Endpoints solo para admin (o donde el empleado reciba 403)
                 if (isAdmin) {

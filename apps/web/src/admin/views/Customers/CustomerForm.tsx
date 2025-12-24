@@ -13,7 +13,7 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    
+
     // Customer Detail fields
     const [gender, setGender] = useState<Gender>('OTHER');
     const [phone, setPhone] = useState('');
@@ -32,7 +32,7 @@ const CustomerForm = ({ initialData, onSuccess, onCancel }: CustomerFormProps) =
             setFirstName(initialData.firstName || '');
             setLastName(initialData.lastName || '');
             setEmail(initialData.email || '');
-            
+
             setGender(initialData.gender);
             setPhone(initialData.phone);
             setBirthDate(initialData.birthDate);
