@@ -1,11 +1,11 @@
-id;code;name;type;description
-1;yum;bandwidth;GALLERY;oh council
-2;enormously plain saturate;offend pish off;SINGLE_IMAGE;yowza down gah
-3;during gee;accidentally whenever rout;SINGLE_IMAGE;up
-4;tremendously;who;GALLERY;neat
-5;solace;generously godfather;TEXT_LIST;apud gah meaty
-6;angelic mismatch safe;ring;GALLERY;never absent furiously
-7;during prickly;why sans;SINGLE_IMAGE;seriously prudent gripping
-8;plus pfft courageously;upon;SINGLE_IMAGE;oh
-9;deafening miserable righteously;whispered;SINGLE_IMAGE;as minor yuck
-10;sup;whose likewise;GALLERY;impact baa
+id;code;name;type;description;is_active
+1;yum;bandwidth;GALLERY;oh council;false
+2;fully through;reiterate notwithstanding yowza;SINGLE_IMAGE;ack;true
+3;which likewise address;fill rebound if;MAP_EMBED;consequently magnetize;true
+4;since rosemary aboard;dark solace;TEXT_LIST;awkwardly than who;true
+5;down;muffled;TEXT_LIST;circumference breakable helplessly;true
+6;label;alligator;GALLERY;aside eek;false
+7;neat evenly;yet warming tricky;TEXT_LIST;valuable phew pfft;false
+8;courageously;upon;SINGLE_IMAGE;oh;false
+9;though untidy ew;considerate ew vainly;TEXT_LIST;earth sup gah;false
+10;excepting;impact baa;SINGLE_IMAGE;carefree;false

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bed, Users, Maximize, Check, X, Calendar, User, CreditCard, ChevronRight, ChevronLeft, Plus, Trash2, Loader2, AlertCircle, Info } from 'lucide-react';
-import { useSingleContent } from '../hooks/useContent';
+import { useSingleContent, useSectionVisibility } from '../hooks/useContent';
 import { useAuth } from '../contexts/AuthProvider';
 import { createBooking, getAvailability } from '../services/client/bookingService';
 import { getAllRoomTypes } from '../services/admin/roomTypeService';
@@ -73,6 +73,7 @@ const RoomTypes: React.FC = () => {
   };
 
   const { data: header } = useSingleContent('HEADER_ROOMS');
+  const { isVisible, loading: visibilityLoading } = useSectionVisibility('HEADER_ROOMS');
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
@@ -277,6 +278,10 @@ const RoomTypes: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (loading || visibilityLoading) return null;
+  if (!isVisible) return null;
+  if (roomTypes.length === 0) return null;
 
   return (
     <>
@@ -857,9 +862,9 @@ const RoomTypes: React.FC = () => {
             </button>
             <div className="flex flex-col items-center text-center space-y-7">
               <div className={`w-24 h-24 rounded-full flex items-center justify-center ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
-                  feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
-                    feedback.type === 'warning' ? 'bg-amber-500/10 text-amber-500' :
-                      'bg-blue-500/10 text-blue-500'
+                feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                  feedback.type === 'warning' ? 'bg-amber-500/10 text-amber-500' :
+                    'bg-blue-500/10 text-blue-500'
                 } ring-1 ring-current/20 shadow-2xl shadow-current/10`}>
                 {feedback.type === 'success' && <Check size={48} />}
                 {feedback.type === 'error' && <X size={48} />}
@@ -877,9 +882,9 @@ const RoomTypes: React.FC = () => {
               <button
                 onClick={() => setFeedback({ ...feedback, show: false })}
                 className={`w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl ${feedback.type === 'success' ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20' :
-                    feedback.type === 'error' ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/20' :
-                      feedback.type === 'warning' ? 'bg-amber-500 text-[#050a1f] hover:bg-amber-600 shadow-amber-500/20' :
-                        'bg-[#d4af37] text-[#050a1f] hover:bg-[#b39226] shadow-[#d4af37]/20'
+                  feedback.type === 'error' ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/20' :
+                    feedback.type === 'warning' ? 'bg-amber-500 text-[#050a1f] hover:bg-amber-600 shadow-amber-500/20' :
+                      'bg-[#d4af37] text-[#050a1f] hover:bg-[#b39226] shadow-[#d4af37]/20'
                   }`}
               >
                 Entendido
