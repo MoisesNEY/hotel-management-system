@@ -15,29 +15,45 @@ import RequireProfile from './components/RequireProfile';
 import RoleGuard from './components/RoleGuard';
 
 const RootRedirect = () => {
-  const { isInitialized, isAuthenticated, roles } = useAuth();
-  
+  const { isInitialized, isAuthenticated, hasRole } = useAuth();
+
   if (!isInitialized) return null;
-  
+
   if (!isAuthenticated) return <Navigate to="/landing" replace />;
-  
-  if (roles?.includes('ROLE_ADMIN') || roles?.includes('ROLE_EMPLOYEE')) {
-    return <Navigate to="/admin" replace />;
+
+  if (hasRole('ROLE_EMPLOYEE')) {
+    return <Navigate to="/admin/dashboard" replace />;
   }
-  
+
   return <Navigate to="/client/dashboard" replace />;
+};
+
+const LandingPageGuard = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, hasRole, isInitialized } = useAuth();
+
+  if (!isInitialized) return null;
+
+  if (isAuthenticated && hasRole('ROLE_EMPLOYEE')) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 function App() {
   return (
-    <PayPalScriptProvider options={{ 
-        clientId: "AXtI3lQlPN11na0d8it84mPLxDV4qHZkQQztH-2UEupx9gqwqkmgsBtVxPYnlCQcl7IoEropWKFl-YWX",
-        currency: "USD",
-        intent: "capture" 
+    <PayPalScriptProvider options={{
+      clientId: "AXtI3lQlPN11na0d8it84mPLxDV4qHZkQQztH-2UEupx9gqwqkmgsBtVxPYnlCQcl7IoEropWKFl-YWX",
+      currency: "USD",
+      intent: "capture"
     }}>
       <Routes>
         <Route path="/" element={<RootRedirect />} />
-        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/landing" element={
+          <LandingPageGuard>
+            <LandingPage />
+          </LandingPageGuard>
+        } />
 
         {/* Rutas protegidas que requieren autenticación */}
         <Route element={<ProtectedRoute />}>
@@ -50,15 +66,15 @@ function App() {
               <Route path="/client/dashboard" element={<ClientDashboardPage />} />
               <Route path="/client/services" element={<ClientServiceRequests />} />
             </Route>
-            
+
           </Route>
 
           {/* Ruta para llenar detalles (excluida de RequireProfile para evitar ciclo) */}
           <Route path="/customer" element={<ClientCustomerPage />} />
-          
+
           {/* Rutas Administrativas (Requieren Rol) */}
           <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']} />}>
-             <Route path="/admin/*" element={<AdminLayout />} />
+            <Route path="/admin/*" element={<AdminLayout />} />
           </Route>
         </Route>
       </Routes>
