@@ -4,12 +4,15 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.Set;
 import org.hotel.config.Constants;
 import org.hotel.domain.User;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.AuthoritiesConstants;
+import org.hotel.service.KeycloakService;
 import org.hotel.service.UserService;
 import org.hotel.service.dto.AdminUserDTO;
+import org.hotel.service.dto.CreateUserDTO;
 import org.hotel.web.rest.errors.BadRequestAlertException;
 import org.hotel.web.rest.errors.EmailAlreadyUsedException;
 import org.hotel.web.rest.errors.LoginAlreadyUsedException;
@@ -39,10 +42,51 @@ public class UserResource {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final KeycloakService keycloakService;
 
-    public UserResource(UserService userService, UserRepository userRepository) {
+    public UserResource(UserService userService, UserRepository userRepository, KeycloakService keycloakService) {
         this.userService = userService;
         this.userRepository = userRepository;
+        this.keycloakService = keycloakService;
+    }
+
+    /**
+     * {@code POST /admin/users} : Creates a new User with ROLE_EMPLOYEE.
+     * SOLO ADMINISTRADORES pueden crear usuarios.
+     */
+    @PostMapping
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
+    public ResponseEntity<AdminUserDTO> createUser(@Valid @RequestBody CreateUserDTO createDTO)
+            throws URISyntaxException {
+        LOG.debug("REST request to create User : {}", createDTO.getLogin());
+
+        // Validate login uniqueness
+        if (userRepository.findOneByLogin(createDTO.getLogin().toLowerCase()).isPresent()) {
+            throw new LoginAlreadyUsedException();
+        }
+
+        // Validate email uniqueness
+        if (userRepository.findOneByEmailIgnoreCase(createDTO.getEmail()).isPresent()) {
+            throw new EmailAlreadyUsedException();
+        }
+
+        // Create user in Keycloak
+        String keycloakUserId = keycloakService.createUser(createDTO);
+
+        // Build response DTO
+        AdminUserDTO result = new AdminUserDTO();
+        result.setId(keycloakUserId);
+        result.setLogin(createDTO.getLogin());
+        result.setEmail(createDTO.getEmail());
+        result.setFirstName(createDTO.getFirstName());
+        result.setLastName(createDTO.getLastName());
+        result.setActivated(true);
+        result.setAuthorities(Set.of(AuthoritiesConstants.EMPLOYEE));
+
+        return ResponseEntity
+                .created(new URI("/api/admin/users/" + result.getLogin()))
+                .headers(HeaderUtil.createAlert(applicationName, "userManagement.created", result.getLogin()))
+                .body(result);
     }
 
     /**

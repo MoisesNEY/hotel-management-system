@@ -1,16 +1,24 @@
 package org.hotel.service;
 
+import jakarta.ws.rs.core.Response;
 import org.hotel.config.ApplicationProperties;
+import org.hotel.security.AuthoritiesConstants;
 import org.hotel.service.dto.AdminUserDTO;
+import org.hotel.service.dto.CreateUserDTO;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class KeycloakService {
@@ -62,6 +70,67 @@ public class KeycloakService {
         } catch (Exception e) {
             LOG.error("Error updating user in Keycloak: {}", e.getMessage(), e);
             throw new RuntimeException("Could not update user in Keycloak", e);
+        }
+    }
+
+    /**
+     * Create a new user in Keycloak with ROLE_EMPLOYEE.
+     *
+     * @param createDTO user data to create.
+     * @return the Keycloak user ID of the created user.
+     */
+    public String createUser(CreateUserDTO createDTO) {
+        LOG.debug("Request to create user in Keycloak: {}", createDTO.getLogin());
+
+        try (Keycloak keycloak = getKeycloakInstance()) {
+            String realmName = applicationProperties.getKeycloak().getRealm();
+            RealmResource realmResource = keycloak.realm(realmName);
+            UsersResource usersResource = realmResource.users();
+
+            // 1. Create user representation
+            UserRepresentation user = new UserRepresentation();
+            user.setUsername(createDTO.getLogin());
+            user.setEmail(createDTO.getEmail());
+            user.setFirstName(createDTO.getFirstName());
+            user.setLastName(createDTO.getLastName());
+            user.setEnabled(true);
+            user.setEmailVerified(true);
+
+            // 2. Create user in Keycloak
+            Response response = usersResource.create(user);
+
+            if (response.getStatus() != 201) {
+                String errorMessage = response.readEntity(String.class);
+                LOG.error("Failed to create user in Keycloak. Status: {}, Error: {}", response.getStatus(),
+                        errorMessage);
+                throw new RuntimeException("Could not create user in Keycloak: " + errorMessage);
+            }
+
+            // 3. Extract user ID from response location header
+            String locationHeader = response.getHeaderString("Location");
+            String userId = locationHeader.substring(locationHeader.lastIndexOf('/') + 1);
+            LOG.debug("Created user with ID: {}", userId);
+
+            // 4. Set password for the user
+            CredentialRepresentation credential = new CredentialRepresentation();
+            credential.setType(CredentialRepresentation.PASSWORD);
+            credential.setValue(createDTO.getPassword());
+            credential.setTemporary(false);
+
+            UserResource userResource = usersResource.get(userId);
+            userResource.resetPassword(credential);
+
+            // 5. Assign ROLE_EMPLOYEE to the user
+            RoleRepresentation employeeRole = realmResource.roles().get(AuthoritiesConstants.EMPLOYEE)
+                    .toRepresentation();
+            userResource.roles().realmLevel().add(Collections.singletonList(employeeRole));
+
+            LOG.info("User {} successfully created in Keycloak with ROLE_EMPLOYEE", createDTO.getLogin());
+            return userId;
+
+        } catch (Exception e) {
+            LOG.error("Error creating user in Keycloak: {}", e.getMessage(), e);
+            throw new RuntimeException("Could not create user in Keycloak", e);
         }
     }
 }
