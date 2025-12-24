@@ -13,6 +13,9 @@ class BookingMapperTest {
     @BeforeEach
     void setUp() {
         bookingMapper = new BookingMapperImpl();
+        // Manually inject dependencies since we are not using Spring Context here
+        org.springframework.test.util.ReflectionTestUtils.setField(bookingMapper, "bookingItemMapper", new BookingItemMapperImpl());
+        org.springframework.test.util.ReflectionTestUtils.setField(bookingMapper, "customerMapper", new CustomerMapperImpl());
     }
 
     @Test
