@@ -130,14 +130,6 @@ const routes: RouteConfig[] = [
         allowedRoles: ['ROLE_ADMIN']
     },
     {
-        path: '/maps',
-        name: 'Mapas',
-        icon: MapPinIcon,
-        component: MapsView,
-        layout: '/admin',
-        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
-    },
-    {
         path: '/user-profile',
         name: 'Perfil',
         icon: UserIcon,
