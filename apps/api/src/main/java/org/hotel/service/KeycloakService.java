@@ -120,10 +120,16 @@ public class KeycloakService {
             UserResource userResource = usersResource.get(userId);
             userResource.resetPassword(credential);
 
-            // 5. Assign ROLE_EMPLOYEE to the user
-            RoleRepresentation employeeRole = realmResource.roles().get(AuthoritiesConstants.EMPLOYEE)
-                    .toRepresentation();
-            userResource.roles().realmLevel().add(Collections.singletonList(employeeRole));
+            // 5. Add user to the "Employees" group (which has ROLE_EMPLOYEE mapped)
+            String employeesGroupName = "Employees";
+            var groups = realmResource.groups().groups(employeesGroupName, 0, 1);
+            if (groups.isEmpty()) {
+                LOG.error("Group '{}' not found in Keycloak realm", employeesGroupName);
+                throw new RuntimeException("Group 'Employees' not found in Keycloak. Please create the group.");
+            }
+            String groupId = groups.get(0).getId();
+            userResource.joinGroup(groupId);
+            LOG.debug("User {} added to group '{}'", createDTO.getLogin(), employeesGroupName);
 
             LOG.info("User {} successfully created in Keycloak with ROLE_EMPLOYEE", createDTO.getLogin());
             return userId;

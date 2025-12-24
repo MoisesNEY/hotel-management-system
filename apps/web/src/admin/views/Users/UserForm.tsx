@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createUser } from '../../../services/admin/userService';
 import type { CreateUserDTO } from '../../../types/adminTypes';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface UserFormProps {
     onSuccess: () => void;
@@ -14,6 +15,9 @@ const UserForm = ({ onSuccess, onCancel }: UserFormProps) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -58,6 +62,8 @@ const UserForm = ({ onSuccess, onCancel }: UserFormProps) => {
                 } else {
                     setError(errorData?.detail || 'Error al crear el usuario');
                 }
+            } else if (err.response?.status === 500) {
+                setError('Error del servidor. Verifique que el rol ROLE_EMPLOYEE exista en Keycloak.');
             } else {
                 setError('Error al crear el usuario. Intente nuevamente.');
             }
@@ -120,29 +126,47 @@ const UserForm = ({ onSuccess, onCancel }: UserFormProps) => {
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">
                         Contraseña <span className="text-red-500">*</span>
                     </label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={8}
-                        placeholder="Mínimo 8 caracteres"
-                        className="w-full p-2.5 bg-white dark:bg-[#2a2a2a] border border-gray-300 dark:border-[#444] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            placeholder="Mínimo 8 caracteres"
+                            className="w-full p-2.5 pr-10 bg-white dark:bg-[#2a2a2a] border border-gray-300 dark:border-[#444] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">
                         Confirmar Contraseña <span className="text-red-500">*</span>
                     </label>
-                    <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        minLength={8}
-                        placeholder="Repita la contraseña"
-                        className="w-full p-2.5 bg-white dark:bg-[#2a2a2a] border border-gray-300 dark:border-[#444] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
-                    />
+                    <div className="relative">
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            placeholder="Repita la contraseña"
+                            className="w-full p-2.5 pr-10 bg-white dark:bg-[#2a2a2a] border border-gray-300 dark:border-[#444] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        >
+                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -184,14 +208,14 @@ const UserForm = ({ onSuccess, onCancel }: UserFormProps) => {
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors bg-transparent"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2 bg-gold-500 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-gold-600 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? 'Creando...' : 'Crear Empleado'}
                 </button>
