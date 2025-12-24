@@ -149,11 +149,11 @@ const UsersView = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Empleados</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Crear y administrar cuentas de empleados</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Usuarios</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Crear y administrar cuentas de usuarios del sistema</p>
                 </div>
                 <Button onClick={handleCreate} variant="primary" leftIcon={<Plus size={16} />}>
-                    Nuevo Empleado
+                    Nuevo Usuario
                 </Button>
             </div>
 
@@ -162,8 +162,8 @@ const UsersView = () => {
                 <button
                     onClick={() => setFilter('employees')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filter === 'employees'
-                            ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/30'
-                            : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
+                        ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/30'
+                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
                         }`}
                 >
                     <Shield size={14} />
@@ -172,8 +172,8 @@ const UsersView = () => {
                 <button
                     onClick={() => setFilter('all')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filter === 'all'
-                            ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/30'
-                            : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
+                        ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/30'
+                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
                         }`}
                 >
                     <Users size={14} />
@@ -211,7 +211,7 @@ const UsersView = () => {
             <Modal
                 isOpen={showForm}
                 onClose={() => setShowForm(false)}
-                title="Nuevo Empleado"
+                title="Nuevo Usuario"
                 size="lg"
             >
                 <UserForm

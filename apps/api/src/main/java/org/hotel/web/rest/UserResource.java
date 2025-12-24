@@ -5,8 +5,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Set;
-import org.hotel.config.Constants;
+import org.hotel.domain.Authority;
 import org.hotel.domain.User;
+import org.hotel.repository.AuthorityRepository;
 import org.hotel.repository.UserRepository;
 import org.hotel.security.AuthoritiesConstants;
 import org.hotel.service.KeycloakService;
@@ -43,11 +44,14 @@ public class UserResource {
     private final UserService userService;
     private final UserRepository userRepository;
     private final KeycloakService keycloakService;
+    private final AuthorityRepository authorityRepository;
 
-    public UserResource(UserService userService, UserRepository userRepository, KeycloakService keycloakService) {
+    public UserResource(UserService userService, UserRepository userRepository, KeycloakService keycloakService,
+            AuthorityRepository authorityRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.keycloakService = keycloakService;
+        this.authorityRepository = authorityRepository;
     }
 
     /**
@@ -73,15 +77,26 @@ public class UserResource {
         // Create user in Keycloak
         String keycloakUserId = keycloakService.createUser(createDTO);
 
+        // Sync user to local database
+        User newUser = new User();
+        newUser.setId(keycloakUserId);
+        newUser.setLogin(createDTO.getLogin().toLowerCase());
+        newUser.setEmail(createDTO.getEmail().toLowerCase());
+        newUser.setFirstName(createDTO.getFirstName());
+        newUser.setLastName(createDTO.getLastName());
+        newUser.setActivated(true);
+        newUser.setLangKey("es"); // Default language
+
+        // Assign ROLE_EMPLOYEE authority
+        Set<Authority> authorities = new HashSet<>();
+        authorityRepository.findById(AuthoritiesConstants.EMPLOYEE).ifPresent(authorities::add);
+        newUser.setAuthorities(authorities);
+
+        userRepository.save(newUser);
+        LOG.info("User {} saved to local database", createDTO.getLogin());
+
         // Build response DTO
-        AdminUserDTO result = new AdminUserDTO();
-        result.setId(keycloakUserId);
-        result.setLogin(createDTO.getLogin());
-        result.setEmail(createDTO.getEmail());
-        result.setFirstName(createDTO.getFirstName());
-        result.setLastName(createDTO.getLastName());
-        result.setActivated(true);
-        result.setAuthorities(Set.of(AuthoritiesConstants.EMPLOYEE));
+        AdminUserDTO result = new AdminUserDTO(newUser);
 
         return ResponseEntity
                 .created(new URI("/api/admin/users/" + result.getLogin()))
