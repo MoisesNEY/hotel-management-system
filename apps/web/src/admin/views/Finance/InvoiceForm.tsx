@@ -12,6 +12,7 @@ const InvoiceForm: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [paying, setPaying] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [formData, setFormData] = useState<Partial<InvoiceDTO>>({
         code: '',
         issuedDate: new Date().toISOString(),
@@ -76,6 +77,31 @@ const InvoiceForm: React.FC = () => {
         const newItems = [...(formData.items || [])];
         newItems.splice(index, 1);
         setFormData({ ...formData, items: newItems });
+    };
+
+    const handleManualPaymentClick = () => {
+        if (!id || !formData.totalAmount) return;
+        setShowPaymentModal(true);
+    };
+
+    const confirmManualPayment = async () => {
+        if (!id || !formData.totalAmount) return;
+        
+        setPaying(true);
+        try {
+            await registerManualPayment({
+                invoiceId: Number(id),
+                amount: formData.totalAmount
+            });
+            setShowPaymentModal(false);
+            // Reload to reflect new status
+            window.location.reload();
+        } catch (error) {
+            console.error("Error registering payment", error);
+            alert("Error al registrar pago");
+        } finally {
+            setPaying(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -250,6 +276,25 @@ const InvoiceForm: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Manual Payment Section (Only if ISSUED) */}
+                {isEditMode && formData.status === 'ISSUED' && (
+                     <div className="bg-white dark:bg-[#111111] p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm flex items-center justify-between animate-in fade-in slide-in-from-bottom-4">
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Registrar Pago</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Registrar ingreso de efectivo en caja manualmente.</p>
+                        </div>
+                         <button
+                            type="button"
+                            onClick={handleManualPaymentClick}
+                            disabled={paying}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium shadow-sm hover:shadow"
+                        >
+                            <BanknotesIcon className="w-5 h-5" />
+                            {paying ? 'Procesando...' : 'Pagar en Efectivo'}
+                        </button>
+                     </div>
+                )}
+
                 <div className="flex justify-end gap-3 pt-4">
                     <button
                         type="button"
@@ -268,6 +313,56 @@ const InvoiceForm: React.FC = () => {
                         </button>
                     )}
                 </div>
+
+                {/* Payment Confirmation Modal */}
+                {showPaymentModal && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-[#111111] rounded-xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-white/10 animate-in zoom-in-95 duration-200">
+                            <div className="p-6">
+                                <div className="flex flex-col items-center text-center mb-6">
+                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
+                                        <BanknotesIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                        Confirmar Pago en Efectivo
+                                    </h3>
+                                    <p className="text-gray-500 dark:text-gray-400">
+                                        Se registrará un ingreso por <span className="font-bold text-gray-900 dark:text-white">${formData.totalAmount?.toFixed(2)}</span>.
+                                    </p>
+                                    <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-lg">
+                                        Esta acción emitirá la factura y no se podrá deshacer.
+                                    </p>
+                                </div>
+                                
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPaymentModal(false)}
+                                        disabled={paying}
+                                        className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={confirmManualPayment}
+                                        disabled={paying}
+                                        className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                                    >
+                                        {paying ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Procesando...
+                                            </>
+                                        ) : (
+                                            'Confirmar Pago'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </form>
         </div>
     );
