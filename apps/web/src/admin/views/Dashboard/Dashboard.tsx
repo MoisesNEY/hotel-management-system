@@ -32,6 +32,7 @@ import type { DashboardStats, ChartData } from '../../../services/admin/dashboar
 import { formatCurrency } from '../../utils/helpers';
 import Loader from '../../components/shared/Loader';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 // Register ChartJS components
 ChartJS.register(
@@ -49,7 +50,9 @@ ChartJS.register(
 
 const Dashboard = () => {
     const { theme } = useTheme();
+    const { hasRole } = useAuth();
     const isDark = theme === 'dark';
+    const isAdmin = hasRole('ROLE_ADMIN');
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<ChartData | null>(null);
@@ -59,16 +62,34 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [dashboardData, revenueData, roomsData, servicesData] = await Promise.all([
-                    dashboardService.getStats(),
-                    dashboardService.getRevenueChartData(),
-                    getRoomsChartData(),
-                    getServicesChartData()
+                setLoading(true);
+
+                // Endpoints que todos pueden ver
+                const [servicesData, dashboardData] = await Promise.all([
+                    getServicesChartData(),
+                    dashboardService.getStats()
                 ]);
-                setStats(dashboardData);
-                setChartData(revenueData);
-                setRoomsChartData(roomsData);
+
                 setServicesChartData(servicesData);
+                setStats(dashboardData);
+
+                // Endpoints solo para admin (o donde el empleado reciba 403)
+                if (isAdmin) {
+                    const [revenueData, roomsData] = await Promise.all([
+                        dashboardService.getRevenueChartData(),
+                        getRoomsChartData()
+                    ]);
+                    setChartData(revenueData);
+                    setRoomsChartData(roomsData);
+                } else {
+                    // Carga mínima para empleados
+                    try {
+                        const roomsData = await getRoomsChartData();
+                        setRoomsChartData(roomsData);
+                    } catch (e) {
+                        console.warn("Empleado no tiene acceso a estadísticas de habitaciones");
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching dashboard data", error);
             } finally {
@@ -76,15 +97,15 @@ const Dashboard = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [isAdmin]);
 
     const chartOptions: any = {
         maintainAspectRatio: false,
         responsive: true,
         plugins: {
             legend: { display: false },
-            tooltip: { 
-                mode: 'index' as const, 
+            tooltip: {
+                mode: 'index' as const,
                 intersect: false,
                 backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
                 titleColor: isDark ? '#ffffff' : '#111827',
@@ -120,11 +141,11 @@ const Dashboard = () => {
             backgroundColor: (context: any) => {
                 const chart = context.chart;
                 const { ctx, chartArea } = chart;
-                
+
                 if (!chartArea) {
                     return 'rgba(212, 175, 55, 0.1)';
                 }
-                
+
                 const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
                 gradient.addColorStop(0, 'rgba(212, 175, 55, 0.15)');
                 gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
@@ -173,9 +194,9 @@ const Dashboard = () => {
             borderColor: isDark ? '#1c1c1c' : '#ffffff',
             borderWidth: 2,
             hoverOffset: 8,
-            hoverBackgroundColor: ds.backgroundColor.map(color => 
-                color === '#d4af37' ? '#b5942c' : 
-                color === '#51cbce' ? '#45b4b6' : color
+            hoverBackgroundColor: ds.backgroundColor.map(color =>
+                color === '#d4af37' ? '#b5942c' :
+                    color === '#51cbce' ? '#45b4b6' : color
             )
         }))
     } : { labels: [], datasets: [] };
@@ -227,7 +248,7 @@ const Dashboard = () => {
                 titleFont: { size: 13, weight: '700' },
                 bodyFont: { size: 12 },
                 callbacks: {
-                    label: function(context: any) {
+                    label: function (context: any) {
                         const label = context.label || '';
                         const value = context.raw || 0;
                         return `${label}: ${value} servicios`;
@@ -238,20 +259,20 @@ const Dashboard = () => {
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { 
-                    color: isDark ? "#64748b" : "#94a3b8", 
+                ticks: {
+                    color: isDark ? "#64748b" : "#94a3b8",
                     font: { size: 11, weight: '500' },
                     stepSize: 1
                 },
-                grid: { 
-                    color: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)", 
-                    drawBorder: false 
+                grid: {
+                    color: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+                    drawBorder: false
                 }
             },
             x: {
                 grid: { display: false, drawBorder: false },
-                ticks: { 
-                    color: isDark ? "#64748b" : "#94a3b8", 
+                ticks: {
+                    color: isDark ? "#64748b" : "#94a3b8",
                     font: { size: 11, weight: '500' },
                     maxRotation: 45
                 }
@@ -288,7 +309,7 @@ const Dashboard = () => {
                 titleFont: { size: 13, weight: '700' },
                 bodyFont: { size: 12 },
                 callbacks: {
-                    label: function(context: any) {
+                    label: function (context: any) {
                         const label = context.label || '';
                         const value = context.raw || 0;
                         const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
@@ -329,7 +350,7 @@ const Dashboard = () => {
                 titleFont: { size: 13, weight: '700' },
                 bodyFont: { size: 12 },
                 callbacks: {
-                    label: function(context: any) {
+                    label: function (context: any) {
                         const label = context.label || '';
                         const value = context.raw || 0;
                         const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
@@ -367,16 +388,18 @@ const Dashboard = () => {
                         footerText="Actualizado ahora"
                     />
                 </div>
-                <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
-                    <StatsCard
-                        type="success"
-                        icon={DollarSign}
-                        title="Ingresos"
-                        value={formatCurrency(stats?.totalRevenue || 0)}
-                        footerInitIcon={Calendar}
-                        footerText="Último mes"
-                    />
-                </div>
+                {isAdmin && (
+                    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
+                        <StatsCard
+                            type="success"
+                            icon={DollarSign}
+                            title="Ingresos"
+                            value={formatCurrency(stats?.totalRevenue || 0)}
+                            footerInitIcon={Calendar}
+                            footerText="Último mes"
+                        />
+                    </div>
+                )}
                 <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-4">
                     <StatsCard
                         type="danger"
@@ -406,9 +429,9 @@ const Dashboard = () => {
                     <Card title="Distribución de Clientes" subtitle="Activos vs Inactivos">
                         <div className="relative w-full h-75 mt-2 flex items-center justify-center">
                             {stats ? (
-                                <Doughnut 
-                                    data={clientsChartData} 
-                                    options={clientsChartOptions} 
+                                <Doughnut
+                                    data={clientsChartData}
+                                    options={clientsChartOptions}
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
@@ -434,9 +457,9 @@ const Dashboard = () => {
                     <Card title="Estado de Habitaciones" subtitle="Ocupadas vs Disponibles">
                         <div className="relative w-full h-75 mt-2 flex items-center justify-center">
                             {roomsChartData ? (
-                                <Doughnut 
-                                    data={roomsPieChartData} 
-                                    options={roomsChartOptions} 
+                                <Doughnut
+                                    data={roomsPieChartData}
+                                    options={roomsChartOptions}
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
@@ -472,9 +495,9 @@ const Dashboard = () => {
                     <Card title="Servicios del Hotel" subtitle="Por estado">
                         <div className="relative w-full h-75 mt-2">
                             {servicesChartData ? (
-                                <Bar 
-                                    data={servicesBarChartData} 
-                                    options={servicesChartOptions} 
+                                <Bar
+                                    data={servicesBarChartData}
+                                    options={servicesChartOptions}
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
@@ -497,29 +520,31 @@ const Dashboard = () => {
             </div>
 
             {/* Gráfico de Ingresos (movido debajo) */}
-            <div className="flex flex-wrap -mx-4 mb-8">
-                <div className="w-full px-4 mb-6">
-                    <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
-                        <div className="relative w-full h-100 mt-2">
-                            {chartData ? (
-                                <Line 
-                                    data={revenueChartData} 
-                                    options={chartOptions} 
-                                />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
-                                    Cargando gráfico de ingresos...
-                                </div>
-                            )}
-                        </div>
-                        <div className="border-t border-gray-100 dark:border-white/5 mt-6 pt-4">
-                            <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
-                                <RefreshCw size={12} className="mr-1.5" /> Actualizado hace 3 minutos
+            {isAdmin && (
+                <div className="flex flex-wrap -mx-4 mb-8">
+                    <div className="w-full px-4 mb-6">
+                        <Card title="Ingresos" subtitle="Rendimiento en el tiempo">
+                            <div className="relative w-full h-100 mt-2">
+                                {chartData ? (
+                                    <Line
+                                        data={revenueChartData}
+                                        options={chartOptions}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                        Cargando gráfico de ingresos...
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </Card>
+                            <div className="border-t border-gray-100 dark:border-white/5 mt-6 pt-4">
+                                <div className="text-gray-400 dark:text-gray-500 text-xs flex items-center font-medium tracking-wide">
+                                    <RefreshCw size={12} className="mr-1.5" /> Actualizado hace 3 minutos
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

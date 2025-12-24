@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { HomeModernIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../../contexts/AuthProvider';
 
 interface RouteConfig {
     path: string;
@@ -9,6 +10,7 @@ interface RouteConfig {
     layout: string;
     hidden?: boolean;
     group?: string;
+    allowedRoles?: string[];
 }
 
 interface SidebarProps {
@@ -21,21 +23,29 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
     const location = useLocation();
+    const { hasRole } = useAuth();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isActiveRoute = (path: string) => {
         return location.pathname.includes(path);
     };
 
-    // Group routes
+    // Group routes and filter by role
     const groupedRoutes: { [key: string]: RouteConfig[] } = {};
-    routes.filter(route => !route.hidden).forEach(route => {
-        const group = route.group || 'main';
-        if (!groupedRoutes[group]) {
-            groupedRoutes[group] = [];
-        }
-        groupedRoutes[group].push(route);
-    });
+    routes
+        .filter(route => {
+            if (route.hidden) return false;
+            // Si no hay roles definidos, lo mostramos si es admin o si queremos que sea público
+            if (!route.allowedRoles) return true;
+            return route.allowedRoles.some(role => hasRole(role as any));
+        })
+        .forEach(route => {
+            const group = route.group || 'main';
+            if (!groupedRoutes[group]) {
+                groupedRoutes[group] = [];
+            }
+            groupedRoutes[group].push(route);
+        });
 
     const activeTextClass = {
         primary: 'text-blue-500',
@@ -47,9 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
 
     return (
         <aside
-            className={`admin-sidebar fixed top-0 left-0 h-screen bg-[#1c1c1c] dark:bg-[#1c1c1c] border-r border-gray-800 transition-all duration-300 ease-in-out z-[1030] ${
-                isExpanded ? 'w-[220px]' : 'w-[60px]'
-            }`}
+            className={`admin-sidebar fixed top-0 left-0 h-screen bg-[#1c1c1c] dark:bg-[#1c1c1c] border-r border-gray-800 transition-all duration-300 ease-in-out z-[1030] ${isExpanded ? 'w-[220px]' : 'w-[60px]'
+                }`}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >
@@ -82,8 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
                                                 flex items-center h-10 rounded-md
                                                 transition-all duration-200
                                                 group relative
-                                                ${isActive 
-                                                    ? `bg-gray-800 ${activeTextClass}` 
+                                                ${isActive
+                                                    ? `bg-gray-800 ${activeTextClass}`
                                                     : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
                                                 }
                                             `}
@@ -93,9 +102,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
                                                 justifyContent: isExpanded ? 'flex-start' : 'center'
                                             }}
                                         >
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
                                                 justifyContent: 'center',
                                                 width: '20px',
                                                 height: '20px',
@@ -103,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeColor, routes }) => {
                                             }}>
                                                 <Icon className={`w-5 h-5 ${isActive ? 'stroke-2' : 'stroke-[1.5]'}`} />
                                             </div>
-                                            
+
                                             {isExpanded && (
                                                 <span style={{ marginLeft: '12px' }} className="text-sm font-normal whitespace-nowrap">
                                                     {route.name}

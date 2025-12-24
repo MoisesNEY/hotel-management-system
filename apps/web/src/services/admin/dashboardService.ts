@@ -28,6 +28,13 @@ export interface ChartData {
 }
 
 export const getStats = async (): Promise<DashboardStats> => {
+    const stats: DashboardStats = {
+        totalBookings: 0,
+        totalRevenue: 0,
+        occupancyRate: 0,
+        usersCount: 0
+    };
+
     try {
         // Fetch bookings for count and revenue
         const bookingsRes = await apiClient.get('/api/bookings?size=1000');
@@ -48,21 +55,11 @@ export const getStats = async (): Promise<DashboardStats> => {
         const customersPagination = extractPaginationInfo(customersRes);
         const usersCount = customersPagination?.totalElements || 0;
 
-        return {
-            totalBookings,
-            totalRevenue,
-            occupancyRate,
-            usersCount
-        };
     } catch (error) {
-        console.error('Error calculating dashboard stats', error);
-        return {
-            totalBookings: 0,
-            totalRevenue: 0,
-            occupancyRate: 0,
-            usersCount: 0
-        };
+        console.error('Error general en getStats', error);
     }
+
+    return stats;
 };
 
 export const getUsersChartData = async (): Promise<ChartData> => {
@@ -72,10 +69,10 @@ export const getUsersChartData = async (): Promise<ChartData> => {
 
 
 export const getRevenueChartData = async (): Promise<ChartData> => {
-     try {
+    try {
         const bookingsRes = await apiClient.get('/api/bookings?size=1000');
         const bookings = bookingsRes.data as any[];
-        
+
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const monthlyRevenue = new Array(12).fill(0);
 
@@ -99,7 +96,7 @@ export const getRevenueChartData = async (): Promise<ChartData> => {
             ]
         };
     } catch (error) {
-         console.warn('Error calculating chart data', error);
+        console.warn('Error calculating chart data', error);
         return {
             labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
             datasets: [

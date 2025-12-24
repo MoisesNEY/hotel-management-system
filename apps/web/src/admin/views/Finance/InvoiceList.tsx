@@ -16,15 +16,19 @@ const InvoiceList: React.FC = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [invoiceToDelete, setInvoiceToDelete] = useState<number | null>(null);
 
+    const [permissionError, setPermissionError] = useState(false);
+
     const loadInvoices = async () => {
         setLoading(true);
         try {
             const response: PaginatedResponse<InvoiceDTO> = await getAllInvoices(page, 10);
             setInvoices(response.data);
             setTotalPages(response.totalPages);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading invoices", error);
-            // In a real app, show toast error
+            if (error.response?.status === 403) {
+                setPermissionError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -86,41 +90,58 @@ const InvoiceList: React.FC = () => {
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
-                            <tr>
-                                <th className="px-6 py-4">Código</th>
-                                <th className="px-6 py-4">Fecha Emisión</th>
-                                <th className="px-6 py-4">Monto Total</th>
-                                <th className="px-6 py-4">Estado</th>
-                                <th className="px-6 py-4 text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
-                            {loading ? (
+            {permissionError ? (
+                <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-red-200 dark:border-red-900/20 p-12 text-center flex flex-col items-center justify-center space-y-4">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center">
+                        <ExclamationTriangleIcon className="w-8 h-8" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403)</h2>
+                    <p className="max-w-md text-gray-500 dark:text-gray-400">
+                        El servidor ha rechazado el acceso a la lista de facturas para tu rol actual.
+                        Por favor, contacta al administrador para habilitar los permisos de <code className="bg-gray-100 dark:bg-white/5 px-1 rounded text-red-500 font-bold">ROL_EMPLEADO</code> en el backend.
+                    </p>
+                    <button
+                        onClick={loadInvoices}
+                        className="px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
                                 <tr>
-                                    <td colSpan={5} className="py-8 text-center text-gray-500">Cargando...</td>
+                                    <th className="px-6 py-4">Código</th>
+                                    <th className="px-6 py-4">Fecha Emisión</th>
+                                    <th className="px-6 py-4">Monto Total</th>
+                                    <th className="px-6 py-4">Estado</th>
+                                    <th className="px-6 py-4 text-right">Acciones</th>
                                 </tr>
-                            ) : !invoices || invoices.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="py-8 text-center text-gray-500">No hay facturas registradas</td>
-                                </tr>
-                            ) : (
-                                invoices.map((invoice) => (
-                                    <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-[#d4af37]">{invoice.code}</td>
-                                        <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                                            {new Date(invoice.issuedDate).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
-                                            ${invoice.totalAmount}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                                invoice.status === 'PAID' 
-                                                    ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' 
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-8 text-center text-gray-500">Cargando...</td>
+                                    </tr>
+                                ) : !invoices || invoices.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-8 text-center text-gray-500">No hay facturas registradas</td>
+                                    </tr>
+                                ) : (
+                                    invoices.map((invoice) => (
+                                        <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 font-mono text-[#d4af37]">{invoice.code}</td>
+                                            <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                                                {new Date(invoice.issuedDate).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                                                ${invoice.totalAmount}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${invoice.status === 'PAID'
+                                                    ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
                                                     : invoice.status === 'PENDING'
                                                         ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20'
                                                         : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
@@ -164,25 +185,26 @@ const InvoiceList: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Pagination (Simple) */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
-                    <button 
-                        disabled={page === 0}
-                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                        className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
-                    >
-                        Anterior
-                    </button>
-                    <span className="text-sm py-1 text-gray-600 dark:text-gray-400">Página {page + 1} de {totalPages || 1}</span>
-                    <button 
-                        disabled={page >= totalPages - 1}
-                        onClick={() => setPage(p => p + 1)}
-                        className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
-                    >
-                        Siguiente
-                    </button>
+                    {/* Pagination (Simple) */}
+                    <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
+                        <button
+                            disabled={page === 0}
+                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
+                        >
+                            Anterior
+                        </button>
+                        <span className="text-sm py-1 text-gray-600 dark:text-gray-400">Página {page + 1} de {totalPages || 1}</span>
+                        <button
+                            disabled={page >= totalPages - 1}
+                            onClick={() => setPage(p => p + 1)}
+                            className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (

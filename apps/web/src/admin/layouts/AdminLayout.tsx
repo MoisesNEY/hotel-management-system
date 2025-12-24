@@ -5,11 +5,13 @@ import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import routes from '../routes';
+import { useAuth } from '../../contexts/AuthProvider';
 
 const AdminLayout: React.FC = () => {
     const [bgColor, setBgColor] = useState<string>('black');
     const [activeColor, setActiveColor] = useState<string>('primary');
     const location = useLocation();
+    const { hasRole } = useAuth();
 
     // Load theme from localStorage
     useEffect(() => {
@@ -48,13 +50,28 @@ const AdminLayout: React.FC = () => {
 
                 <div className="content px-6 md:px-8 pb-8 pt-24 min-h-[calc(100vh-60px)]">
                     <Routes>
-                        {routes.map((route, index) => (
-                            <Route
-                                key={index}
-                                path={route.path}
-                                element={<route.component />}
-                            />
-                        ))}
+                        {routes.map((route, index) => {
+                            // Requisito de rol
+                            const isAuthorized = !route.allowedRoles || route.allowedRoles.some(role => hasRole(role as any));
+
+                            if (!isAuthorized) {
+                                return (
+                                    <Route
+                                        key={index}
+                                        path={route.path}
+                                        element={<Navigate to="/admin/dashboard" replace />}
+                                    />
+                                );
+                            }
+
+                            return (
+                                <Route
+                                    key={index}
+                                    path={route.path}
+                                    element={<route.component />}
+                                />
+                            );
+                        })}
                         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
                         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>

@@ -17,6 +17,7 @@ const CustomersView = () => {
     const [editingCustomer, setEditingCustomer] = useState<CustomerDTO | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerToDeleteId, setCustomerToDeleteId] = useState<number | null>(null);
+    const [permissionError, setPermissionError] = useState(false);
 
     useEffect(() => {
         loadCustomers();
@@ -30,6 +31,9 @@ const CustomersView = () => {
             setCustomers(response.data);
         } catch (error) {
             console.error("Error loading customers", error);
+            if (error.response?.status === 403) {
+                setPermissionError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -80,7 +84,15 @@ const CustomersView = () => {
                 const firstName = row.firstName;
                 const lastName = row.lastName;
 
-                if (!firstName && !lastName) return <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>;
+                if (!firstName && !lastName) {
+                    return login ? (
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                            {login}
+                        </span>
+                    ) : (
+                        <span className="text-gray-400 dark:text-gray-500 italic text-xs uppercase tracking-wider font-semibold">Sin Nombre</span>
+                    );
+                }
                 return <span className="font-semibold text-gray-900 dark:text-white tracking-tight">{`${firstName || ''} ${lastName || ''}`}</span>;
             }
         },
@@ -156,16 +168,32 @@ const CustomersView = () => {
                 </Button>
             </div>
 
-            <Card className="card-plain">
-                <Table
-                    data={customers}
-                    columns={columns}
-                    isLoading={loading}
-                    title="Listado de Clientes"
-                    emptyMessage="No hay clientes registrados"
-                    keyExtractor={(item) => item.id}
-                />
-            </Card>
+            {permissionError ? (
+                <Card className="p-12 text-center flex flex-col items-center justify-center space-y-4">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center">
+                        <Trash2 size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403 )</h2>
+                    <p className="max-w-md text-gray-500 dark:text-gray-400">
+                        El servidor ha rechazado el acceso a la lista de clientes para tu rol actual.
+                        Por favor, contacta al administrador para que habilite los permisos de <code className="bg-gray-100 dark:bg-white/5 px-1 rounded text-red-500 font-bold">ROL_EMPLEADO</code> en el backend.
+                    </p>
+                    <Button variant="secondary" onClick={loadCustomers}>
+                        Reintentar
+                    </Button>
+                </Card>
+            ) : (
+                <Card className="card-plain">
+                    <Table
+                        data={customers}
+                        columns={columns}
+                        isLoading={loading}
+                        title="Listado de Clientes"
+                        emptyMessage="No hay clientes registrados"
+                        keyExtractor={(item) => item.id}
+                    />
+                </Card>
+            )}
 
             {/* Modal de Cliente */}
             <Modal

@@ -15,11 +15,12 @@ const PaymentList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    
+
     // Modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<PaymentDTO | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [permissionError, setPermissionError] = useState(false);
 
     const loadPayments = async () => {
         setLoading(true);
@@ -27,8 +28,11 @@ const PaymentList: React.FC = () => {
             const response: PaginatedResponse<PaymentDTO> = await getAllPayments(page, 10);
             setPayments(response.data);
             setTotalPages(response.totalPages);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading payments", error);
+            if (error.response?.status === 403) {
+                setPermissionError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -45,7 +49,7 @@ const PaymentList: React.FC = () => {
 
     const confirmDelete = async () => {
         if (!selectedPayment) return;
-        
+
         setDeleting(true);
         try {
             await deletePayment(selectedPayment.id);
@@ -150,10 +154,88 @@ const PaymentList: React.FC = () => {
                         onClick={() => setPage(p => p + 1)}
                         className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
                     >
-                        Siguiente
+                        Reintentar
                     </button>
                 </div>
-            </div>
+            ) : (
+                <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
+                    <table className="w-full text-left">
+                        {/* ... table content remains same ... */}
+                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
+                            <tr>
+                                <th className="px-6 py-4">ID</th>
+                                <th className="px-6 py-4">Fecha</th>
+                                <th className="px-6 py-4">Ref. Factura</th>
+                                <th className="px-6 py-4">Monto</th>
+                                <th className="px-6 py-4">Método</th>
+                                <th className="px-6 py-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
+                            {loading ? (
+                                <tr><td colSpan={6} className="py-8 text-center text-gray-500">Cargando...</td></tr>
+                            ) : !payments || payments.length === 0 ? (
+                                <tr><td colSpan={6} className="py-8 text-center text-gray-500">No hay pagos registrados</td></tr>
+                            ) : (
+                                payments.map((payment) => (
+                                    <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 text-gray-500">#{payment.id}</td>
+                                        <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                                            {new Date(payment.date).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-[#d4af37]">
+                                            {payment.invoice?.code || String(payment.invoice?.id || '')}
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                                            ${payment.amount}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex px-2 py-1 rounded bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                                {payment.method}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <ActionButton
+                                                    onClick={() => navigate(`/admin/payments/edit/${payment.id}`)}
+                                                    icon={PencilSquareIcon}
+                                                    label="Editar"
+                                                    variant="ghost"
+                                                />
+                                                <ActionButton
+                                                    onClick={() => handleDelete(payment)}
+                                                    icon={TrashIcon}
+                                                    label="Eliminar"
+                                                    variant="ghost"
+                                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                    {/* Pagination (Simple) */}
+                    <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
+                        <button
+                            disabled={page === 0}
+                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
+                        >
+                            Anterior
+                        </button>
+                        <span className="text-sm py-1 text-gray-600 dark:text-gray-400">Página {page + 1} de {totalPages || 1}</span>
+                        <button
+                            disabled={page >= totalPages - 1}
+                            onClick={() => setPage(p => p + 1)}
+                            className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
@@ -170,7 +252,7 @@ const PaymentList: React.FC = () => {
                                 <XMarkIcon className="w-6 h-6" />
                             </button>
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="flex items-start gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
@@ -210,7 +292,7 @@ const PaymentList: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
                             <button
                                 onClick={cancelDelete}

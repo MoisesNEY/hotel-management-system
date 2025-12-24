@@ -16,9 +16,9 @@ import { getAllCustomers } from '../../../services/admin/customerService';
 import CustomerForm from '../Customers/CustomerForm';
 
 import { extractErrorMessage } from '../../utils/errorHelper';
-import type { 
-    BookingDTO, 
-    RoomTypeDTO, 
+import type {
+    BookingDTO,
+    RoomTypeDTO,
     RoomDTO,
     CustomerDTO,
     BookingStatus
@@ -40,7 +40,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
 
     // Selection IDs and Data
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | string>('');
-    
+
     // Items state
     const [bookingItems, setBookingItems] = useState<{ roomTypeId: number | string; occupantName: string; assignedRoomId?: number | string; id?: number }[]>([]);
     const [roomTypes, setRoomTypes] = useState<RoomTypeDTO[]>([]);
@@ -49,6 +49,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
 
     // Local Assignment Modal in Form
     const [showAssignModal, setShowAssignModal] = useState(false);
+    const [showApproveModal, setShowApproveModal] = useState(false);
     const [assigningItemIndex, setAssigningItemIndex] = useState<number | null>(null);
     
     // Create Customer Modal
@@ -261,7 +262,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                 type="text"
                                 readOnly
                                 value={
-                                    initialData.customer?.firstName 
+                                    initialData.customer?.firstName
                                         ? `${initialData.customer.firstName} ${initialData.customer.lastName} (${initialData.customer.email})`
                                         : 'Cargando información del cliente...'
                                 }
@@ -297,17 +298,17 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 <div className="md:col-span-2 space-y-4">
                     <div className="flex justify-between items-center">
                         <label className={labelStyle}>Habitaciones / Unidades Reservadas <span className="text-gold-default">*</span></label>
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={addItem}
                             leftIcon={<Plus size={14} />}
                         >
                             Agregar Habitación
                         </Button>
                     </div>
-                    
+
                     <div className="space-y-4">
                         {bookingItems.length === 0 && (
                             <div className="p-8 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl text-center">
@@ -360,7 +361,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                         ) : (
                                             <span className="text-[10px] text-gray-400 italic">Sin asignar</span>
                                         )}
-                                        <Button 
+                                        <Button
                                             type="button"
                                             size="sm"
                                             variant="ghost"
@@ -373,7 +374,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                     </div>
                                 </div>
                                 <div className="md:col-span-1 flex justify-center pb-2">
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => removeItem(index)}
                                         className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors"
@@ -450,7 +451,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                             ))}
                         </select>
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                             <ChevronDown size={14} className="group-focus-within:rotate-180 transition-transform" />
+                            <ChevronDown size={14} className="group-focus-within:rotate-180 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -459,7 +460,7 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                 <div className="space-y-2 group md:col-span-2">
                     <label className={labelStyle}>Notas y Requerimientos Especiales</label>
                     <div className="relative">
-                         <div className="absolute left-4 top-6 text-gray-400 group-focus-within:text-gold-default transition-colors">
+                        <div className="absolute left-4 top-6 text-gray-400 group-focus-within:text-gold-default transition-colors">
                             <FileText size={18} />
                         </div>
                         <textarea
@@ -487,32 +488,21 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
 
             <div className="flex items-center justify-between gap-4 pt-10 border-t border-gray-100 dark:border-white/5">
                 <div className="flex gap-2">
-                     {/* Acciones de Flujo de Reservas */}
-                     {initialData && status === 'PENDING_APPROVAL' && (
-                         <Button
-                             type="button"
-                             variant="success"
-                             onClick={async () => {
-                                 if (!window.confirm("¿Aprobar esta solicitud? Se verificará disponibilidad y se generará la factura.")) return;
-                                 try {
-                                     setLoading(true);
-                                     await approveBooking(initialData.id);
-                                     onSuccess();
-                                 } catch (err: any) {
-                                     setError(extractErrorMessage(err));
-                                 } finally {
-                                    setLoading(false);
-                                 }
-                             }}
-                             disabled={loading}
-                             leftIcon={<CheckCircle2 size={16} />}
-                         >
-                             Aprobar Solicitud
-                         </Button>
-                     )}
+                    {/* Acciones de Flujo de Reservas */}
+                    {initialData && status === 'PENDING_APPROVAL' && (
+                        <Button
+                            type="button"
+                            variant="success"
+                            onClick={() => setShowApproveModal(true)}
+                            disabled={loading}
+                            leftIcon={<CheckCircle2 size={16} />}
+                        >
+                            Aprobar Solicitud
+                        </Button>
+                    )}
 
-                     {initialData && status === 'PENDING_PAYMENT' && initialData.invoiceId && (
-                         <Button
+                    {initialData && status === 'PENDING_PAYMENT' && initialData.invoiceId && (
+                        <Button
                             type="button"
                             variant="info"
                             onClick={async () => {
@@ -535,25 +525,25 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                 }
                             }}
                             disabled={loading}
-                             leftIcon={<Save size={16} />}
-                         >
-                             Registrar Pago Efectivo
-                         </Button>
-                     )}
+                            leftIcon={<Save size={16} />}
+                        >
+                            Registrar Pago Efectivo
+                        </Button>
+                    )}
                 </div>
-                
+
                 <div className="flex gap-4">
-                    <Button 
-                        type="button" 
-                        variant="ghost" 
+                    <Button
+                        type="button"
+                        variant="ghost"
                         onClick={onCancel}
                         disabled={loading}
                         className="px-8 rounded-xl"
                     >
                         Cancelar
                     </Button>
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         variant="primary"
                         disabled={loading}
                         className="px-12 min-w-[180px] rounded-xl"
@@ -585,15 +575,13 @@ const BookingForm = ({ initialData, onSuccess, onCancel }: BookingFormProps) => 
                                     type="button"
                                     onClick={() => handleAssignRoomInForm(r.id)}
                                     disabled={r.status !== 'AVAILABLE'}
-                                    className={`p-3 rounded-xl border text-sm transition-all ${
-                                        r.status === 'AVAILABLE'
+                                    className={`p-3 rounded-xl border text-sm transition-all ${r.status === 'AVAILABLE'
                                             ? 'border-gray-100 dark:border-white/10 hover:border-gold-default dark:hover:border-gold-default hover:bg-gold-default/5'
                                             : 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-white/5 border-dashed'
-                                    } ${
-                                        Number(bookingItems[assigningItemIndex].assignedRoomId) === r.id
+                                        } ${Number(bookingItems[assigningItemIndex].assignedRoomId) === r.id
                                             ? 'border-gold-default bg-gold-default/10 text-gold-default'
                                             : ''
-                                    }`}
+                                        }`}
                                 >
                                     <div className="font-bold">{r.roomNumber}</div>
                                     <div className="text-[10px] mt-1">{r.status}</div>
