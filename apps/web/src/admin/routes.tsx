@@ -12,7 +12,8 @@ import {
     DocumentTextIcon,
     ChartBarIcon,
     TableCellsIcon,
-    UserPlusIcon
+    UserPlusIcon,
+    ServerIcon
 } from '@heroicons/react/24/outline';
 
 // Import views
@@ -35,6 +36,7 @@ import InvoiceList from './views/Finance/InvoiceList';
 import InvoiceForm from './views/Finance/InvoiceForm';
 import PaymentList from './views/Finance/PaymentList';
 import PaymentForm from './views/Finance/PaymentForm';
+import SystemHealthView from './views/SystemHealth/SystemHealthView';
 import { BanknotesIcon } from '@heroicons/react/24/outline';
 
 export interface RouteConfig {
@@ -224,6 +226,15 @@ const routes: RouteConfig[] = [
         layout: '/admin',
         hidden: true,
         allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
+    },
+    // --- SYSTEM HEALTH ---
+    {
+        path: '/system-health',
+        name: 'Estado del Sistema',
+        icon: ServerIcon,
+        component: SystemHealthView,
+        layout: '/admin',
+        allowedRoles: ['ROLE_ADMIN']
     },
 ];
 
