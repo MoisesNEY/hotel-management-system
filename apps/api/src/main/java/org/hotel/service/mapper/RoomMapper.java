@@ -18,5 +18,6 @@ public interface RoomMapper extends EntityMapper<RoomDTO, Room> {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
+    @Mapping(target = "basePrice", source = "basePrice")
     RoomTypeDTO toDtoRoomTypeName(RoomType roomType);
 }
