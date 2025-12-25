@@ -27,15 +27,15 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long>, JpaSpec
     }
 
     @Query(
-        value = "select invoice from Invoice invoice left join fetch invoice.booking",
+        value = "select invoice from Invoice invoice left join fetch invoice.booking b left join fetch b.customer",
         countQuery = "select count(invoice) from Invoice invoice"
     )
     Page<Invoice> findAllWithToOneRelationships(Pageable pageable);
 
-    @Query("select invoice from Invoice invoice left join fetch invoice.booking")
+    @Query("select invoice from Invoice invoice left join fetch invoice.booking b left join fetch b.customer")
     List<Invoice> findAllWithToOneRelationships();
 
-    @Query("select invoice from Invoice invoice left join fetch invoice.booking left join fetch invoice.items where invoice.id =:id")
+    @Query("select invoice from Invoice invoice left join fetch invoice.booking b left join fetch b.customer left join fetch invoice.items where invoice.id =:id")
     Optional<Invoice> findOneWithToOneRelationships(@Param("id") Long id);
 
     Page<Invoice> findByBooking_Customer_User_Login(String login, Pageable pageable);

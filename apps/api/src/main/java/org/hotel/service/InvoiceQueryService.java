@@ -47,7 +47,16 @@ public class InvoiceQueryService extends QueryService<Invoice> {
     public Page<InvoiceDTO> findByCriteria(InvoiceCriteria criteria, Pageable page) {
         LOG.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Invoice> specification = createSpecification(criteria);
-        return invoiceRepository.findAll(specification, page).map(invoiceMapper::toDto);
+        
+        // Use eager loading for booking and customer
+        Specification<Invoice> eagerSpec = (root, query, cb) -> {
+            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                root.fetch(Invoice_.booking, JoinType.LEFT).fetch(Booking_.customer, JoinType.LEFT);
+            }
+            return specification.toPredicate(root, query, cb);
+        };
+        
+        return invoiceRepository.findAll(eagerSpec, page).map(invoiceMapper::toDto);
     }
 
     /**
