@@ -1,19 +1,27 @@
 import { useEffect, useState } from 'react';
-import { formatCurrency, formatDateTime, getRequestStatusConfig } from '../../utils/helpers';
+import { formatCurrency } from '../../utils/helpers';
 import ServiceForm from './ServiceForm';
 import Modal from '../../components/shared/Modal';
-import { Check, Trash2, Plus, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Trash2, Plus, Edit, CheckCircle2, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import Table, { type Column } from '../../components/shared/Table';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
-import { getAllHotelServices, deleteHotelService } from '../../../services/admin/hotelServiceService';
-import { getAllServiceRequests, updateServiceRequest } from '../../../services/admin/serviceRequestService';
-import type { HotelServiceDTO, ServiceRequestDTO } from '../../../types/adminTypes';
+import { getAllHotelServices, deleteHotelService, updateHotelService } from '../../../services/admin/hotelServiceService';
+import type { HotelServiceDTO } from '../../../types/adminTypes';
+
+// Service Status configuration matching backend enum
+const SERVICE_STATUS_CONFIG: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'info' }> = {
+    'OPERATIONAL': { label: 'Operativo', variant: 'success' },
+    'CLOSED': { label: 'Cerrado', variant: 'danger' },
+    'FULL_CAPACITY': { label: 'Capacidad Llena', variant: 'warning' },
+    'DOWN': { label: 'Fuera de Servicio', variant: 'info' },
+};
+
+const STATUS_ORDER = ['OPERATIONAL', 'CLOSED', 'FULL_CAPACITY', 'DOWN'];
 
 const ServicesView = () => {
     const [services, setServices] = useState<HotelServiceDTO[]>([]);
-    const [requests, setRequests] = useState<ServiceRequestDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Form State
@@ -32,7 +40,6 @@ const ServicesView = () => {
         setFeedback({ show: true, title, message, type: 'success' });
     };
 
-
     const showError = (title: string, message: string) => {
         setFeedback({ show: true, title, message, type: 'error' });
     };
@@ -40,12 +47,8 @@ const ServicesView = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [servicesResponse, requestsResponse] = await Promise.all([
-                getAllHotelServices(0, 50),
-                getAllServiceRequests(0, 50)
-            ]);
+            const servicesResponse = await getAllHotelServices(0, 100);
             setServices(servicesResponse.data);
-            setRequests(requestsResponse.data);
         } catch (error) {
             console.error("Error loading services", error);
         } finally {
@@ -56,7 +59,6 @@ const ServicesView = () => {
     useEffect(() => {
         loadData();
     }, []);
-
 
     // Handlers
     const handleCreateClick = () => {
@@ -73,90 +75,30 @@ const ServicesView = () => {
         try {
             await deleteHotelService(id);
             setServices(prev => prev.filter(s => s.id !== id));
-            showSuccess('Servicio Removido', 'El servicio ha sido eliminado permanentemente del catálogo.');
+            showSuccess('Servicio Eliminado', 'El servicio ha sido eliminado del catálogo.');
         } catch (error: any) {
             console.error("Error deleting service", error);
-            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo eliminar el servicio seleccionado.';
+            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo eliminar el servicio.';
             showError('Error al Eliminar', serverMsg);
         }
     };
 
-    const handleUpdateStatus = async (request: ServiceRequestDTO) => {
+    // Quick status change - cycles through statuses
+    const handleQuickStatusChange = async (service: HotelServiceDTO) => {
+        const currentIndex = STATUS_ORDER.indexOf(service.status || 'OPERATIONAL');
+        const nextIndex = (currentIndex + 1) % STATUS_ORDER.length;
+        const newStatus = STATUS_ORDER[nextIndex];
+
         try {
-            await updateServiceRequest(request.id, { ...request, status: 'COMPLETED' });
-            loadData();
-            showSuccess('Solicitud Completada', 'La solicitud de servicio ha sido marcada como resuelta.');
+            const updatedService = { ...service, status: newStatus };
+            await updateHotelService(service.id!, updatedService);
+            setServices(prev => prev.map(s => s.id === service.id ? { ...s, status: newStatus } : s));
+            showSuccess('Estado Actualizado', `El servicio ahora está: ${SERVICE_STATUS_CONFIG[newStatus].label}`);
         } catch (error: any) {
-            console.error("Error updating request status", error);
-            const serverMsg = error.response?.data?.detail || error.response?.data?.message || 'No se pudo actualizar el estado de la solicitud.';
-            showError('Error en Actualización', serverMsg);
+            console.error("Error updating status", error);
+            showError('Error', 'No se pudo actualizar el estado.');
         }
     };
-
-    const requestColumns: Column<ServiceRequestDTO>[] = [
-        {
-            header: 'ID',
-            accessor: (row) => row.id
-        },
-        {
-            header: 'Servicio',
-            accessor: (row) => row.service.name
-        },
-        {
-            header: 'Cliente',
-            accessor: (row) => {
-                const customer = row.booking?.customer;
-                if (!customer) return <span className="text-gray-400 italic text-xs">Sin asignar</span>;
-                return (
-                    <div className="font-bold text-gray-900 dark:text-white">
-                        {customer.firstName} {customer.lastName}
-                    </div>
-                );
-            }
-        },
-        {
-            header: 'Reserva ID',
-            accessor: (row) => row.booking.id
-        },
-        {
-            header: 'Fecha Solicitud',
-            accessor: (row) => formatDateTime(row.requestDate)
-        },
-        {
-            header: 'Detalles',
-            accessor: (row) => (
-                <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate font-medium" title={row.details}>
-                    {row.details || '-'}
-                </div>
-            )
-        },
-        {
-            header: 'Estado',
-            accessor: (row) => {
-                const config = getRequestStatusConfig(row.status);
-                return (
-                    <Badge variant={config.variant} className="px-4 py-1">
-                        {config.label}
-                    </Badge>
-                );
-            }
-        },
-        {
-            header: 'Acciones',
-            accessor: (row) => (
-                row.status === 'OPEN' || row.status === 'IN_PROGRESS' ?
-                    <Button
-                        size="sm"
-                        variant="success"
-                        onClick={() => handleUpdateStatus(row)}
-                        leftIcon={<Check size={14} />}
-                    >
-                        Completar
-                    </Button>
-                    : null
-            )
-        }
-    ];
 
     const serviceColumns: Column<HotelServiceDTO>[] = [
         {
@@ -164,43 +106,71 @@ const ServicesView = () => {
             accessor: (row) => row.id
         },
         {
+            header: 'Imagen',
+            accessor: (row) => (
+                row.imageUrl ? (
+                    <img 
+                        src={row.imageUrl} 
+                        alt={row.name}
+                        className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-white/10"
+                        onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff43c619c721?auto=format&fit=crop&q=80&w=100')}
+                    />
+                ) : (
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 text-xs">
+                        N/A
+                    </div>
+                )
+            )
+        },
+        {
             header: 'Nombre',
-            accessor: (row) => row.name
-        },
-        {
-            header: 'Descripción',
             accessor: (row) => (
-                <div className="text-sm text-gray-600 dark:text-gray-300 max-w-md truncate font-medium">
-                    {row.description || '-'}
+                <div>
+                    <div className="font-bold text-gray-900 dark:text-white">{row.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                        {row.description || '-'}
+                    </div>
                 </div>
             )
         },
         {
-            header: 'Costo',
-            accessor: (row) => formatCurrency(row.cost)
-        },
-        {
-            header: 'Imagen URL',
+            header: 'Precio',
             accessor: (row) => (
-                <div className="text-[10px] text-gray-400 dark:text-gray-500 max-w-xs truncate font-mono">
-                    {row.imageUrl || '-'}
-                </div>
+                <span className="font-semibold text-[#d4af37]">{formatCurrency(row.cost)}</span>
             )
         },
         {
-            header: 'Disponible',
+            header: 'Horario',
             accessor: (row) => (
-                <Badge variant={row.status === 'OPERATIONAL' ? 'success' : 'warning'}>
-                    {row.status === 'OPERATIONAL' ? 'Sí' : 'No'}
-                </Badge>
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {row.startHour || '08:00'} - {row.endHour || '22:00'}
+                </span>
             )
+        },
+        {
+            header: 'Estado',
+            accessor: (row) => {
+                const config = SERVICE_STATUS_CONFIG[row.status || 'OPERATIONAL'] || SERVICE_STATUS_CONFIG['OPERATIONAL'];
+                return (
+                    <button
+                        onClick={() => handleQuickStatusChange(row)}
+                        className="group flex items-center gap-2"
+                        title="Clic para cambiar estado"
+                    >
+                        <Badge variant={config.variant}>
+                            {config.label}
+                        </Badge>
+                        <RefreshCw size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                );
+            }
         },
         {
             header: 'Acciones',
             accessor: (row) => (
                 <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleEditClick(row)}>
-                        Editar
+                    <Button size="sm" variant="info" onClick={() => handleEditClick(row)} iconOnly>
+                        <Edit size={14} />
                     </Button>
                     <Button size="sm" variant="danger" onClick={() => row.id && handleDeleteClick(row.id)} iconOnly>
                         <Trash2 size={14} />
@@ -214,8 +184,8 @@ const ServicesView = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-transparent">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Servicios</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de servicios y solicitudes</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Servicios del Hotel</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Catálogo de servicios disponibles para huéspedes</p>
                 </div>
                 {!showForm && (
                     <Button onClick={handleCreateClick} leftIcon={<Plus size={16} />}>Nuevo Servicio</Button>
@@ -224,22 +194,10 @@ const ServicesView = () => {
 
             <Card className="card-plain">
                 <Table
-                    data={requests}
-                    columns={requestColumns}
-                    isLoading={loading}
-                    title="Solicitudes de Servicio"
-                    emptyMessage="No hay solicitudes pendientes"
-                    keyExtractor={(item: ServiceRequestDTO) => item.id}
-                />
-            </Card>
-
-            <Card className="card-plain">
-                <Table
                     data={services}
                     columns={serviceColumns}
                     isLoading={loading}
-                    title="Catálogo de Servicios"
-                    emptyMessage="No hay servicios disponibles"
+                    emptyMessage="No hay servicios registrados"
                     keyExtractor={(item: HotelServiceDTO) => item.id!}
                 />
             </Card>
@@ -259,7 +217,7 @@ const ServicesView = () => {
                 />
             </Modal>
 
-            {/* Modal de Feedback (Standard UI) */}
+            {/* Feedback Modal */}
             <Modal
                 isOpen={feedback.show}
                 onClose={() => setFeedback({ ...feedback, show: false })}
