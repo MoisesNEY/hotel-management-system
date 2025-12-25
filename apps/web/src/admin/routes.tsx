@@ -139,7 +139,7 @@ const routes: RouteConfig[] = [
     },
     {
         path: '/tables',
-        name: 'Tablas',
+        name: 'Reportes',
         icon: ChartBarIcon,
         component: TablesView,
         layout: '/admin',
