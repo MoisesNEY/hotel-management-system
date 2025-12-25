@@ -147,7 +147,8 @@ const ClientServiceRequests: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
             {/* Services List */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Search Bar */}
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-[#d4af37] transition-colors" size={20} />
                 <input
@@ -159,28 +160,105 @@ const ClientServiceRequests: React.FC = () => {
                 />
               </div>
 
+              {/* Services Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredServices.map(service => (
-                  <div key={service.id} className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-white/5 rounded-3xl p-6 hover:border-[#d4af37]/30 transition-all group">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 bg-gray-200 dark:bg-white/5 rounded-2xl flex items-center justify-center text-[#d4af37] group-hover:scale-110 transition-transform overflow-hidden">
-                        {service.imageUrl ? <img src={service.imageUrl} className="w-full h-full object-cover" /> : <Coffee size={24} />}
+                {filteredServices.length === 0 ? (
+                  <div className="col-span-full bg-gray-50 dark:bg-[#111111] rounded-3xl p-12 text-center">
+                    <Coffee className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={48} />
+                    <p className="text-gray-500">No se encontraron servicios</p>
+                  </div>
+                ) : filteredServices.map(service => {
+                  // Check if service is currently available based on hours
+                  const now = new Date();
+                  const currentHour = now.getHours();
+                  const currentMinute = now.getMinutes();
+                  const currentTime = currentHour * 60 + currentMinute;
+                  
+                  const [startH, startM] = (service.startHour || '00:00').split(':').map(Number);
+                  const [endH, endM] = (service.endHour || '23:59').split(':').map(Number);
+                  const startTime = startH * 60 + startM;
+                  const endTime = endH * 60 + endM;
+                  
+                  const isOpenNow = currentTime >= startTime && currentTime <= endTime;
+                  const isOperational = service.status === 'OPERATIONAL';
+                  const isAvailable = isOperational && isOpenNow;
+
+                  return (
+                    <div
+                      key={service.id}
+                      className={`bg-gray-50 dark:bg-[#111111] border rounded-3xl overflow-hidden hover:shadow-lg transition-all group ${
+                        isAvailable
+                          ? 'border-gray-200 dark:border-white/5 hover:border-[#d4af37]/30'
+                          : 'border-gray-200 dark:border-white/5 opacity-75'
+                      }`}
+                    >
+                      {/* Image Header */}
+                      <div className="relative h-36 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+                        {service.imageUrl ? (
+                          <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Coffee size={48} className="text-gray-400 dark:text-gray-600" />
+                          </div>
+                        )}
+                        
+                        {/* Status Badge */}
+                        <div className="absolute top-3 left-3">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm ${
+                            isAvailable
+                              ? 'bg-green-500/90 text-white'
+                              : !isOperational
+                                ? 'bg-red-500/90 text-white'
+                                : 'bg-yellow-500/90 text-black'
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full ${
+                              isAvailable ? 'bg-white animate-pulse' : 'bg-white/60'
+                            }`}></span>
+                            {isAvailable ? 'Disponible' : !isOperational ? 'No disponible' : 'Cerrado ahora'}
+                          </span>
+                        </div>
+
+                        {/* Price Badge */}
+                        <div className="absolute top-3 right-3">
+                          <span className="bg-[#d4af37] text-black px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                            ${service.cost}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Precio</span>
-                        <p className="text-[#d4af37] text-lg font-bold">${service.cost}</p>
+
+                      {/* Content */}
+                      <div className="p-5">
+                        <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">{service.name}</h3>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">{service.description || 'Sin descripción'}</p>
+
+                        {/* Schedule Row */}
+                        <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-white/5">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock size={14} className="text-[#d4af37]" />
+                            <span className="text-gray-600 dark:text-gray-400">Horario:</span>
+                          </div>
+                          <span className="text-gray-900 dark:text-white font-semibold text-sm">
+                            {service.startHour || '00:00'} - {service.endHour || '23:59'}
+                          </span>
+                        </div>
+
+                        {/* Action Button */}
+                        <button
+                          onClick={() => isAvailable && handleOpenModal(service)}
+                          disabled={!isAvailable}
+                          className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+                            isAvailable
+                              ? 'bg-[#d4af37] hover:bg-[#b8962d] text-black shadow-md hover:shadow-lg'
+                              : 'bg-gray-200 dark:bg-white/5 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <Plus size={18} />
+                          {isAvailable ? 'Solicitar Servicio' : 'No disponible'}
+                        </button>
                       </div>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">{service.name}</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 line-clamp-2">{service.description}</p>
-                    <button
-                      onClick={() => handleOpenModal(service)}
-                      className="w-full py-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-transparent hover:bg-[#d4af37] hover:text-black hover:border-[#d4af37] text-gray-700 dark:text-white transition-all rounded-xl font-bold flex items-center justify-center gap-2"
-                    >
-                      <Plus size={18} /> Solicitar
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
