@@ -43,4 +43,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long>, JpaSpec
     Optional<Invoice> findByCode(String code);
 
     List<Invoice> findAllByBookingId(Long bookingId);
+
+    Page<Invoice> findByBooking_IdAndBooking_Customer_User_Login(Long bookingId, String login, Pageable pageable);
 }

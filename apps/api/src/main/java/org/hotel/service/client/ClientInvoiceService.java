@@ -48,6 +48,17 @@ public class ClientInvoiceService {
     }
 
     @Transactional(readOnly = true)
+    public Page<InvoiceDTO> findMyInvoicesByBookingId(Long bookingId, Pageable pageable) {
+        String userLogin = SecurityUtils.getCurrentUserLogin()
+            .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
+        
+        log.debug("Request to get invoices for booking {} and user : {}", bookingId, userLogin);
+
+        return invoiceRepository.findByBooking_IdAndBooking_Customer_User_Login(bookingId, userLogin, pageable)
+            .map(invoiceMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<InvoiceDTO> findMyInvoice(Long id) {
         String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));

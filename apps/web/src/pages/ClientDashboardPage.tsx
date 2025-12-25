@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle2, Clock, X, Bed } from 'lucide-react';
+import { Calendar, CreditCard, PieChart, Star, Coffee, ChevronRight, CheckCircle2, Clock, X, Bed, FileText, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthProvider';
 import { getMyBookings } from '../services/client/bookingService';
-import { getMyInvoices } from '../services/client/invoiceService';
+import { getMyInvoices, getInvoicesByBookingId, getMyInvoice } from '../services/client/invoiceService';
 import type { BookingResponse } from '../types/clientTypes';
 import type { InvoiceDTO } from '../types/adminTypes';
 import RoomTypes from '../components/RoomTypes';
 import { PayPalPaymentButton } from '../components/PayPalPaymentButton';
 import InvoiceDetailsModal from '../components/modals/InvoiceDetailsModal';
-import { getMyInvoice } from '../services/client/invoiceService';
 
 const ClientDashboardPage: React.FC = () => {
   const { userProfile: user } = useAuth();
@@ -22,6 +21,8 @@ const ClientDashboardPage: React.FC = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDTO | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [bookingInvoices, setBookingInvoices] = useState<InvoiceDTO[]>([]);
+  const [loadingBookingInvoices, setLoadingBookingInvoices] = useState(false);
 
   const loadData = async () => {
     try {
@@ -85,6 +86,21 @@ const ClientDashboardPage: React.FC = () => {
          case 'CANCELLED': return 'Cancelada';
          default: return status;
      }
+  };
+
+  const handleOpenBookingDetails = async (booking: BookingResponse) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+    setLoadingBookingInvoices(true);
+    try {
+      const invoicesData = await getInvoicesByBookingId(booking.id);
+      setBookingInvoices(invoicesData);
+    } catch (e) {
+      console.error('Error loading invoices for booking', e);
+      setBookingInvoices([]);
+    } finally {
+      setLoadingBookingInvoices(false);
+    }
   };
 
 
@@ -213,7 +229,7 @@ const ClientDashboardPage: React.FC = () => {
                           </button>
                         )}
                         <button 
-                          onClick={() => { setSelectedBooking(currentStay); setShowDetailsModal(true); }}
+                          onClick={() => handleOpenBookingDetails(currentStay)}
                           className="px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-colors"
                         >
                           Detalles de la Reserva
@@ -305,14 +321,14 @@ const ClientDashboardPage: React.FC = () => {
                            {/* Botón de PayPal SOLO si está en PENDING_PAYMENT */}
                            {booking.status === 'PENDING_PAYMENT' && (
                             <button 
-                                onClick={() => { setSelectedBooking(booking); setShowDetailsModal(true); }}
+                                onClick={() => handleOpenBookingDetails(booking)}
                                 className="flex items-center gap-2 px-4 py-2 bg-[#0070ba] text-white rounded-full hover:bg-[#005ea6] transition-colors text-xs font-bold"
                             >
                               <CreditCard size={14} /> Pagar Ahora
                             </button>
                            )}
                           <button 
-                            onClick={() => { setSelectedBooking(booking); setShowDetailsModal(true); }}
+                            onClick={() => handleOpenBookingDetails(booking)}
                             className="p-2 text-gray-400 hover:text-white transition-colors border border-white/10 rounded-full"
                           >
                              <ChevronRight size={18} />
@@ -402,7 +418,7 @@ const ClientDashboardPage: React.FC = () => {
           onClick={() => setShowDetailsModal(false)}
         >
           <div 
-            className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10 rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 slide-in-from-bottom-5 duration-500"
+            className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10 rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl relative animate-in zoom-in-95 slide-in-from-bottom-5 duration-500 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal */}
@@ -431,7 +447,7 @@ const ClientDashboardPage: React.FC = () => {
             </div>
 
             {/* Contenido */}
-            <div className="p-8 space-y-8">
+            <div className="p-8 space-y-8 overflow-y-auto flex-1">
               {/* Message Banner based on Status */}
               {selectedBooking.status === 'PENDING_APPROVAL' && (
                   <div className="bg-orange-500/10 border border-orange-500/20 text-orange-400 p-4 rounded-xl text-sm flex items-start gap-3">
@@ -482,6 +498,66 @@ const ClientDashboardPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Invoices Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-[#d4af37] uppercase tracking-widest flex items-center gap-2">
+                  <FileText size={16} /> Facturas Asociadas
+                </h4>
+                {loadingBookingInvoices ? (
+                  <div className="flex items-center justify-center py-6">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-[#d4af37]"></div>
+                  </div>
+                ) : bookingInvoices.length === 0 ? (
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl text-center text-gray-500 text-sm">
+                    No hay facturas generadas para esta reserva.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {bookingInvoices.map((invoice) => (
+                      <div key={invoice.id} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5 hover:border-[#d4af37]/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-[#d4af37]/10 rounded-xl flex items-center justify-center">
+                            <FileText size={18} className="text-[#d4af37]" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm">{invoice.code}</p>
+                            <p className="text-xs text-gray-500">{formatDate(invoice.issuedDate)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="font-bold text-[#d4af37]">${invoice.totalAmount}</p>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${
+                              invoice.status === 'PAID' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                              invoice.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                              'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                            }`}>
+                              {invoice.status === 'PAID' && <CheckCircle2 size={10} />}
+                              {invoice.status}
+                            </span>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const detailed = await getMyInvoice(invoice.id);
+                                setSelectedInvoice(detailed);
+                                setShowInvoiceModal(true);
+                              } catch (e) {
+                                console.error('Error loading invoice details', e);
+                              }
+                            }}
+                            className="p-2 hover:bg-[#d4af37]/10 rounded-lg text-[#d4af37] transition-all"
+                            title="Ver Factura"
+                          >
+                            <Eye size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Only show Total/Payment section if approved or confirmed */}
