@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, TrashIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getAllPayments, deletePayment } from '../../../services/admin/paymentService';
 import type { PaymentDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
@@ -20,7 +21,9 @@ const PaymentList: React.FC = () => {
     const [payments, setPayments] = useState<PaymentDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
+    const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -49,11 +52,12 @@ const PaymentList: React.FC = () => {
         try {
             const response: PaginatedResponse<PaymentDTO> = await getAllPayments(
                 page, 
-                100, // Fetch more for client-side filtering
+                pageSize,
                 'id,desc'
             );
             setPayments(response.data);
             setTotalPages(response.totalPages);
+            setTotalItems(response.totalElements);
         } catch (error) {
             console.error("Error loading payments", error);
         } finally {
@@ -223,24 +227,65 @@ const PaymentList: React.FC = () => {
                     </tbody>
                 </table>
 
-                {/* Pagination */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
-                    <button 
-                        disabled={page === 0}
-                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                        className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
-                    >
-                        Anterior
-                    </button>
-                    <span className="text-sm py-1 text-gray-600 dark:text-gray-400">Página {page + 1} de {totalPages || 1}</span>
-                    <button 
-                        disabled={page >= totalPages - 1}
-                        onClick={() => setPage(p => p + 1)}
-                        className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
-                    >
-                        Siguiente
-                    </button>
-                </div>
+                {/* Pagination Controls */}
+                {totalPages > 0 && (
+                    <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex items-center justify-between">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {totalItems > 0 
+                                ? `Mostrando ${page * pageSize + 1} - ${Math.min((page + 1) * pageSize, totalItems)} de ${totalItems} pagos`
+                                : 'Sin resultados'
+                            }
+                        </p>
+                        
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronLeft size={18} className="text-gray-600 dark:text-gray-400" />
+                                </button>
+                                
+                                {/* Page Numbers */}
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i;
+                                    } else if (page < 3) {
+                                        pageNum = i;
+                                    } else if (page > totalPages - 4) {
+                                        pageNum = totalPages - 5 + i;
+                                    } else {
+                                        pageNum = page - 2 + i;
+                                    }
+                                    
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setPage(pageNum)}
+                                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                                page === pageNum
+                                                    ? 'bg-[#d4af37] text-white'
+                                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {pageNum + 1}
+                                        </button>
+                                    );
+                                })}
+                                
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Delete Confirmation Modal */}
