@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, BanknotesIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PlusIcon, TrashIcon, BanknotesIcon, MagnifyingGlassIcon, XMarkIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { createInvoice, getInvoiceById, updateInvoice } from '../../../services/admin/invoiceService';
 import { registerManualPayment } from '../../../services/admin/paymentService';
-import type { InvoiceDTO, InvoiceItemDTO } from '../../../types/adminTypes';
+import { getAllBookings, getBooking } from '../../../services/admin/bookingService';
+import type { InvoiceDTO, InvoiceItemDTO, BookingDTO } from '../../../types/adminTypes';
 
 const InvoiceForm: React.FC = () => {
     const navigate = useNavigate();
@@ -13,6 +14,13 @@ const InvoiceForm: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [paying, setPaying] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    
+    // Booking selector state
+    const [bookings, setBookings] = useState<BookingDTO[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<BookingDTO | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState<Partial<InvoiceDTO>>({
         code: '',
         issuedDate: new Date().toISOString(),
@@ -23,9 +31,11 @@ const InvoiceForm: React.FC = () => {
     });
 
     const isReadOnly = formData.status === 'PAID' || formData.status === 'CANCELLED';
-    const isIssued = formData.status === 'ISSUED';
 
     useEffect(() => {
+        // Fetch all bookings for selector
+        getAllBookings(0, 500).then(res => setBookings(res.data)).catch(console.error);
+        
         if (isEditMode) {
             setLoading(true);
             getInvoiceById(Number(id))
@@ -40,11 +50,27 @@ const InvoiceForm: React.FC = () => {
                         }));
                     }
                     setFormData(data);
+                    
+                    // Load associated booking if exists
+                    if (data.bookingId) {
+                        getBooking(data.bookingId).then(setSelectedBooking).catch(console.error);
+                    }
                 })
                 .catch(err => console.error(err))
                 .finally(() => setLoading(false));
         }
     }, [id, isEditMode]);
+
+    // Click outside handler to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Recalculate total when items change
     useEffect(() => {
@@ -152,14 +178,19 @@ const InvoiceForm: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código</label>
-                            <input 
-                                type="text"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60 disabled:bg-gray-100 dark:disabled:bg-white/5 dark:disabled:text-gray-400"
-                                value={formData.code || ''}
-                                onChange={e => setFormData({...formData, code: e.target.value})}
-                                required
-                                disabled={isReadOnly || isIssued} // Code cannot be changed if Issued
-                            />
+                            {isEditMode ? (
+                                <input 
+                                    type="text"
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                    value={formData.code || ''}
+                                    disabled
+                                    readOnly
+                                />
+                            ) : (
+                                <div className="w-full px-4 py-2 rounded-lg border border-dashed border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-400 dark:text-gray-500 italic text-sm">
+                                    Se generará automáticamente al guardar
+                                </div>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
@@ -188,6 +219,112 @@ const InvoiceForm: React.FC = () => {
                             />
                         </div>
                     </div>
+                </div>
+
+                {/* Booking Selector */}
+                <div className="bg-white dark:bg-[#111111] p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Reserva Asociada</h2>
+                    
+                    {selectedBooking ? (
+                        // Selected booking display
+                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#d4af37]/10 to-transparent border border-[#d4af37]/30 rounded-lg">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-[#d4af37]/20 rounded-full flex items-center justify-center">
+                                    <CalendarIcon className="w-6 h-6 text-[#d4af37]" />
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-gray-900 dark:text-white">
+                                        {selectedBooking.customer?.firstName} {selectedBooking.customer?.lastName}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Reserva #{selectedBooking.code} • {selectedBooking.checkInDate} al {selectedBooking.checkOutDate}
+                                    </p>
+                                </div>
+                            </div>
+                            {!isReadOnly && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedBooking(null);
+                                        setFormData(prev => ({ ...prev, bookingId: undefined }));
+                                        setSearchQuery('');
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                                >
+                                    <XMarkIcon className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        // Searchable dropdown
+                        <div className="relative" ref={dropdownRef}>
+                            <div className="relative">
+                                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre de cliente..."
+                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all disabled:opacity-60"
+                                    value={searchQuery}
+                                    onChange={e => {
+                                        setSearchQuery(e.target.value);
+                                        setShowDropdown(true);
+                                    }}
+                                    onFocus={() => setShowDropdown(true)}
+                                    disabled={isReadOnly}
+                                />
+                            </div>
+                            
+                            {showDropdown && !isReadOnly && (
+                                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                                    {bookings
+                                        .filter(b => {
+                                            const fullName = `${b.customer?.firstName} ${b.customer?.lastName}`.toLowerCase();
+                                            const code = b.code?.toLowerCase() || '';
+                                            const query = searchQuery.toLowerCase();
+                                            return fullName.includes(query) || code.includes(query);
+                                        })
+                                        .slice(0, 10)
+                                        .map(booking => (
+                                            <button
+                                                key={booking.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedBooking(booking);
+                                                    setFormData(prev => ({ ...prev, bookingId: booking.id }));
+                                                    setShowDropdown(false);
+                                                    setSearchQuery('');
+                                                }}
+                                                className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-white/5 border-b border-gray-100 dark:border-white/5 last:border-0 transition-colors"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <p className="font-medium text-gray-900 dark:text-white">
+                                                            {booking.customer?.firstName} {booking.customer?.lastName}
+                                                        </p>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                            #{booking.code} • {booking.checkInDate} - {booking.checkOutDate}
+                                                        </p>
+                                                    </div>
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${
+                                                        booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                                        booking.status === 'CHECKED_IN' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                        'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                                    }`}>
+                                                        {booking.status}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    {bookings.filter(b => {
+                                        const fullName = `${b.customer?.firstName} ${b.customer?.lastName}`.toLowerCase();
+                                        return fullName.includes(searchQuery.toLowerCase());
+                                    }).length === 0 && (
+                                        <p className="px-4 py-3 text-gray-500 text-center">No se encontraron reservas</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Items */}
