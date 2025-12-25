@@ -4,11 +4,12 @@ import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
 import Card from '../../components/shared/Card';
 import Modal from '../../components/shared/Modal';
+import ServiceRequestForm from './ServiceRequestForm';
 import { getAllServiceRequests } from '../../../services/admin/serviceRequestService';
 import { updateServiceRequestStatus } from '../../../services/employee/employeeService';
 import type { ServiceRequestDTO, RequestStatus } from '../../../types/adminTypes';
 import { formatDate, getRequestStatusConfig } from '../../utils/helpers';
-import { CheckCircle2, XCircle, AlertTriangle, Wrench, ChevronLeft, ChevronRight, Search, X, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Wrench, ChevronLeft, ChevronRight, Search, X, RefreshCw, Plus } from 'lucide-react';
 
 const statusLabels: Record<string, string> = {
     'ALL': 'Todas',
@@ -32,6 +33,9 @@ const EmployeeServiceRequestsView = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+
+    // Form Modal State
+    const [showForm, setShowForm] = useState(false);
 
     // Update Service Request Status Modal State
     const [showStatusModal, setShowStatusModal] = useState(false);
@@ -231,6 +235,9 @@ const EmployeeServiceRequestsView = () => {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Solicitudes de Servicio</h1>
                     <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de servicios solicitados por huéspedes</p>
                 </div>
+                <Button onClick={() => setShowForm(true)} leftIcon={<Plus size={16} />}>
+                    Nueva Solicitud
+                </Button>
             </div>
 
             <Card className="card-plain">
@@ -430,6 +437,22 @@ const EmployeeServiceRequestsView = () => {
                         </Button>
                     </div>
                 </div>
+            </Modal>
+
+            {/* New Service Request Modal */}
+            <Modal
+                isOpen={showForm}
+                onClose={() => setShowForm(false)}
+                title="Nueva Solicitud de Servicio"
+            >
+                <ServiceRequestForm
+                    onSuccess={() => {
+                        setShowForm(false);
+                        loadData();
+                        showSuccess('Solicitud Creada', 'La solicitud de servicio ha sido registrada correctamente.');
+                    }}
+                    onCancel={() => setShowForm(false)}
+                />
             </Modal>
         </div>
     );
