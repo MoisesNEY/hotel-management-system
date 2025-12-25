@@ -7,13 +7,26 @@ import Modal from '../../components/shared/Modal';
 import { getAllBookings, assignRoom, checkIn, checkOut } from '../../../services/employee/employeeService';
 import { getAllRooms } from '../../../services/admin/roomService';
 import type { BookingDTO, BookingItemDTO, RoomDTO, BookingStatus } from '../../../types/adminTypes';
-import { formatDate, getBookingStatusConfig } from '../../utils/helpers';
-import { CheckCircle2, XCircle, AlertTriangle, Home, UserCheck, UserX } from 'lucide-react';
+import { formatDate } from '../../utils/helpers';
+import { CheckCircle2, XCircle, AlertTriangle, Home, UserCheck, UserX, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+
+// Only show bookings that are relevant for check-in/check-out flow
+type ActionMode = 'CHECK_IN' | 'CHECK_OUT';
 
 const EmployeeBookingsView = () => {
     // Bookings State
     const [bookings, setBookings] = useState<BookingDTO[]>([]);
     const [bookingsLoading, setBookingsLoading] = useState(true);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+    
+    // Search and Filter state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [actionMode, setActionMode] = useState<ActionMode>('CHECK_IN');
 
     // Assign Room Modal State
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -33,29 +46,40 @@ const EmployeeBookingsView = () => {
 
     const showSuccess = useCallback((title: string, message: string) => {
         setFeedback({ show: true, title, message, type: 'success' });
-        setTimeout(() => setFeedback({ ...feedback, show: false }), 3000);
-    }, [feedback]);
+    }, []);
 
     const showError = useCallback((title: string, message: string) => {
         setFeedback({ show: true, title, message, type: 'error' });
-        setTimeout(() => setFeedback({ ...feedback, show: false }), 5000);
-    }, [feedback]);
+    }, []);
 
-    // Load data
+    // Debounce search input
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const bookingsData = await getAllBookings();
-                setBookings(bookingsData.data);
-            } catch (error) {
-                console.error('Error loading bookings data:', error);
-                showError('Error', 'No se pudieron cargar los datos de reservas');
-            } finally {
-                setBookingsLoading(false);
-            }
-        };
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Load data when pagination, filter or search changes
+    useEffect(() => {
         loadData();
-    }, [showError]);
+    }, [currentPage, pageSize, actionMode, debouncedSearch]);
+
+    const loadData = async () => {
+        try {
+            setBookingsLoading(true);
+            // Filter by status based on action mode
+            const statusFilter = actionMode === 'CHECK_IN' ? 'CONFIRMED' : 'CHECKED_IN';
+            const bookingsData = await getAllBookings(currentPage, pageSize, 'id,desc', statusFilter, debouncedSearch);
+            setBookings(bookingsData.data);
+            setTotalItems(bookingsData.totalElements);
+        } catch (error) {
+            console.error('Error loading bookings data:', error);
+            showError('Error', 'No se pudieron cargar los datos de reservas');
+        } finally {
+            setBookingsLoading(false);
+        }
+    };
 
     // Assign Room Handlers
     const openAssignModal = async (bookingId: number, itemId: number, roomTypeId: number) => {
@@ -113,13 +137,7 @@ const EmployeeBookingsView = () => {
         try {
             await checkIn(bookingId);
             showSuccess('Check-in', 'Check-in realizado correctamente');
-
-            // Update local state
-            setBookings(bookings.map(booking =>
-                booking.id === bookingId
-                    ? { ...booking, status: 'CHECKED_IN' as BookingStatus }
-                    : booking
-            ));
+            loadData(); // Reload to remove from list
         } catch (error) {
             console.error('Error during check-in:', error);
             showError('Error', 'No se pudo realizar el check-in');
@@ -131,18 +149,34 @@ const EmployeeBookingsView = () => {
         try {
             await checkOut(bookingId);
             showSuccess('Check-out', 'Check-out realizado correctamente');
-
-            // Update local state
-            setBookings(bookings.map(booking =>
-                booking.id === bookingId
-                    ? { ...booking, status: 'CHECKED_OUT' as BookingStatus }
-                    : booking
-            ));
+            loadData(); // Reload to remove from list
         } catch (error) {
             console.error('Error during check-out:', error);
             showError('Error', 'No se pudo realizar el check-out');
         }
     };
+
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(0);
+    };
+
+    const handleModeChange = (mode: ActionMode) => {
+        setActionMode(mode);
+        setCurrentPage(0);
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setCurrentPage(0);
+    };
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        setCurrentPage(0);
+    };
+
+    const totalPages = Math.ceil(totalItems / pageSize);
 
     // Extended Type for Table Rows to handle multi-item views
     interface BookingItemRow extends BookingItemDTO {
@@ -164,7 +198,7 @@ const EmployeeBookingsView = () => {
         }))
     );
 
-    // Table Columns for Booking Items (Refactored for individual room management)
+    // Table Columns for Booking Items
     const bookingColumns: Column<BookingItemRow>[] = [
         {
             header: 'Reserva',
@@ -179,8 +213,8 @@ const EmployeeBookingsView = () => {
             header: 'Cliente / Ocupante',
             accessor: (item) => (
                 <div>
-                    <div className="font-medium">{item.occupantName || `${item.customer.firstName} ${item.customer.lastName}`}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Ref: {item.customer.email}</div>
+                    <div className="font-medium">{item.occupantName || `${item.customer?.firstName} ${item.customer?.lastName}`}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{item.customer?.email}</div>
                 </div>
             )
         },
@@ -193,7 +227,7 @@ const EmployeeBookingsView = () => {
             )
         },
         {
-            header: 'Habitación Asignada',
+            header: 'Habitación',
             accessor: (item) => item.assignedRoom ? (
                 <Badge variant="success">{item.assignedRoom.roomNumber}</Badge>
             ) : (
@@ -210,17 +244,10 @@ const EmployeeBookingsView = () => {
             )
         },
         {
-            header: 'Estado Reserva',
-            accessor: (item) => {
-                const config = getBookingStatusConfig(item.bookingStatus);
-                return <Badge variant={config.variant}>{config.label}</Badge>;
-            }
-        },
-        {
             header: 'Acciones',
             accessor: (item) => (
                 <div className="flex gap-2">
-                    {['CONFIRMED', 'CHECKED_IN'].includes(item.bookingStatus) && !item.assignedRoom && (
+                    {actionMode === 'CHECK_IN' && !item.assignedRoom && (
                         <Button
                             size="sm"
                             variant="outline"
@@ -231,7 +258,7 @@ const EmployeeBookingsView = () => {
                             Asignar
                         </Button>
                     )}
-                    {['CONFIRMED'].includes(item.bookingStatus) && item.assignedRoom && (
+                    {actionMode === 'CHECK_IN' && item.assignedRoom && (
                         <Button
                             size="sm"
                             variant="success"
@@ -242,7 +269,7 @@ const EmployeeBookingsView = () => {
                             Check-in
                         </Button>
                     )}
-                    {item.bookingStatus === 'CHECKED_IN' && (
+                    {actionMode === 'CHECK_OUT' && (
                         <Button
                             size="sm"
                             variant="warning"
@@ -259,23 +286,183 @@ const EmployeeBookingsView = () => {
     ];
 
     return (
-        <div className="content">
+        <div className="space-y-6">
+            <div className="flex justify-between items-center bg-transparent">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Check-in / Check-out</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gestión de entradas y salidas de huéspedes</p>
+                </div>
+            </div>
+
+            <Card className="card-plain">
+                {/* Search Bar */}
+                <div className="mb-4">
+                    <div className="relative max-w-md">
+                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre de cliente..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={clearSearch}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Mode Tabs and Page Size */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => handleModeChange('CHECK_IN')}
+                            variant={actionMode === 'CHECK_IN' ? 'primary' : 'ghost'}
+                            size="sm"
+                            className={actionMode === 'CHECK_IN'
+                                ? 'shadow-md'
+                                : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 border-none shadow-none'
+                            }
+                        >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Check-in (Confirmadas)
+                        </Button>
+                        <Button
+                            onClick={() => handleModeChange('CHECK_OUT')}
+                            variant={actionMode === 'CHECK_OUT' ? 'primary' : 'ghost'}
+                            size="sm"
+                            className={actionMode === 'CHECK_OUT'
+                                ? 'shadow-md'
+                                : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 border-none shadow-none'
+                            }
+                        >
+                            <UserX className="w-4 h-4 mr-2" />
+                            Check-out (Hospedados)
+                        </Button>
+                    </div>
+                    
+                    {/* Page Size Selector */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Mostrar:</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                            className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                        >
+                            <option value={5} className="bg-white dark:bg-[#1a1a1a]">5</option>
+                            <option value={10} className="bg-white dark:bg-[#1a1a1a]">10</option>
+                            <option value={20} className="bg-white dark:bg-[#1a1a1a]">20</option>
+                            <option value={50} className="bg-white dark:bg-[#1a1a1a]">50</option>
+                        </select>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">por página</span>
+                    </div>
+                </div>
+
+                <Table
+                    columns={bookingColumns}
+                    data={bookingItemRows}
+                    isLoading={bookingsLoading}
+                    emptyMessage={actionMode === 'CHECK_IN' 
+                        ? "No hay reservas confirmadas pendientes de check-in" 
+                        : "No hay huéspedes hospedados pendientes de check-out"
+                    }
+                    keyExtractor={(item) => `${item.bookingId}-${item.id}`}
+                />
+
+                {/* Pagination Controls */}
+                {totalPages > 0 && (
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-white/5">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {totalItems > 0 
+                                ? `Mostrando ${currentPage * pageSize + 1} - ${Math.min((currentPage + 1) * pageSize, totalItems)} de ${totalItems} registros`
+                                : 'Sin resultados'
+                            }
+                        </p>
+                        
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0}
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronLeft size={18} className="text-gray-600 dark:text-gray-400" />
+                                </button>
+                                
+                                {/* Page Numbers */}
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i;
+                                    } else if (currentPage < 3) {
+                                        pageNum = i;
+                                    } else if (currentPage > totalPages - 4) {
+                                        pageNum = totalPages - 5 + i;
+                                    } else {
+                                        pageNum = currentPage - 2 + i;
+                                    }
+                                    
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                                currentPage === pageNum
+                                                    ? 'bg-[#d4af37] text-white'
+                                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {pageNum + 1}
+                                        </button>
+                                    );
+                                })}
+                                
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={currentPage >= totalPages - 1}
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Card>
+
             {/* Feedback Modal */}
             <Modal
                 isOpen={feedback.show}
                 onClose={() => setFeedback({ ...feedback, show: false })}
-                title={feedback.title}
                 size="sm"
             >
-                <div className={`p-4 rounded-lg ${feedback.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200' :
-                    feedback.type === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' :
-                    'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200'}`}>
-                    <div className="flex items-center">
-                        {feedback.type === 'success' && <CheckCircle2 className="w-5 h-5 mr-2" />}
-                        {feedback.type === 'error' && <XCircle className="w-5 h-5 mr-2" />}
-                        {feedback.type === 'warning' && <AlertTriangle className="w-5 h-5 mr-2" />}
-                        <span>{feedback.message}</span>
+                <div className="p-10 flex flex-col items-center text-center space-y-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                        feedback.type === 'error' ? 'bg-rose-500/10 text-rose-500' :
+                            'bg-amber-500/10 text-amber-500'
+                        }`}>
+                        {feedback.type === 'success' && <CheckCircle2 size={40} />}
+                        {feedback.type === 'error' && <XCircle size={40} />}
+                        {feedback.type === 'warning' && <AlertTriangle size={40} />}
                     </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{feedback.title}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
+                            {feedback.message}
+                        </p>
+                    </div>
+                    <Button
+                        variant={feedback.type === 'success' ? 'primary' : 'danger'}
+                        className="w-full rounded-2xl py-4"
+                        onClick={() => setFeedback({ ...feedback, show: false })}
+                    >
+                        Entendido
+                    </Button>
                 </div>
             </Modal>
 
@@ -285,28 +472,29 @@ const EmployeeBookingsView = () => {
                 onClose={() => setShowAssignModal(false)}
                 title="Asignar Habitación"
             >
-                <div className="space-y-4">
+                <div className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-2">Seleccionar Habitación Disponible</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Seleccionar Habitación Disponible
+                        </label>
                         <select
                             value={selectedRoomId}
                             onChange={(e) => setSelectedRoomId(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
                         >
-                            <option value="">Seleccionar habitación...</option>
+                            <option value="" className="bg-white dark:bg-[#1a1a1a]">Seleccionar habitación...</option>
                             {availableRooms.map(room => (
-                                <option key={room.id} value={room.id}>
+                                <option key={room.id} value={room.id} className="bg-white dark:bg-[#1a1a1a]">
                                     {room.roomNumber} - {room.roomType.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-                    <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setShowAssignModal(false)}>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/5">
+                        <Button variant="ghost" onClick={() => setShowAssignModal(false)}>
                             Cancelar
                         </Button>
                         <Button
-                            variant="primary"
                             onClick={handleAssignRoom}
                             disabled={!selectedRoomId || assignLoading}
                         >
@@ -315,19 +503,6 @@ const EmployeeBookingsView = () => {
                     </div>
                 </div>
             </Modal>
-
-            {/* Bookings Section */}
-            <div className="mb-8">
-                <Card title="Gestión de Reservas" subtitle="Check-in, check-out y asignación de habitaciones por ítem">
-                    <Table
-                        columns={bookingColumns}
-                        data={bookingItemRows}
-                        isLoading={bookingsLoading}
-                        emptyMessage="No hay habitaciones reservadas disponibles"
-                        keyExtractor={(item) => `${item.bookingId}-${item.id}`}
-                    />
-                </Card>
-            </div>
         </div>
     );
 };
