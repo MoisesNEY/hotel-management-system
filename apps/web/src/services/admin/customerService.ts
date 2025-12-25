@@ -6,15 +6,17 @@ const API_URL = '/api/customers';
 export const getAllCustomers = async (
   page: number = 0,
   size: number = 20,
-  sort: string = 'id,asc'
+  sort: string = 'id,asc',
+  search?: string
 ) => {
-  const response = await apiClient.get<CustomerDTO[]>(API_URL, {
-    params: {
-      page,
-      size,
-      sort,
-    },
-  });
+  const params: Record<string, any> = { page, size, sort };
+  
+  // Add search filter for name or email
+  if (search && search.trim()) {
+    params['firstName.contains'] = search.trim();
+  }
+  
+  const response = await apiClient.get<CustomerDTO[]>(API_URL, { params });
   
   const totalCount = response.headers['x-total-count'];
   return {
