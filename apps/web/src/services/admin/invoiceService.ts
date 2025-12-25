@@ -4,10 +4,23 @@ import type { InvoiceDTO } from '../../types/adminTypes';
 
 const BASE_URL = '/api/invoices';
 
-export const getAllInvoices = async (page = 0, size = 10, sort = 'id,desc') => {
-    const response = await api.get(BASE_URL, {
-        params: { page, size, sort }
-    });
+export const getAllInvoices = async (
+    page = 0, 
+    size = 10, 
+    sort = 'id,desc',
+    status?: string,
+    search?: string
+) => {
+    const params: Record<string, any> = { page, size, sort };
+    
+    if (status && status !== 'ALL') {
+        params['status.equals'] = status;
+    }
+    if (search && search.trim()) {
+        params['code.contains'] = search.trim();
+    }
+    
+    const response = await api.get(BASE_URL, { params });
     
     // Backend returns List<InvoiceDTO> in body, pagination in headers
     const data = response.data;

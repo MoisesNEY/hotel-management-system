@@ -1,30 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { getAllPayments, deletePayment } from '../../../services/admin/paymentService';
 import type { PaymentDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
 import ActionButton from '../../../admin/components/shared/ActionButton';
 import { useAuth } from '../../../contexts/AuthProvider';
 
+const methodLabels: Record<string, string> = {
+    'CASH': 'Efectivo',
+    'CREDIT_CARD': 'Tarjeta',
+    'PAYPAL': 'PayPal',
+    'TRANSFER': 'Transferencia',
+};
+
 const PaymentList: React.FC = () => {
     const navigate = useNavigate();
     const { hasRole } = useAuth();
     const [payments, setPayments] = useState<PaymentDTO[]>([]);
-
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     
     // Modal state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<PaymentDTO | null>(null);
     const [deleting, setDeleting] = useState(false);
 
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Load data when page or search changes
+    useEffect(() => {
+        loadPayments();
+    }, [page, debouncedSearch]);
+
     const loadPayments = async () => {
         setLoading(true);
         try {
-            const response: PaginatedResponse<PaymentDTO> = await getAllPayments(page, 10);
+            const response: PaginatedResponse<PaymentDTO> = await getAllPayments(
+                page, 
+                100, // Fetch more for client-side filtering
+                'id,desc'
+            );
             setPayments(response.data);
             setTotalPages(response.totalPages);
         } catch (error) {
@@ -33,10 +60,6 @@ const PaymentList: React.FC = () => {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        loadPayments();
-    }, [page]);
 
     const handleDelete = (payment: PaymentDTO) => {
         setSelectedPayment(payment);
@@ -64,6 +87,28 @@ const PaymentList: React.FC = () => {
         setSelectedPayment(null);
     };
 
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setPage(0);
+    };
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        setPage(0);
+    };
+
+    // Filter payments by search query (client-side)
+    const filteredPayments = debouncedSearch
+        ? payments.filter(p => {
+            const search = debouncedSearch.toLowerCase();
+            const customer = p.invoice?.booking?.customer;
+            if (!customer) return false;
+            const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.toLowerCase();
+            const email = (customer.email || '').toLowerCase();
+            return fullName.includes(search) || email.includes(search);
+        })
+        : payments;
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -80,8 +125,30 @@ const PaymentList: React.FC = () => {
             </div>
 
             <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
+                {/* Search Bar */}
+                <div className="p-4 border-b border-gray-200 dark:border-white/5">
+                    <div className="relative w-full md:w-80">
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre o email del cliente..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={clearSearch}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            >
+                                <XMarkIcon className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
                 <table className="w-full text-left">
-                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
+                    <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
                         <tr>
                             <th className="px-6 py-4">ID</th>
                             <th className="px-6 py-4">Cliente</th>
@@ -95,10 +162,10 @@ const PaymentList: React.FC = () => {
                     <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
                         {loading ? (
                             <tr><td colSpan={7} className="py-8 text-center text-gray-500">Cargando...</td></tr>
-                        ) : !payments || payments.length === 0 ? (
+                        ) : !filteredPayments || filteredPayments.length === 0 ? (
                             <tr><td colSpan={7} className="py-8 text-center text-gray-500">No hay pagos registrados</td></tr>
                         ) : (
-                            payments.map((payment) => (
+                            filteredPayments.map((payment) => (
                                 <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4 text-gray-500">#{payment.id}</td>
                                     <td className="px-6 py-4">
@@ -125,15 +192,20 @@ const PaymentList: React.FC = () => {
                                         ${payment.amount}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex px-2 py-1 rounded bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300">
-                                            {payment.method}
+                                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
+                                            payment.method === 'CREDIT_CARD' 
+                                                ? 'bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400'
+                                                : payment.method === 'PAYPAL'
+                                                    ? 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                                                    : payment.method === 'TRANSFER'
+                                                        ? 'bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400'
+                                                        : 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400'
+                                        }`}>
+                                            {methodLabels[payment.method] || payment.method}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            {/* Edit Button Removed: Payments are immutable ledger records */}
-                                            
-                                            {/* Delete allowed for ADMIN only */}
                                             {hasRole('ROLE_ADMIN') && (
                                                 <ActionButton 
                                                     onClick={() => handleDelete(payment)}
@@ -150,7 +222,8 @@ const PaymentList: React.FC = () => {
                         )}
                     </tbody>
                 </table>
-                 {/* Pagination (Simple) */}
+
+                {/* Pagination */}
                 <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
                     <button 
                         disabled={page === 0}
@@ -214,7 +287,7 @@ const PaymentList: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <span className="text-gray-500 dark:text-gray-400">Método:</span>
-                                                    <span className="ml-2 text-gray-900 dark:text-white">{selectedPayment.method}</span>
+                                                    <span className="ml-2 text-gray-900 dark:text-white">{methodLabels[selectedPayment.method] || selectedPayment.method}</span>
                                                 </div>
                                             </div>
                                         </div>

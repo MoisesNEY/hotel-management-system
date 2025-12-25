@@ -4,10 +4,19 @@ import type { PaymentDTO } from '../../types/adminTypes';
 
 const BASE_URL = '/api/payments';
 
-export const getAllPayments = async (page = 0, size = 10, sort = 'id,desc') => {
-    const response = await api.get(BASE_URL, {
-        params: { page, size, sort }
-    });
+export const getAllPayments = async (
+    page = 0, 
+    size = 10, 
+    sort = 'id,desc',
+    search?: string
+) => {
+    const params: Record<string, any> = { page, size, sort };
+    
+    if (search && search.trim()) {
+        params['invoiceId.equals'] = search.trim();
+    }
+    
+    const response = await api.get(BASE_URL, { params });
     
     // Backend returns List<PaymentDTO> in body, pagination in headers
     const data = response.data;
