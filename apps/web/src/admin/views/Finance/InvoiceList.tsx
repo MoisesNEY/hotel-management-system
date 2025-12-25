@@ -114,6 +114,7 @@ const InvoiceList: React.FC = () => {
                             <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
                                 <tr>
                                     <th className="px-6 py-4">Código</th>
+                                    <th className="px-6 py-4">Cliente</th>
                                     <th className="px-6 py-4">Fecha Emisión</th>
                                     <th className="px-6 py-4">Monto Total</th>
                                     <th className="px-6 py-4">Estado</th>
@@ -123,16 +124,30 @@ const InvoiceList: React.FC = () => {
                             <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-gray-500">Cargando...</td>
+                                        <td colSpan={6} className="py-8 text-center text-gray-500">Cargando...</td>
                                     </tr>
                                 ) : !invoices || invoices.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-gray-500">No hay facturas registradas</td>
+                                        <td colSpan={6} className="py-8 text-center text-gray-500">No hay facturas registradas</td>
                                     </tr>
                                 ) : (
                                     invoices.map((invoice) => (
                                         <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="px-6 py-4 font-mono text-[#d4af37]">{invoice.code}</td>
+                                            <td className="px-6 py-4">
+                                                {invoice.booking?.customer ? (
+                                                    <div>
+                                                        <div className="font-medium text-gray-900 dark:text-white">
+                                                            {invoice.booking.customer.firstName} {invoice.booking.customer.lastName}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {invoice.booking.customer.email}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400 italic text-xs">Sin cliente</span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
                                                 {new Date(invoice.issuedDate).toLocaleDateString()}
                                             </td>

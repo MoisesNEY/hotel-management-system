@@ -81,9 +81,10 @@ const PaymentList: React.FC = () => {
 
             <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
+                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
                         <tr>
                             <th className="px-6 py-4">ID</th>
+                            <th className="px-6 py-4">Cliente</th>
                             <th className="px-6 py-4">Fecha</th>
                             <th className="px-6 py-4">Ref. Factura</th>
                             <th className="px-6 py-4">Monto</th>
@@ -93,13 +94,27 @@ const PaymentList: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
                         {loading ? (
-                            <tr><td colSpan={6} className="py-8 text-center text-gray-500">Cargando...</td></tr>
+                            <tr><td colSpan={7} className="py-8 text-center text-gray-500">Cargando...</td></tr>
                         ) : !payments || payments.length === 0 ? (
-                            <tr><td colSpan={6} className="py-8 text-center text-gray-500">No hay pagos registrados</td></tr>
+                            <tr><td colSpan={7} className="py-8 text-center text-gray-500">No hay pagos registrados</td></tr>
                         ) : (
                             payments.map((payment) => (
                                 <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4 text-gray-500">#{payment.id}</td>
+                                    <td className="px-6 py-4">
+                                        {payment.invoice?.booking?.customer ? (
+                                            <div>
+                                                <div className="font-medium text-gray-900 dark:text-white">
+                                                    {payment.invoice.booking.customer.firstName} {payment.invoice.booking.customer.lastName}
+                                                </div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {payment.invoice.booking.customer.email}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400 italic text-xs">Sin cliente</span>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
                                         {new Date(payment.date).toLocaleDateString()}
                                     </td>
