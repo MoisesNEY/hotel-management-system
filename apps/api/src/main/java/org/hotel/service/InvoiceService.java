@@ -104,9 +104,25 @@ public class InvoiceService {
      */
     public InvoiceDTO save(InvoiceDTO invoiceDTO) {
         LOG.debug("Request to save Invoice : {}", invoiceDTO);
+        
+        // Auto-generate code if not provided
+        if (invoiceDTO.getCode() == null || invoiceDTO.getCode().isBlank()) {
+            invoiceDTO.setCode(generateInvoiceCode());
+        }
+        
         Invoice invoice = invoiceMapper.toEntity(invoiceDTO);
         invoice = invoiceRepository.save(invoice);
         return invoiceMapper.toDto(invoice);
+    }
+    
+    /**
+     * Generate a unique invoice code.
+     * Format: INV-YYYYMMDD-XXXXX
+     */
+    private String generateInvoiceCode() {
+        String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String randomPart = java.util.UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+        return "INV-" + datePart + "-" + randomPart;
     }
 
     /**

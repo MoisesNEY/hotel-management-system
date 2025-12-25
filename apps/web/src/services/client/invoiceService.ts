@@ -32,3 +32,11 @@ export const getMyInvoice = async (id: number): Promise<InvoiceDTO> => {
   const response = await apiClient.get<InvoiceDTO>(`${INVOICES_PATH}/${id}`);
   return response.data;
 };
+
+/**
+ * Get invoices for a specific booking
+ */
+export const getInvoicesByBookingId = async (bookingId: number): Promise<InvoiceDTO[]> => {
+  const response = await apiClient.get<InvoiceDTO[]>(`${INVOICES_PATH}/booking/${bookingId}`);
+  return response.data || [];
+};

@@ -123,19 +123,11 @@ const routes: RouteConfig[] = [
     },
     {
         path: '/users',
-        name: 'Empleados',
+        name: 'Usuarios',
         icon: UserGroupIcon,
         component: UsersView,
         layout: '/admin',
         allowedRoles: ['ROLE_ADMIN']
-    },
-    {
-        path: '/maps',
-        name: 'Mapas',
-        icon: MapPinIcon,
-        component: MapsView,
-        layout: '/admin',
-        allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE']
     },
     {
         path: '/user-profile',
@@ -147,7 +139,7 @@ const routes: RouteConfig[] = [
     },
     {
         path: '/tables',
-        name: 'Tablas',
+        name: 'Reportes',
         icon: ChartBarIcon,
         component: TablesView,
         layout: '/admin',

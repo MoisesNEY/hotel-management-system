@@ -50,6 +50,24 @@ public class ClientInvoiceController {
     }
 
     /**
+     * {@code GET  /api/client/invoices/booking/:bookingId} : get invoices for a specific booking.
+     *
+     * @param bookingId the id of the booking.
+     * @param pageable the pagination information.
+     * @return the invoices for the booking.
+     */
+    @GetMapping("/booking/{bookingId}")
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.CLIENT + "\")")
+    public ResponseEntity<List<InvoiceDTO>> getInvoicesByBookingId(
+            @PathVariable("bookingId") Long bookingId,
+            @ParameterObject Pageable pageable) {
+        log.debug("REST request to get invoices for booking : {}", bookingId);
+        Page<InvoiceDTO> page = clientInvoiceService.findMyInvoicesByBookingId(bookingId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
      * {@code GET  /api/client/invoices/:id} : get the "id" invoice if it belongs to current user.
      *
      * @param id the id of the invoiceDTO to retrieve.

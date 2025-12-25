@@ -66,11 +66,24 @@ export const updateServiceRequestStatus = async (
 
 export const getAllBookings = async (
   page: number = 0,
-  size: number = 20
+  size: number = 20,
+  sort: string = 'id,desc',
+  status?: string,
+  search?: string
 ): Promise<PaginatedResponse<BookingDTO>> => {
-  const response = await apiClient.get<BookingDTO[]>(BOOKINGS_PATH, {
-    params: { page, size }
-  });
+  const params: Record<string, any> = { page, size, sort };
+  
+  // Add status filter if provided
+  if (status) {
+    params['status.equals'] = status;
+  }
+  
+  // Add search filter for customer name
+  if (search && search.trim()) {
+    params['customer.firstName.contains'] = search.trim();
+  }
+  
+  const response = await apiClient.get<BookingDTO[]>(BOOKINGS_PATH, { params });
   
   const pagination = extractPaginationInfo(response);
   

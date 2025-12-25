@@ -7,15 +7,23 @@ const API_URL = '/api/bookings';
 export const getAllBookings = async (
   page: number = 0,
   size: number = 20,
-  sort: string = 'id,desc'
+  sort: string = 'id,desc',
+  status?: string,
+  search?: string
 ) => {
-  const response = await apiClient.get<BookingDTO[]>(API_URL, {
-    params: {
-      page,
-      size,
-      sort,
-    },
-  });
+  const params: Record<string, any> = { page, size, sort };
+  
+  // Add status filter if provided and not 'ALL'
+  if (status && status !== 'ALL') {
+    params['status.equals'] = status;
+  }
+  
+  // Add search filter for customer name
+  if (search && search.trim()) {
+    params['customer.firstName.contains'] = search.trim();
+  }
+  
+  const response = await apiClient.get<BookingDTO[]>(API_URL, { params });
   
   const totalCount = response.headers['x-total-count'];
   return {

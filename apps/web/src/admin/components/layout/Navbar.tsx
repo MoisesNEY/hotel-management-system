@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Search, User, LogOut,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthProvider';
 import ThemeToggle from '../../../components/ThemeToggle';
+import routes from '../../routes';
 
 interface NavbarProps {
     onToggleSidebar?: () => void;
@@ -15,9 +16,37 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { userProfile, logout, getHighestRole } = useAuth();
+    const { userProfile, logout, getHighestRole, hasRole } = useAuth();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+
+    // Command palette search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    // Filter routes based on search and user role
+    const searchableRoutes = useMemo(() => {
+        return routes.filter(route => {
+            // Only show non-hidden routes
+            if (route.hidden) return false;
+            // Filter by role if applicable
+            if (route.allowedRoles) {
+                return route.allowedRoles.some(role => hasRole(role as 'ROLE_ADMIN' | 'ROLE_EMPLOYEE' | 'ROLE_CLIENT'));
+            }
+            return true;
+        });
+    }, [hasRole]);
+
+    const filteredRoutes = useMemo(() => {
+        if (!searchQuery.trim()) return [];
+        const query = searchQuery.toLowerCase();
+        return searchableRoutes.filter(route => 
+            route.name.toLowerCase().includes(query) ||
+            route.path.toLowerCase().includes(query)
+        ).slice(0, 8); // Limit to 8 results
+    }, [searchQuery, searchableRoutes]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -30,14 +59,63 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             if (!target.closest('.admin-user-menu') && !target.closest('.admin-profile-trigger')) {
                 setShowUserMenu(false);
             }
+            if (!target.closest('.admin-search-container')) {
+                setShowSearchResults(false);
+            }
         };
         document.addEventListener('click', handleClickOutside);
+
+        // Keyboard shortcut: Ctrl+K or Cmd+K to focus search
+        const handleKeydown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+            // Escape to close
+            if (e.key === 'Escape') {
+                setShowSearchResults(false);
+                setSearchQuery('');
+                searchInputRef.current?.blur();
+            }
+        };
+        document.addEventListener('keydown', handleKeydown);
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
             document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('keydown', handleKeydown);
         };
     }, []);
+
+    // Reset selected index when results change
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [filteredRoutes]);
+
+    const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+        if (filteredRoutes.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev + 1) % filteredRoutes.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev - 1 + filteredRoutes.length) % filteredRoutes.length);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const selectedRoute = filteredRoutes[selectedIndex];
+            if (selectedRoute) {
+                navigateToRoute(selectedRoute.path);
+            }
+        }
+    };
+
+    const navigateToRoute = (path: string) => {
+        navigate(`/admin${path}`);
+        setSearchQuery('');
+        setShowSearchResults(false);
+        searchInputRef.current?.blur();
+    };
 
     const getPageTitle = () => {
         const path = location.pathname;
@@ -101,14 +179,78 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
                 {/* Right Side: Search, Notifications, Theme, Profile */}
                 <div className="flex items-center gap-2 md:gap-4">
-                    {/* Search - Desktop Only */}
-                    <div className="hidden md:flex items-center relative group">
-                        <Search size={18} className="absolute left-3 text-gray-400 group-focus-within:text-gold-default transition-colors" />
+                    {/* Search - Desktop Only - Command Palette */}
+                    <div className="hidden md:flex items-center relative group admin-search-container">
+                        <Search size={18} className="absolute left-3 text-gray-400 group-focus-within:text-gold-default transition-colors z-10" />
                         <input
+                            ref={searchInputRef}
                             type="text"
-                            placeholder="Buscar..."
+                            placeholder="Buscar sección... (Ctrl+K)"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setShowSearchResults(true);
+                            }}
+                            onFocus={() => setShowSearchResults(true)}
+                            onKeyDown={handleSearchKeyDown}
                             className="pl-10 pr-4 py-2 rounded-xl bg-gray-100/50 dark:bg-white/5 border border-transparent focus:border-gold-default/30 focus:bg-white dark:focus:bg-[#1e293b] text-sm text-gray-900 dark:text-white outline-none transition-all w-48 lg:w-64"
                         />
+
+                        {/* Search Results Dropdown */}
+                        {showSearchResults && filteredRoutes.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1c1c1c] rounded-xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden animate-[scaleIn_0.15s_ease-out] origin-top z-50">
+                                <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 dark:border-white/5">
+                                    Secciones encontradas
+                                </div>
+                                <div className="max-h-80 overflow-y-auto">
+                                    {filteredRoutes.map((route, index) => {
+                                        const Icon = route.icon;
+                                        const isSelected = index === selectedIndex;
+                                        return (
+                                            <button
+                                                key={route.path}
+                                                onClick={() => navigateToRoute(route.path)}
+                                                onMouseEnter={() => setSelectedIndex(index)}
+                                                className={`flex items-center gap-3 w-full px-4 py-3 text-left transition-all ${
+                                                    isSelected
+                                                        ? 'bg-gold-default/10 text-gold-default'
+                                                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5'
+                                                }`}
+                                            >
+                                                <div className={`p-2 rounded-lg ${
+                                                    isSelected
+                                                        ? 'bg-gold-default/20 text-gold-default'
+                                                        : 'bg-gray-100 dark:bg-white/10 text-gray-500'
+                                                }`}>
+                                                    <Icon className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="text-sm font-semibold">{route.name}</div>
+                                                    <div className="text-xs text-gray-400">/admin{route.path}</div>
+                                                </div>
+                                                {isSelected && (
+                                                    <span className="text-[10px] px-2 py-0.5 rounded bg-gold-default/20 text-gold-default font-bold">
+                                                        Enter ↵
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <div className="px-3 py-2 text-[10px] text-gray-400 border-t border-gray-100 dark:border-white/5 flex gap-4">
+                                    <span>↑↓ navegar</span>
+                                    <span>↵ seleccionar</span>
+                                    <span>esc cerrar</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* No results message */}
+                        {showSearchResults && searchQuery.trim() && filteredRoutes.length === 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1c1c1c] rounded-xl shadow-2xl border border-gray-100 dark:border-white/10 p-4 text-center animate-[scaleIn_0.15s_ease-out] origin-top z-50">
+                                <p className="text-sm text-gray-500">No se encontraron secciones</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-1">

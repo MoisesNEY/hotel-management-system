@@ -192,5 +192,17 @@ export interface PaymentDTO {
   amount: number;
   method: PaymentMethod;
   referenceId?: string; // For external refs (e.g. PayPal Order ID or Bank Ref)
-  invoice: { id: number; code?: string };
+  invoice: { 
+    id: number; 
+    code?: string;
+    booking?: {
+      id: number;
+      customer?: {
+        id: number;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+      };
+    };
+  };
 }

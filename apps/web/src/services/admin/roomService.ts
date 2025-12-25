@@ -6,11 +6,23 @@ const API_URL = '/api/rooms';
 export const getAllRooms = async (
   page: number = 0,
   size: number = 20,
-  sort: string = 'id,asc'
+  sort: string = 'id,asc',
+  status?: string,
+  search?: string
 ) => {
-  const response = await apiClient.get<RoomDTO[]>(API_URL, {
-    params: { page, size, sort },
-  });
+  const params: Record<string, any> = { page, size, sort };
+  
+  // Add status filter if provided and not 'ALL'
+  if (status && status !== 'ALL') {
+    params['status.equals'] = status;
+  }
+  
+  // Add search filter for room number
+  if (search && search.trim()) {
+    params['roomNumber.contains'] = search.trim();
+  }
+  
+  const response = await apiClient.get<RoomDTO[]>(API_URL, { params });
   const totalCount = response.headers['x-total-count'];
   return {
     data: response.data,

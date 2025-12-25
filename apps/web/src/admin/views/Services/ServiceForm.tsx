@@ -4,19 +4,26 @@ import fileService from '../../../services/admin/fileService';
 import type { HotelServiceDTO } from '../../../types/adminTypes';
 import { Upload, X, Link, Loader2 } from 'lucide-react';
 
-
 interface ServiceFormProps {
     initialData?: HotelServiceDTO | null;
     onSuccess: () => void;
     onCancel: () => void;
 }
 
+// Service Status Options matching backend enum
+const SERVICE_STATUS_OPTIONS = [
+    { value: 'OPERATIONAL', label: 'Operativo', color: 'text-emerald-600' },
+    { value: 'CLOSED', label: 'Cerrado', color: 'text-gray-600' },
+    { value: 'FULL_CAPACITY', label: 'Capacidad Llena', color: 'text-amber-600' },
+    { value: 'DOWN', label: 'Fuera de Servicio', color: 'text-red-600' },
+];
+
 const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [cost, setCost] = useState('');
     const [imageUrl, setImageUrl] = useState('');
-    const [isAvailable, setIsAvailable] = useState(true);
+    const [status, setStatus] = useState('OPERATIONAL');
     const [startHour, setStartHour] = useState('08:00');
     const [endHour, setEndHour] = useState('22:00');
 
@@ -31,11 +38,10 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             setDescription(initialData.description || '');
             setCost(initialData.cost.toString());
             setImageUrl(initialData.imageUrl || '');
-            setIsAvailable(initialData.status === 'OPERATIONAL');
+            setStatus(initialData.status || 'OPERATIONAL');
             setStartHour(initialData.startHour || '08:00');
             setEndHour(initialData.endHour || '22:00');
 
-            // Si la URL contiene el bucketName o endpoint de minio, lo marcamos como minio (opcional)
             if (initialData.imageUrl?.includes('/api/files') || initialData.imageUrl?.includes('9000')) {
                 setIsMinioImage(true);
             }
@@ -79,13 +85,12 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             description: description.trim() || undefined,
             cost: Number(cost),
             imageUrl: imageUrl.trim() || undefined,
-            startHour: startHour || '08:00',
-            endHour: endHour || '22:00',
-            isDeleted: false,
-            status: isAvailable ? 'OPERATIONAL' : 'DOWN'
+            startHour,
+            endHour,
+            status,
+            isDeleted: false
         };
 
-        console.log("Sending payload to backend:", JSON.stringify(payload, null, 2));
         setLoading(true);
         try {
             if (initialData?.id) {
@@ -97,43 +102,24 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
             onSuccess();
         } catch (err: any) {
             console.error("Error saving service", err);
-
-            // Extract more detailed error message if available
             let serverMsg = 'Error al guardar el servicio';
             if (err.response?.data) {
                 const data = err.response.data;
-
-                // Detailed check for common Spring/JHipster error structures
-                serverMsg = data.detail || data.message || data.title || (typeof data === 'string' ? data : serverMsg);
-
-                // If there are field errors
-                if (data.fieldErrors && Array.isArray(data.fieldErrors)) {
-                    const fields = data.fieldErrors.map((fe: any) => `${fe.field}: ${fe.message}`).join(', ');
-                    serverMsg = `Error de validación: ${fields}`;
-                } else if (data.params) {
-                    serverMsg += ` - ${JSON.stringify(data.params)}`;
-                } else if (!data.detail && !data.message && !data.title && typeof data === 'object') {
-                    // If we have an object but no standard fields, show the stringified object
-                    serverMsg = `Error del servidor: ${JSON.stringify(data)}`;
-                }
-            } else if (err.message) {
-                serverMsg = `Error de red: ${err.message}`;
+                serverMsg = data.detail || data.message || data.title || serverMsg;
             }
-
             setError(serverMsg);
         } finally {
             setLoading(false);
         }
     };
 
-    // Estilos reutilizados de RoomForm - ahora usando Tailwind para soporte de modo oscuro
-    const inputClass = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-teal-500 dark:focus:border-teal-400 outline-none transition-colors";
-
-    const labelClass = "block text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400 mb-1.5";
+    const inputClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all";
+    const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5";
+    const selectClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all";
 
     return (
         <form onSubmit={handleSubmit}>
-            <div className="p-6 grid gap-4">
+            <div className="p-6 space-y-5">
                 {error && (
                     <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
                         {error}
@@ -150,6 +136,7 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        placeholder="Ej: Servicio a la Habitación"
                         className={inputClass}
                     />
                 </div>
@@ -161,106 +148,51 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                         rows={3}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className={`${inputClass} min-h-20 resize-vertical`}
+                        placeholder="Descripción breve del servicio..."
+                        className={`${inputClass} resize-none`}
                     />
                 </div>
 
-                {/* Cost */}
-                <div>
-                    <label className={labelClass}>
-                        Costo <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        required
-                        value={cost}
-                        onChange={(e) => setCost(e.target.value)}
-                        className={inputClass}
-                    />
-                </div>
-
-                {/* Image URL & File Upload */}
-                <div className="space-y-3">
-                    <label className={labelClass}>Imagen del Servicio</label>
-                    <div className="flex flex-col gap-3">
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <Link size={16} />
-                                </div>
-                                <input
-                                    type="text"
-                                    value={imageUrl}
-                                    onChange={(e) => setImageUrl(e.target.value)}
-                                    placeholder="https://example.com/image.jpg"
-                                    disabled={isMinioImage || isUploading}
-                                    className={`${inputClass} pl-10 ${(isMinioImage || isUploading)
-                                        ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-500'
-                                        : ''
-                                        }`}
-                                />
-                            </div>
-
-                            {!isMinioImage ? (
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="service-image-upload"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={handleFileUpload}
-                                        disabled={isUploading}
-                                    />
-                                    <label
-                                        htmlFor="service-image-upload"
-                                        className="flex items-center justify-center w-[42px] h-[42px] bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors disabled:opacity-50"
-                                        title="Subir archivo"
-                                    >
-                                        {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-                                    </label>
-                                </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveImage}
-                                    className="flex items-center justify-center w-[42px] h-[42px] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                                    title="Quitar imagen"
-                                >
-                                    <X size={18} />
-                                </button>
-                            )}
+                {/* Cost and Status Row */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelClass}>
+                            Precio <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                required
+                                value={cost}
+                                onChange={(e) => setCost(e.target.value)}
+                                placeholder="0.00"
+                                className={`${inputClass} pl-8`}
+                            />
                         </div>
-
-                        {imageUrl && (
-                            <div className="w-full h-32 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex items-center justify-center group relative">
-                                <img
-                                    src={imageUrl}
-                                    alt="Preview"
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                    onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff43c619c721?auto=format&fit=crop&q=80&w=400')}
-                                />
-                                {isUploading && (
-                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
-                                        <Loader2 size={32} className="text-white animate-spin" />
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 italic">
-                            {isMinioImage
-                                ? "✨ Imagen subida a almacenamiento interno (Minio). Quita la foto para usar una URL externa."
-                                : "💡 Puedes ingresar una URL directa o subir un archivo comprimido/imagen."}
-                        </p>
+                    </div>
+                    <div>
+                        <label className={labelClass}>Estado</label>
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className={selectClass}
+                        >
+                            {SERVICE_STATUS_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value} className="bg-white dark:bg-[#1a1a1a]">
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
-                {/* Hours */}
+                {/* Hours Row */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className={labelClass}>Hora Inicio</label>
+                        <label className={labelClass}>Hora de Inicio</label>
                         <input
                             type="time"
                             value={startHour}
@@ -269,7 +201,7 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                         />
                     </div>
                     <div>
-                        <label className={labelClass}>Hora Fin</label>
+                        <label className={labelClass}>Hora de Fin</label>
                         <input
                             type="time"
                             value={endHour}
@@ -279,38 +211,92 @@ const ServiceForm = ({ initialData, onSuccess, onCancel }: ServiceFormProps) => 
                     </div>
                 </div>
 
-                {/* Availability */}
-                <div className="flex items-center gap-2 pt-2">
-                    <input
-                        id="isAvailable"
-                        type="checkbox"
-                        checked={isAvailable}
-                        onChange={(e) => setIsAvailable(e.target.checked)}
-                        className="w-4 h-4 cursor-pointer text-teal-600 dark:text-teal-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
-                    />
-                    <label htmlFor="isAvailable" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer font-medium select-none">
-                        Disponible para solicitar
-                    </label>
+                {/* Image */}
+                <div className="space-y-3">
+                    <label className={labelClass}>Imagen del Servicio</label>
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <Link size={16} />
+                            </div>
+                            <input
+                                type="text"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                placeholder="https://example.com/image.jpg"
+                                disabled={isMinioImage || isUploading}
+                                className={`${inputClass} pl-10 ${(isMinioImage || isUploading)
+                                    ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60'
+                                    : ''
+                                    }`}
+                            />
+                        </div>
+
+                        {!isMinioImage ? (
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    id="service-image-upload"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    disabled={isUploading}
+                                />
+                                <label
+                                    htmlFor="service-image-upload"
+                                    className="flex items-center justify-center w-11 h-11 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 transition-colors"
+                                    title="Subir archivo"
+                                >
+                                    {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                                </label>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="flex items-center justify-center w-11 h-11 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                title="Quitar imagen"
+                            >
+                                <X size={18} />
+                            </button>
+                        )}
+                    </div>
+
+                    {imageUrl && (
+                        <div className="w-full h-32 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden bg-gray-50 dark:bg-black/20 flex items-center justify-center group relative">
+                            <img
+                                src={imageUrl}
+                                alt="Preview"
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff43c619c721?auto=format&fit=crop&q=80&w=400')}
+                            />
+                            {isUploading && (
+                                <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                                    <Loader2 size={32} className="text-white animate-spin" />
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-black/10">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold text-[10px] uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                    className="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 font-medium text-sm hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                     Cancelar
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="px-8 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-300 text-white font-bold text-[10px] uppercase tracking-wider rounded-full shadow-lg shadow-teal-500/20 disabled:shadow-none disabled:cursor-not-allowed transition-all active:scale-95 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-[#d4af37] hover:bg-[#c9a432] disabled:bg-[#d4af37]/50 text-white font-medium text-sm rounded-lg shadow-lg shadow-[#d4af37]/20 disabled:shadow-none disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
-                    {loading && <Loader2 size={14} className="animate-spin" />}
-                    {loading ? 'Guardando...' : (initialData ? 'Actualizar' : 'Crear')}
+                    {loading && <Loader2 size={16} className="animate-spin" />}
+                    {loading ? 'Guardando...' : (initialData ? 'Actualizar' : 'Crear Servicio')}
                 </button>
             </div>
         </form>

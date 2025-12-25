@@ -26,9 +26,10 @@ const FileManagerView: React.FC = () => {
 
     const folders = [
         { name: 'Raíz', value: '' },
-        { name: 'WebContent', value: 'webcontent' },
-        { name: 'Habitaciones', value: 'rooms' },
-        { name: 'Servicios', value: 'services' }
+        { name: 'WebContent', value: 'cms' },
+        { name: 'Habitaciones', value: 'room-types' },
+        { name: 'Servicios', value: 'services' },
+        { name: 'Perfiles', value: 'profiles' }
     ];
 
     useEffect(() => {

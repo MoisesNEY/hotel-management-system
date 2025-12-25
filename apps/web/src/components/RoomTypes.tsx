@@ -285,7 +285,7 @@ const RoomTypes: React.FC = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-[#1a1a2e] py-20" id="habitaciones">
+      <section className="bg-white dark:bg-[#0a0a0a] py-20" id="habitaciones">
         <div className="max-w-7xl mx-auto px-5">
           <div className="text-center mb-10">
             <h2 className="text-4xl text-gray-900 dark:text-white mb-4 relative pb-4 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-20 after:h-0.5 after:bg-gradient-to-r after:from-[#d4af37] after:via-[#ffd95a] after:to-[#d4af37] after:rounded-sm">
@@ -315,7 +315,7 @@ const RoomTypes: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {roomTypes.map((room) => (
-                <div key={room.id} className="group bg-white dark:bg-[#1e1e3e] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 dark:border-gray-700">
+                <div key={room.id} className="group bg-white dark:bg-[#161616] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 dark:border-white/10 hover:border-[#d4af37]/30">
                   <div className="relative overflow-hidden h-64">
                     <img
                       src={room.imageUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600'}
@@ -332,15 +332,15 @@ const RoomTypes: React.FC = () => {
 
                     <div className="flex justify-around mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                       <div className="flex flex-col items-center gap-2">
-                        <Maximize size={18} className="text-[#2a9d8f]" />
+                        <Maximize size={18} className="text-[#d4af37]" />
                         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.area || 0} m²</span>
                       </div>
                       <div className="flex flex-col items-center gap-2">
-                        <Users size={18} className="text-[#2a9d8f]" />
+                        <Users size={18} className="text-[#d4af37]" />
                         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.maxCapacity} personas</span>
                       </div>
                       <div className="flex flex-col items-center gap-2">
-                        <Bed size={18} className="text-[#2a9d8f]" />
+                        <Bed size={18} className="text-[#d4af37]" />
                         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{room.beds || 1} {(!room.beds || room.beds === 1) ? 'cama' : 'camas'}</span>
                       </div>
                     </div>
@@ -352,11 +352,11 @@ const RoomTypes: React.FC = () => {
                           <span className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{room.basePrice}</span>
                           <span className="text-base text-gray-600 dark:text-gray-400 font-normal ml-2">/noche</span>
                         </div>
-                        <div className="text-sm text-[#2a9d8f] font-medium">Impuestos incluidos</div>
+                        <div className="text-sm text-[#d4af37]/70 font-medium">Impuestos incluidos</div>
                       </div>
 
                       <button
-                        className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+                        className="w-full bg-[#d4af37] text-black py-3.5 px-8 rounded-xl font-bold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#b8962d] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#d4af37]/20 active:translate-y-0"
                         onClick={handleReservation}
                         type="button"
                       >
@@ -365,7 +365,7 @@ const RoomTypes: React.FC = () => {
 
                       <div className="flex justify-center gap-5 mt-4 mb-5">
                         <div className="text-center">
-                          <div className="w-6 h-6 mx-auto mb-1 text-[#2a9d8f]">
+                          <div className="w-6 h-6 mx-auto mb-1 text-emerald-500">
                             <Check size={16} />
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -373,7 +373,7 @@ const RoomTypes: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="w-6 h-6 mx-auto mb-1 text-[#2a9d8f]">
+                          <div className="w-6 h-6 mx-auto mb-1 text-emerald-500">
                             <Check size={16} />
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -382,7 +382,7 @@ const RoomTypes: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="inline-block bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-3 py-1 rounded text-xs text-[#2a9d8f] dark:text-[#4cc9f0] font-semibold mt-2.5">
+                      <div className="inline-block bg-[#d4af37]/10 border border-[#d4af37]/20 px-3 py-1 rounded-lg text-xs text-[#d4af37] font-bold mt-2.5">
                         Calidad Garantizada
                       </div>
                     </div>
@@ -714,13 +714,13 @@ const RoomTypes: React.FC = () => {
           onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
         >
           <div
-            className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
+            className="relative bg-white dark:bg-[#111111] rounded-3xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300 border border-gray-100 dark:border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-white/5 p-8">
               <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold text-center">¡Reserva Exitosa!</h3>
               <button
-                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400"
                 onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
                 type="button"
                 aria-label="Cerrar modal"
@@ -739,7 +739,7 @@ const RoomTypes: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+              <div className="bg-gray-50 dark:bg-white/5 p-5 rounded-2xl border border-gray-200 dark:border-white/5 mb-6">
                 <h4 className="text-gray-900 dark:text-white font-semibold mb-4">Detalles de la Reserva</h4>
                 <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   <div className="flex justify-between">
@@ -758,15 +758,15 @@ const RoomTypes: React.FC = () => {
                     <span>Noches:</span>
                     <span className="font-medium">{successBookingDetails.nights}</span>
                   </div>
-                  <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-2 mt-2">
+                  <div className="flex justify-between border-t border-gray-300 dark:border-white/10 pt-2 mt-2">
                     <span className="font-semibold">Total:</span>
-                    <span className="font-semibold text-[#2a9d8f]">${successBookingDetails.totalPrice}</span>
+                    <span className="font-semibold text-[#d4af37]">${successBookingDetails.totalPrice}</span>
                   </div>
                 </div>
               </div>
 
               <button
-                className="w-full bg-[#1a1a2e] dark:bg-gradient-to-r dark:from-[#1a1a2e] dark:to-[#2c3e50] text-white py-3.5 px-8 rounded-lg font-semibold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#2c3e50] hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+                className="w-full bg-[#d4af37] text-black py-3.5 px-8 rounded-xl font-bold text-base cursor-pointer transition-all duration-300 uppercase tracking-wide hover:bg-[#b8962d] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#d4af37]/20 active:translate-y-0"
                 onClick={() => { setShowSuccessModal(false); setSuccessBookingDetails(null); }}
                 type="button"
               >
@@ -784,13 +784,13 @@ const RoomTypes: React.FC = () => {
           onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
         >
           <div
-            className="relative bg-white dark:bg-[#1e1e3e] rounded-xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-[modalSlideIn_0.3s_ease-out]"
+            className="relative bg-white dark:bg-[#111111] rounded-3xl w-full max-w-[500px] max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300 border border-gray-100 dark:border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-gray-700 p-8">
+            <div className="pb-5 mb-5 border-b border-gray-200 dark:border-white/5 p-8">
               <h3 className="m-0 text-gray-900 dark:text-white text-2xl font-semibold text-center">Error en la Reserva</h3>
               <button
-                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                className="absolute top-4 right-4 bg-transparent border-none cursor-pointer p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400"
                 onClick={() => { setShowErrorModal(false); setErrorMessage(''); }}
                 type="button"
                 aria-label="Cerrar modal"

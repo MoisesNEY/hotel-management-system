@@ -1,29 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getAllInvoices, deleteInvoice, cancelInvoice } from '../../../services/admin/invoiceService';
 import type { InvoiceDTO } from '../../../types/adminTypes';
 import type { PaginatedResponse } from '../../../types/clientTypes';
 import ActionButton from '../../../admin/components/shared/ActionButton';
+
+const statusLabels: Record<string, string> = {
+    'ALL': 'Todas',
+    'DRAFT': 'Borrador',
+    'ISSUED': 'Emitida',
+    'PAID': 'Pagada',
+    'CANCELLED': 'Cancelada',
+};
 
 const InvoiceList: React.FC = () => {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState<InvoiceDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
+    const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [invoiceToDelete, setInvoiceToDelete] = useState<number | null>(null);
-
     const [permissionError, setPermissionError] = useState(false);
+
+    // Search and filter state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Load data when page, search or filter changes
+    useEffect(() => {
+        loadInvoices();
+    }, [page, debouncedSearch, statusFilter]);
 
     const loadInvoices = async () => {
         setLoading(true);
         try {
-            const response: PaginatedResponse<InvoiceDTO> = await getAllInvoices(page, 10);
+            const response: PaginatedResponse<InvoiceDTO> = await getAllInvoices(
+                page, 
+                pageSize,
+                'id,desc',
+                statusFilter !== 'ALL' ? statusFilter : undefined
+            );
             setInvoices(response.data);
             setTotalPages(response.totalPages);
+            setTotalItems(response.totalElements);
         } catch (error: any) {
             console.error("Error loading invoices", error);
             if (error.response?.status === 403) {
@@ -33,10 +67,6 @@ const InvoiceList: React.FC = () => {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        loadInvoices();
-    }, [page]);
 
     const handleDeleteClick = (id: number) => {
         setInvoiceToDelete(id);
@@ -52,7 +82,6 @@ const InvoiceList: React.FC = () => {
                 loadInvoices();
             } catch (error) {
                 console.error("Error deleting invoice", error);
-                // In a real app, show toast error
             }
         }
     };
@@ -73,6 +102,33 @@ const InvoiceList: React.FC = () => {
         setShowDeleteModal(false);
         setShowSuccessModal(false);
         setInvoiceToDelete(null);
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setPage(0);
+    };
+
+    const handleStatusFilterChange = (status: string) => {
+        setStatusFilter(status);
+        setPage(0);
+    };
+
+    // Filter invoices by search query (client-side)
+    const filteredInvoices = debouncedSearch
+        ? invoices.filter(inv => {
+            const search = debouncedSearch.toLowerCase();
+            const customer = inv.booking?.customer;
+            if (!customer) return false;
+            const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.toLowerCase();
+            const email = (customer.email || '').toLowerCase();
+            return fullName.includes(search) || email.includes(search);
+        })
+        : invoices;
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        setPage(0);
     };
 
     return (
@@ -98,7 +154,6 @@ const InvoiceList: React.FC = () => {
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Acceso Denegado (403)</h2>
                     <p className="max-w-md text-gray-500 dark:text-gray-400">
                         El servidor ha rechazado el acceso a la lista de facturas para tu rol actual.
-                        Por favor, contacta al administrador para habilitar los permisos de <code className="bg-gray-100 dark:bg-white/5 px-1 rounded text-red-500 font-bold">ROL_EMPLEADO</code> en el backend.
                     </p>
                     <button
                         onClick={loadInvoices}
@@ -109,11 +164,56 @@ const InvoiceList: React.FC = () => {
                 </div>
             ) : (
                 <div className="bg-white dark:bg-[#111111] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
+                    {/* Search and Filters */}
+                    <div className="p-4 border-b border-gray-200 dark:border-white/5">
+                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                            {/* Search Bar */}
+                            <div className="relative w-full md:w-80">
+                                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre o email del cliente..."
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
+                                    className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-[#d4af37] focus:border-transparent outline-none transition-all"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={clearSearch}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                    >
+                                        <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Status Filters */}
+                            <div className="flex flex-wrap gap-2">
+                                {Object.entries(statusLabels).map(([status, label]) => {
+                                    const isActive = statusFilter === status;
+                                    return (
+                                        <button
+                                            key={status}
+                                            onClick={() => handleStatusFilterChange(status)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive
+                                                ? 'bg-[#d4af37] text-white shadow-md'
+                                                : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 text-xs uppercase font-medium">
                                 <tr>
                                     <th className="px-6 py-4">Código</th>
+                                    <th className="px-6 py-4">Cliente</th>
                                     <th className="px-6 py-4">Fecha Emisión</th>
                                     <th className="px-6 py-4">Monto Total</th>
                                     <th className="px-6 py-4">Estado</th>
@@ -123,16 +223,30 @@ const InvoiceList: React.FC = () => {
                             <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-gray-500">Cargando...</td>
+                                        <td colSpan={6} className="py-8 text-center text-gray-500">Cargando...</td>
                                     </tr>
-                                ) : !invoices || invoices.length === 0 ? (
+                                ) : !filteredInvoices || filteredInvoices.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-gray-500">No hay facturas registradas</td>
+                                        <td colSpan={6} className="py-8 text-center text-gray-500">No hay facturas registradas</td>
                                     </tr>
                                 ) : (
-                                    invoices.map((invoice) => (
+                                    filteredInvoices.map((invoice) => (
                                         <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="px-6 py-4 font-mono text-[#d4af37]">{invoice.code}</td>
+                                            <td className="px-6 py-4">
+                                                {invoice.booking?.customer ? (
+                                                    <div>
+                                                        <div className="font-medium text-gray-900 dark:text-white">
+                                                            {invoice.booking.customer.firstName} {invoice.booking.customer.lastName}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {invoice.booking.customer.email}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400 italic text-xs">Sin cliente</span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
                                                 {new Date(invoice.issuedDate).toLocaleDateString()}
                                             </td>
@@ -144,65 +258,109 @@ const InvoiceList: React.FC = () => {
                                                     ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
                                                     : invoice.status === 'PENDING'
                                                         ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20'
-                                                        : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
+                                                        : invoice.status === 'DRAFT'
+                                                            ? 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20'
+                                                            : invoice.status === 'ISSUED'
+                                                                ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
+                                                                : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
                                             }`}>
-                                                {invoice.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <ActionButton 
-                                                    onClick={() => navigate(`/admin/invoices/edit/${invoice.id}`)}
-                                                    icon={PencilSquareIcon}
-                                                    label="Editar"
-                                                    variant="ghost"
-                                                />
-        
-                                                {invoice.status === 'DRAFT' && (
+                                                    {statusLabels[invoice.status] || invoice.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
                                                     <ActionButton 
-                                                        onClick={() => handleDeleteClick(invoice.id)}
-                                                        icon={TrashIcon}
-                                                        label="Eliminar"
+                                                        onClick={() => navigate(`/admin/invoices/edit/${invoice.id}`)}
+                                                        icon={PencilSquareIcon}
+                                                        label="Editar"
                                                         variant="ghost"
-                                                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
                                                     />
-                                                )}
-                                                {invoice.status === 'ISSUED' && (
-                                                    <ActionButton 
-                                                        onClick={() => handleCancelClick(invoice.id)}
-                                                        icon={ExclamationTriangleIcon}
-                                                        label="Cancelar"
-                                                        variant="ghost"
-                                                        className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10"
-                                                    />
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                    {/* Pagination (Simple) */}
-                    <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex justify-end gap-2">
-                        <button
-                            disabled={page === 0}
-                            onClick={() => setPage(p => Math.max(0, p - 1))}
-                            className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
-                        >
-                            Anterior
-                        </button>
-                        <span className="text-sm py-1 text-gray-600 dark:text-gray-400">Página {page + 1} de {totalPages || 1}</span>
-                        <button
-                            disabled={page >= totalPages - 1}
-                            onClick={() => setPage(p => p + 1)}
-                            className="px-3 py-1 text-sm border border-gray-200 dark:border-white/10 rounded disabled:opacity-50 text-gray-600 dark:text-gray-400"
-                        >
-                            Siguiente
-                        </button>
+                                                    {invoice.status === 'DRAFT' && (
+                                                        <ActionButton 
+                                                            onClick={() => handleDeleteClick(invoice.id)}
+                                                            icon={TrashIcon}
+                                                            label="Eliminar"
+                                                            variant="ghost"
+                                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                        />
+                                                    )}
+                                                    {invoice.status === 'ISSUED' && (
+                                                        <ActionButton 
+                                                            onClick={() => handleCancelClick(invoice.id)}
+                                                            icon={ExclamationTriangleIcon}
+                                                            label="Cancelar"
+                                                            variant="ghost"
+                                                            className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10"
+                                                        />
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 0 && (
+                        <div className="px-6 py-4 border-t border-gray-200 dark:border-white/5 flex items-center justify-between">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {totalItems > 0 
+                                    ? `Mostrando ${page * pageSize + 1} - ${Math.min((page + 1) * pageSize, totalItems)} de ${totalItems} facturas`
+                                    : 'Sin resultados'
+                                }
+                            </p>
+                            
+                            {totalPages > 1 && (
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <ChevronLeft size={18} className="text-gray-600 dark:text-gray-400" />
+                                    </button>
+                                    
+                                    {/* Page Numbers */}
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        let pageNum;
+                                        if (totalPages <= 5) {
+                                            pageNum = i;
+                                        } else if (page < 3) {
+                                            pageNum = i;
+                                        } else if (page > totalPages - 4) {
+                                            pageNum = totalPages - 5 + i;
+                                        } else {
+                                            pageNum = page - 2 + i;
+                                        }
+                                        
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setPage(pageNum)}
+                                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                                    page === pageNum
+                                                        ? 'bg-[#d4af37] text-white'
+                                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'
+                                                }`}
+                                            >
+                                                {pageNum + 1}
+                                            </button>
+                                        );
+                                    })}
+                                    
+                                    <button
+                                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                        disabled={page >= totalPages - 1}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
