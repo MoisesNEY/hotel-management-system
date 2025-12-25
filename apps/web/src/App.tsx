@@ -29,14 +29,11 @@ const RootRedirect = () => {
 };
 
 const LandingPageGuard = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, hasRole, isInitialized } = useAuth();
+  const { isInitialized } = useAuth();
 
   if (!isInitialized) return null;
 
-  if (isAuthenticated && hasRole('ROLE_EMPLOYEE')) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
-
+  // Allow all users (including admins) to view the public landing page
   return <>{children}</>;
 };
 
