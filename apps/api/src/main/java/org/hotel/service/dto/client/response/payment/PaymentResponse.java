@@ -14,9 +14,10 @@ import java.math.BigDecimal;
 @Setter
 public class PaymentResponse implements Serializable {
     private Long id;
-    private java.time.Instant paymentDate;
+    private java.time.Instant date;
     private BigDecimal amount;
-    private String referenceNumber;
+    private String method;
+    private String referenceId;
     private Long invoiceId;
     private String paypalOrderId;
 }

@@ -88,12 +88,13 @@ public class ClientPaymentService {
             Order order = paypalClient.getOrdersController().createOrder(createOrderInput).getResult();
 
             return new PaymentResponse(
-                null,
-                null,
-                invoice.getTotalAmount(),
-                null,
-                invoice.getId(),
-                order.getId()
+                (Long) null,            // id
+                (Instant) null,         // date
+                invoice.getTotalAmount(), // amount
+                "PAYPAL",               // method
+                (String) null,          // referenceId
+                invoice.getId(),        // invoiceId
+                order.getId()           // paypalOrderId
             );
 
         } catch (ApiException e) {
@@ -129,13 +130,18 @@ public class ClientPaymentService {
                 // Security Validation: Verify captured amount matches Invoice Total
                 // Fallback check: Compare Order PurchaseUnit Amount if available
                 if (order.getPurchaseUnits() != null && !order.getPurchaseUnits().isEmpty()) {
-                     String orderAmountStr = order.getPurchaseUnits().get(0).getAmount().getValue();
-                     java.math.BigDecimal orderAmount = new java.math.BigDecimal(orderAmountStr);
-                     
-                     if (orderAmount.compareTo(invoice.getTotalAmount()) != 0) {
-                         log.error("Payment Amount Mismatch Audit: Order {} Amount {} != Invoice {} Amount {}", 
-                             order.getId(), orderAmount, invoice.getId(), invoice.getTotalAmount());
-                         throw new BusinessRuleException("Error de Seguridad: El monto cobrado por PayPal no coincide con el total de la factura.");
+                     var purchaseUnit = order.getPurchaseUnits().get(0);
+                     if (purchaseUnit.getAmount() != null && purchaseUnit.getAmount().getValue() != null) {
+                         String orderAmountStr = purchaseUnit.getAmount().getValue();
+                         java.math.BigDecimal orderAmount = new java.math.BigDecimal(orderAmountStr);
+                         
+                         if (orderAmount.compareTo(invoice.getTotalAmount()) != 0) {
+                             log.error("Payment Amount Mismatch Audit: Order {} Amount {} != Invoice {} Amount {}", 
+                                 order.getId(), orderAmount, invoice.getId(), invoice.getTotalAmount());
+                             throw new BusinessRuleException("Error de Seguridad: El monto cobrado por PayPal no coincide con el total de la factura.");
+                         }
+                     } else {
+                         log.warn("PayPal response did not include amount in PurchaseUnit for order: {}", order.getId());
                      }
                 }
 
@@ -173,6 +179,7 @@ public class ClientPaymentService {
                     payment.getId(),
                     payment.getDate(),
                     payment.getAmount(),
+                    payment.getMethod() != null ? payment.getMethod().name() : "PAYPAL",
                     payment.getReferenceId(),
                     invoice.getId(),
                     order.getId()
